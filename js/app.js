@@ -125,61 +125,133 @@ function setTextContent(elementId, text) {
 }
 
 function updateDashboardSummary(factoringData) {
-  const data = factoringData || { tasa: 0, montoGanado: 0, totalInvertido: 0 };
+  const data = factoringData || { tasa: 0, montoGanado: 0, totalInvertido: 0, gananciaUltimoMes: 0 }; // Añadir gananciaUltimoMes por defecto
   const tasa = data.tasa || 0;
   const montoGanado = data.montoGanado || 0;
+  const gananciaUltimoMes = data.gananciaUltimoMes || 0; // Obtener ganancia del último mes
   const inversionTotalMostrada = totalDepositosCalculado + montoGanado;
+
   setTextContent("total-inversion", formatUtils.currency(inversionTotalMostrada));
   setTextContent("tasa-promedio", formatUtils.percentage(tasa));
-  const inversionCardInfo = document.querySelector(".summary-card:nth-child(1) .summary-info");
-  if (inversionCardInfo) {
-    let inversionTrendElement = inversionCardInfo.querySelector(".summary-trend");
-    if (inversionTrendElement) {
-      const trendClass = montoGanado >= 0 ? 'positive' : 'negative';
-      const iconId = montoGanado >= 0 ? 'icon-trending-up' : 'icon-trending-down';
-      inversionTrendElement.className = `summary-trend ${trendClass}`;
-      inversionTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconId}"></use></svg></span> ${formatUtils.currency(montoGanado)} de ganancia`;
+
+  // Actualizar tarjeta de Inversión Total
+  const inversionTrendElement = document.getElementById("inversion-trend"); // Seleccionar por ID
+  if (inversionTrendElement) {
+    let trendClassInv = 'neutral'; // Renombrar variables para evitar conflictos
+    let iconIdInv = 'icon-trending-neutral';
+    if (gananciaUltimoMes > 1) { // Umbral pequeño para considerar positivo
+        trendClassInv = 'positive';
+        iconIdInv = 'icon-trending-up';
+    } else if (gananciaUltimoMes < -1) { // Umbral pequeño para considerar negativo
+        trendClassInv = 'negative';
+        iconIdInv = 'icon-trending-down';
     }
+    inversionTrendElement.className = `summary-trend ${trendClassInv}`;
+    // Mostrar ganancia del último mes
+    inversionTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdInv}"></use></svg></span> ${formatUtils.currency(gananciaUltimoMes)} último mes`;
   }
-  const tasaTrendElement = document.querySelector(".summary-card:nth-child(2) .summary-trend");
+
+  // Actualizar tarjeta de Tasa Promedio (sin cambios aquí)
+  const tasaTrendElement = document.getElementById("tasa-trend"); // Usar ID si existe o selector
   if (tasaTrendElement) {
-    let trendClass = 'neutral';
-    let iconId = 'icon-trending-neutral';
-    if (tasa > 0.1) { trendClass = 'positive'; iconId = 'icon-trending-up'; }
-    else if (tasa < -0.1) { trendClass = 'negative'; iconId = 'icon-trending-down'; }
-    tasaTrendElement.className = `summary-trend ${trendClass}`;
-    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconId}"></use></svg></span> Anualizada`;
+    let trendClassTasa = 'neutral'; // Usar nombres de variables distintos
+    let iconIdTasa = 'icon-trending-neutral'; // Definir iconId aquí basado en la tasa
+    if (tasa > 0.1) { trendClassTasa = 'positive'; iconIdTasa = 'icon-trending-up'; }
+    else if (tasa < -0.1) { trendClassTasa = 'negative'; iconIdTasa = 'icon-trending-down'; }
+    tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
+    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdTasa}"></use></svg></span> Anualizada`; // Usar iconIdTasa
   }
+
+  // Actualizar tarjeta de Meta (sin cambios aquí)
+  const metaTiempoElement = document.getElementById("meta-tiempo");
+  // ... (código existente para la meta) ...
+}
+
+function updateDashboardSummary(factoringData) {
+  const data = factoringData || { tasa: 0, montoGanado: 0, totalInvertido: 0, gananciaUltimoMes: 0 };
+  const tasa = data.tasa || 0;
+  const montoGanado = data.montoGanado || 0;
+  const gananciaUltimoMes = data.gananciaUltimoMes || 0;
+  // Asegurarse que totalDepositosCalculado sea un número
+  const depositosValidos = typeof totalDepositosCalculado === 'number' && !isNaN(totalDepositosCalculado) ? totalDepositosCalculado : 0;
+  const inversionTotalMostrada = depositosValidos + montoGanado;
+
+  setTextContent("total-inversion", formatUtils.currency(inversionTotalMostrada));
+  setTextContent("tasa-promedio", formatUtils.percentage(tasa));
+
+  // ... (actualización tarjeta Inversión Total y Tasa Promedio como antes) ...
+  const inversionTrendElement = document.getElementById("inversion-trend");
+  if (inversionTrendElement) {
+    let trendClassInv = 'neutral';
+    let iconIdInv = 'icon-trending-neutral';
+    if (gananciaUltimoMes > 1) {
+        trendClassInv = 'positive';
+        iconIdInv = 'icon-trending-up';
+    } else if (gananciaUltimoMes < -1) {
+        trendClassInv = 'negative';
+        iconIdInv = 'icon-trending-down';
+    }
+    inversionTrendElement.className = `summary-trend ${trendClassInv}`;
+    inversionTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdInv}"></use></svg></span> ${formatUtils.currency(gananciaUltimoMes)} último mes`;
+  }
+
+  const tasaTrendElement = document.getElementById("tasa-trend");
+  if (tasaTrendElement) {
+    let trendClassTasa = 'neutral';
+    let iconIdTasa = 'icon-trending-neutral';
+    if (tasa > 0.1) { trendClassTasa = 'positive'; iconIdTasa = 'icon-trending-up'; }
+    else if (tasa < -0.1) { trendClassTasa = 'negative'; iconIdTasa = 'icon-trending-down'; }
+    tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
+    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdTasa}"></use></svg></span> Anualizada`;
+  }
+
+
+  // Actualizar tarjeta de Meta
   const metaTiempoElement = document.getElementById("meta-tiempo");
   const metaDescripcionElement = document.getElementById("meta-descripcion");
+
   if (metaTiempoElement && metaDescripcionElement) {
-    let tiempoHastaMeta = { años: Infinity, meses: Infinity };
-    const capitalInicialMeta = inversionTotalMostrada > 0 ? inversionTotalMostrada : 0; 
-    if ((typeof tasa === 'number' && !isNaN(tasa) && tasa > -100) || APORTE_MENSUAL > 0) {
-         tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasa);
+    let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null }; // Incluir fechaEstimada null por defecto
+    // Asegurar que capitalInicialMeta sea un número válido
+    const capitalInicialMeta = typeof inversionTotalMostrada === 'number' && !isNaN(inversionTotalMostrada) && inversionTotalMostrada > 0 ? inversionTotalMostrada : 0;
+    // Asegurar que tasa sea un número válido para el cálculo
+    const tasaValidaParaCalculo = typeof tasa === 'number' && !isNaN(tasa) ? tasa : 0; // Usar 0 si la tasa es inválida
+
+    // Solo calcular si hay aportes o si la tasa es positiva (si tasa es 0 o negativa sin aportes, no se alcanzará)
+    if (APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
+         tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo); // Usar tasaValidaParaCalculo
     }
-    setTextContent("meta-tiempo", "");
-    if (tiempoHastaMeta.años === Infinity || !isFinite(tiempoHastaMeta.años)) {
+    // Si no hay aportes y la tasa no es positiva, tiempoHastaMeta se queda en Infinity (inalcanzable)
+
+    // Actualizar UI SIEMPRE después del cálculo
+    if (!isFinite(tiempoHastaMeta.años)) { // Usar isFinite para chequear Infinity o NaN
       metaTiempoElement.textContent = "Meta Inalcanzable";
-      metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-warning"></use></svg></span> Tasa o aportes insuficientes`;
+      metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-warning"></use></svg></span> Tasa o aportes insuficientes`; // Texto ajustado
       metaDescripcionElement.className = "summary-trend negative";
     } else {
       let tiempoTexto = "";
+      const fechaEstimadaValida = tiempoHastaMeta.fechaEstimada instanceof Date && !isNaN(tiempoHastaMeta.fechaEstimada);
+
       if (tiempoHastaMeta.años <= 0 && tiempoHastaMeta.meses <= 0) {
            tiempoTexto = "Meta Alcanzada";
-           const fechaEstimadaValida = tiempoHastaMeta.fechaEstimada instanceof Date && !isNaN(tiempoHastaMeta.fechaEstimada);
-           metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-check"></use></svg></span> ${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`;
+           // Mostrar solo icono y fecha si es válida, o solo icono y texto
+           metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-check"></use></svg></span> ${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
            metaDescripcionElement.className = "summary-trend positive";
       } else {
+          // ... (código existente para calcular tiempoTexto) ...
           if (tiempoHastaMeta.años === 0) tiempoTexto = `En ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
           else if (tiempoHastaMeta.meses === 0) tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'}`;
           else tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'} y ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
-          const fechaEstimadaValida = tiempoHastaMeta.fechaEstimada instanceof Date && !isNaN(tiempoHastaMeta.fechaEstimada);
-          metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-timeline"></use></span> ${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Calculando fecha...'}`;
-          metaDescripcionElement.className = "summary-trend positive";
+
+          // Mostrar solo icono y fecha estimada si es válida, o solo icono
+          metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-timeline"></use></svg></span> ${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`; // Quitado texto de aportes
+          metaDescripcionElement.className = fechaEstimadaValida ? "summary-trend positive" : "summary-trend neutral"; // Clase basada en validez
       }
       metaTiempoElement.textContent = tiempoTexto;
     }
+  } else {
+      // Si los elementos no existen, limpiar el texto por si acaso
+      if (metaTiempoElement) metaTiempoElement.textContent = "Error UI";
   }
 }
 

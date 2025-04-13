@@ -265,9 +265,15 @@ class DataService {
         tasa: 0,
         contratos: 0,
         contratosPagados: 0,
-        contratosPendientes: 0
+        contratosPendientes: 0,
+        gananciaUltimoMes: 0 // Valor inicial
       };
     }
+
+    const hoy = new Date();
+    const fechaHaceUnMes = new Date();
+    fechaHaceUnMes.setDate(hoy.getDate() - 30);
+
     const result = this.factoring.reduce((acc, contrato) => {
       if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined' || !contrato.fechaIngreso || (!contrato.fechaPagoReal && !contrato.fechaPagoEstimado)) {
         console.warn("Skipping incomplete contract in buildFactoringData:", contrato);
@@ -291,6 +297,11 @@ class DataService {
       const fechaIngreso = dateUtils.parse(contrato.fechaIngreso);
       const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
       const fechaPago = dateUtils.parse(fechaPagoStr);
+
+      // Sumar ganancia si el pago fue en el último mes
+      if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy) {
+        acc.gananciaUltimoMes += interestPEN;
+      }
 
       if (isNaN(fechaIngreso.getTime()) || isNaN(fechaPago.getTime())) {
         console.warn("Skipping contract due to invalid dates in buildFactoringData:", contrato.codigoSubasta, fechaIngreso, fechaPago);
@@ -331,7 +342,8 @@ class DataService {
       numContratos: 0,            
       contratosPagados: 0,        
       contratosPendientes: 0,     
-      totalPrincipalForRate: 0    
+      totalPrincipalForRate: 0,   
+      gananciaUltimoMes: 0 // Inicializar en el acumulador
     });
 
     const overallRate = result.totalPrincipalForRate > 0 ? (result.weightedRateSum / result.totalPrincipalForRate) * 100 : 0;
@@ -345,7 +357,8 @@ class DataService {
       tasa: isNaN(overallRate) ? 0 : overallRate, 
       contratos: result.numContratos,
       contratosPagados: actualPagados,
-      contratosPendientes: actualPendientes
+      contratosPendientes: actualPendientes,
+      gananciaUltimoMes: result.gananciaUltimoMes // Añadir al objeto devuelto
     };
   }
   
