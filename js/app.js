@@ -538,7 +538,7 @@ function showContractDetailsPopup(contract) {
     estadoIcon = "icon-warning";
   } else {
     estadoTexto = "Pendiente";
-    estadoColor = "#ffd600";
+    estadoColor = "#ecc94b";
     estadoIcon = "icon-time";
   }
 
@@ -657,6 +657,19 @@ function showContractDetailsPopup(contract) {
     #close-contract-popup:hover {
       background-color: rgba(0,0,0,0.1);
       color: var(--color-text-primary);
+    }
+    @media (max-width: 600px) {
+      .popup-overlay {
+        padding: 10px;
+      }
+      .popup-modal {
+        width: 98% !important;
+        max-width: 98% !important;
+        padding: 8px !important;
+      }
+      .popup-details-table {
+        width: 100%;
+      }
     }
   `;
 

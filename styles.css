@@ -11,8 +11,8 @@
   --color-text-primary: #e0e6f1;
   --color-text-secondary: #a0aec0;
   --color-text-tertiary: #718096;
-  --color-positive: #48bb78;
-  --color-negative: #f56565;
+  --color-positive: #6abd8e;
+  --color-negative: #e57979;
   --color-neutral: #ecc94b;
   --color-badge-active: var(--color-positive);
   --color-border: rgba(255, 255, 255, 0.08);
@@ -51,6 +51,9 @@
   box-sizing: border-box;
 }
 
+/* Ajuste homogéneo de fuentes para toda la web (PC y móvil) */
+
+/* Base para toda la web */
 html, body {
   width: 100%;
   height: 100%;
@@ -59,7 +62,7 @@ html, body {
   line-height: 1.5;
   color: var(--color-text-primary);
   background: var(--color-bg-primary) !important;
-  background-attachment: fixed;
+  /* background-attachment: fixed; */
   overflow-y: auto;
   min-height: 100vh;
   overflow-x: hidden;
@@ -716,11 +719,36 @@ html, body, * {
     padding: var(--spacing-sm);
   }
 
+  .summary-value,
+  .detail-gain,
+  .details-table th,
+  .details-table td,
+  .client-name,
+  .year-header-cell,
+  .popup-details-table td,
+  .popup-details-table .popup-key,
+  .popup-details-table .popup-value {
+    font-size: var(--font-size-md);
+  }
+
+  .summary-info h3,
+  .details-table th,
+  .year-header-cell,
+  .client-name,
+  .invested-amount,
+  .popup-details-table .popup-key {
+    font-size: var(--font-size-sm);
+  }
+
+  .invested-amount {
+    font-size: var(--font-size-xs);
+  }
+
   .details-table th,
   .details-table td {
     padding-top: var(--spacing-xs);
     padding-bottom: var(--spacing-xs);
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm); /* Homogéneo con tarjetas resumen */
   }
 
   .details-table th:nth-child(1),
@@ -751,43 +779,22 @@ html, body, * {
     max-width: 100%;
   }
 
-  .investment-card {
-    contain: layout style;
-  }
-
-  .investment-card .card-header {
-    padding: var(--spacing-sm);
-  }
-
-  .chart-container {
-    height: 350px;
-  }
-
-  .chart-container canvas {
-    height: 290px;
-    padding: 0;
-  }
-
-  .chart-container .card-header {
-    padding: var(--spacing-sm);
-  }
-
-  .custom-legend {
-    gap: var(--spacing-xs);
-  }
-
-  .legend-text {
-    font-size: var(--font-size-xs);
+  .detail-gain {
+    font-size: var(--font-size-md); /* Valor homogéneo, ni muy grande ni muy chico */
     font-weight: 600;
   }
 
-  .tab {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-xs);
+  .client-name {
+    font-size: var(--font-size-sm);
   }
 
   .year-header-cell {
     padding: calc(var(--spacing-xs) * 0.8) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .tab {
+    padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-xs);
   }
 
@@ -798,6 +805,21 @@ html, body, * {
   .details-table th {
     top: 0;
   }
+}
+
+/* Ajuste para PC: usa proporciones similares para consistencia */
+.details-table th,
+.details-table td {
+  font-size: var(--font-size-sm);
+}
+
+.detail-gain {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+}
+
+.client-name {
+  font-size: var(--font-size-sm);
 }
 
 @media screen and (min-width: 75rem) {
@@ -867,7 +889,7 @@ html, body, * {
 .popup-modal {
   background: var(--color-bg-card);
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   border: 1px solid var(--color-border);
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   min-width: 320px;
@@ -932,21 +954,22 @@ html, body, * {
   background: var(--color-bg-card);
 }
 .popup-details-table tr:hover {
-  background: var(--color-bg-card);
+  background: var(--color-bg-hover);
 }
 .popup-details-table tr:nth-child(even) {
-  background: var(--color-bg-card);
+  background: var(--color-bg-stripe);
 }
 .popup-details-table tr:nth-child(odd) {
   background: var(--color-bg-card);
 }
 .popup-details-table td {
   padding: 0.6em 0.7em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--color-border);
   font-size: 1rem;
   vertical-align: middle;
   background: none;
   text-align: left;
+  color: var(--color-text-primary);
 }
 .popup-details-table tr:last-child td {
   border-bottom: none;
@@ -984,6 +1007,7 @@ html, body, * {
 
 .popup-value.status-field .svg-icon {
   margin-right: 6px;
+  color: var(--color-accent-tertiary);
 }
 
 .popup-value.financial-field {
@@ -1001,16 +1025,40 @@ html, body, * {
   padding: 0.25em 0.5em;
   border-radius: var(--border-radius-sm);
   font-weight: 500;
+  background-color: rgba(106, 189, 142, 0.10); /* verde pastel suave por defecto */
+  color: var(--color-positive); /* verde pastel */
 }
 
 .status-value.status-positive {
-  background-color: rgba(72, 187, 120, 0.15);
+  background-color: rgba(106, 189, 142, 0.18); /* verde pastel más visible */
   color: var(--color-positive);
 }
 
 .status-value.status-negative {
-  background-color: rgba(245, 101, 101, 0.15);
+  background-color: rgba(236, 201, 75, 0.18); /* amarillo pastel para "negativo" (en vez de rojo) */
+  color: var(--color-neutral); /* amarillo pastel */
+}
+
+.status-value.status-error {
+  background-color: rgba(229, 121, 121, 0.18); /* rojo pastel */
   color: var(--color-negative);
+}
+
+/* Para los textos de estado en el popup (si se usan clases directas) */
+.popup-value.status-positive,
+.popup-value .status-positive {
+  color: var(--color-positive) !important;
+  font-weight: 600;
+}
+.popup-value.status-negative,
+.popup-value .status-negative {
+  color: var(--color-neutral) !important;
+  font-weight: 600;
+}
+.popup-value.status-error,
+.popup-value .status-error {
+  color: var(--color-negative) !important;
+  font-weight: 600;
 }
 
 @media (max-width: 480px) {
