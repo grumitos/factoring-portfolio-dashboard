@@ -8,54 +8,6 @@
   <meta name="description" content="Herramienta de proyección de inversiones que permite simular y visualizar el crecimiento de tus inversiones en el tiempo" />
   <title>Proyección de Inversiones</title>
 
-  <style>
-    html {
-      background-color: #0a0f1e !important;
-    }
-    body.no-fouc {
-      opacity: 0;
-      pointer-events: none;
-      transition: none !important;
-      will-change: opacity;
-    }
-    body {
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
-      transition: opacity 0.3s ease-in;
-    }
-    body:not(.no-fouc) {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .svg-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 1em;
-      height: 1em;
-      vertical-align: middle;
-      margin-right: 0.25em;
-    }
-    .svg-icon svg {
-      width: 100%;
-      height: 100%;
-      fill: currentColor;
-    }
-
-    .rotating {
-      animation: rotate 1s linear infinite;
-      transform-origin: center center;
-      will-change: transform;
-    }
-
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-  </style>
   <script>
     window.addEventListener('DOMContentLoaded', function() {
       requestAnimationFrame(function() {
@@ -215,6 +167,8 @@
       </div>
     </main>
   </div>
+
+  <!-- Popup de detalles de contrato (se inyecta por JS) -->
 
   <script src="js/utils.js" defer></script>
   <script src="js/lazyLoader.js" defer></script>

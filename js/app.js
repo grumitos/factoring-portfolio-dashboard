@@ -343,6 +343,10 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       row.appendChild(dateCell);
       row.appendChild(gainCell);
       detailsList.appendChild(row);
+
+      // Evento para mostrar popup al hacer clic en la fila
+      row.style.cursor = "pointer";
+      row.onclick = () => showContractDetailsPopup(contrato);
     });
   } else {
     let emptyMessage = "No hay contratos disponibles.";
@@ -426,4 +430,108 @@ function setupTabListeners() {
       }
     });
   });
+}
+
+// --- Popup Modal para detalles de contrato ---
+function showContractDetailsPopup(contract) {
+  // Elimina cualquier popup existente
+  let existing = document.getElementById('contract-details-popup');
+  if (existing) existing.remove();
+
+  // Buscar el contrato original en el JSON si está disponible (por código de subasta)
+  let originalData = null;
+  if (window.dataService && window.dataService.factoring) {
+    originalData = window.dataService.factoring.find(c =>
+      c.codigoSubasta === contract.codigoSubasta
+    );
+  }
+
+  // Alias amigables para los campos
+  const fieldLabels = {
+    nombre: "Cliente",
+    Cliente: "Cliente",
+    RUC: "RUC",
+    codigoSubasta: "Código de subasta",
+    "Codigo de subasta": "Código de subasta",
+    "Código de subasta": "Código de subasta",
+    Riesgo: "Riesgo",
+    monto: "Monto invertido",
+    Inversion: "Monto invertido",
+    moneda: "Moneda",
+    "Moneda": "Moneda",
+    "Retorno mensual (%)": "Retorno mensual (%)",
+    retornoMensual: "Retorno mensual (%)",
+    fechaIngreso: "Fecha de inversión",
+    "Fecha": "Fecha de inversión",
+    fechaPagoEstimado: "Fecha de pago estimada",
+    fechaPagoReal: "Fecha de pago real",
+    "Fecha de pago": "Fecha de pago",
+    "Fecha de cierre de subasta": "Fecha de cierre de subasta",
+    Estado: "Estado",
+    montoPagoNeto: "Ganancia estimada/calculada",
+    isPaid: "Pagado",
+    isPending: "Pendiente",
+    Hora: "Hora"
+  };
+
+  // Unir datos originales y calculados, priorizando los calculados
+  const merged = {};
+  if (originalData && originalData.originalRow) {
+    Object.assign(merged, originalData.originalRow);
+  }
+  // Añadir todos los campos del contrato procesado
+  Object.assign(merged, contract);
+
+  // Mostrar todos los campos disponibles, sin duplicados
+  const shownKeys = new Set();
+  const detailRows = [];
+  for (const [key, value] of Object.entries(merged)) {
+    if (shownKeys.has(key)) continue;
+    shownKeys.add(key);
+
+    // Mostrar solo campos relevantes (oculta funciones, arrays, objetos complejos)
+    if (typeof value === "object" && value !== null) continue;
+
+    let displayValue = value;
+    // Formatear montos
+    if (typeof value === 'number' && key.match(/monto|inversion|ganancia|pago/i)) {
+      displayValue = formatUtils.currency(value, merged.moneda || merged.Moneda || "PEN");
+    }
+    // Formatear fechas
+    if (key.toLowerCase().includes('fecha') && value) {
+      displayValue = formatUtils.dateShort(value);
+    }
+    // Formatear booleanos
+    if (typeof value === "boolean") {
+      displayValue = value ? "Sí" : "No";
+    }
+    // Alias amigable
+    const label = fieldLabels[key] || key;
+    detailRows.push(`
+      <tr>
+        <td class="popup-key">${label}</td>
+        <td class="popup-value">${displayValue ?? '-'}</td>
+      </tr>
+    `);
+  }
+
+  const popup = document.createElement('div');
+  popup.id = 'contract-details-popup';
+  popup.className = 'popup-overlay';
+  popup.innerHTML = `
+    <div class="popup-modal">
+      <button class="popup-close" id="close-contract-popup" title="Cerrar">&times;</button>
+      <h3>Detalle del Contrato</h3>
+      <table class="popup-details-table">
+        <tbody>
+          ${detailRows.join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  // Cerrar popup
+  document.getElementById('close-contract-popup').onclick = () => popup.remove();
+  popup.onclick = (e) => { if (e.target === popup) popup.remove(); };
 }
