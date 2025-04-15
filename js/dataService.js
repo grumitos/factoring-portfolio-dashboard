@@ -127,15 +127,20 @@ class DataService {
     const movimientoKey = "Movimiento"; 
     const montoKey = "Monto";         
     const tipoDeposito = "deposito";  
+    const tipoRetiro = "retiro";      // Nuevo: clave para retiros
 
     if (Array.isArray(penData)) {
       penData.forEach(row => {
         if (row && row[movimientoKey] && typeof row[movimientoKey] === 'string' &&
-            row[movimientoKey].toLowerCase() === tipoDeposito &&
             row[montoKey] !== undefined && row[montoKey] !== null) {
+          const tipo = row[movimientoKey].toLowerCase();
           const monto = Number(row[montoKey]);
           if (!isNaN(monto)) {
-            totalPEN += monto;
+            if (tipo === tipoDeposito) {
+              totalPEN += monto;
+            } else if (tipo === tipoRetiro) {
+              totalPEN -= monto;
+            }
           }
         }
       });
@@ -144,11 +149,15 @@ class DataService {
     if (Array.isArray(usdData)) {
       usdData.forEach(row => {
         if (row && row[movimientoKey] && typeof row[movimientoKey] === 'string' &&
-            row[movimientoKey].toLowerCase() === tipoDeposito &&
             row[montoKey] !== undefined && row[montoKey] !== null) {
+          const tipo = row[movimientoKey].toLowerCase();
           const monto = Number(row[montoKey]);
           if (!isNaN(monto)) {
-            totalUSD += monto;
+            if (tipo === tipoDeposito) {
+              totalUSD += monto;
+            } else if (tipo === tipoRetiro) {
+              totalUSD -= monto;
+            }
           }
         }
       });
