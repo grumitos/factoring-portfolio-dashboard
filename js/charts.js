@@ -1,21 +1,18 @@
 const chartConfig = {
   colors: {
     primary: {
-      // Usar los mismos colores de acento definidos en CSS
-      base: 'rgba(79, 133, 255, 1)', // var(--color-accent-primary)
+      base: 'rgba(79, 133, 255, 1)',
       light: 'rgba(79, 133, 255, 0.2)'
     },
     secondary: {
-      // Un color secundario que contraste bien en el tema oscuro
-      base: 'rgba(72, 187, 120, 1)', // var(--color-positive)
+      base: 'rgba(72, 187, 120, 1)',
       light: 'rgba(72, 187, 120, 0.2)'
     },
-    // Usar colores de texto y rejilla definidos en CSS
-    text: 'rgba(160, 174, 192, 0.7)', // var(--color-text-secondary) con opacidad
-    grid: 'rgba(255, 255, 255, 0.05)' // var(--color-border) o similar
+    text: 'rgba(160, 174, 192, 0.7)',
+    grid: 'rgba(255, 255, 255, 0.05)'
   },
   fonts: {
-    family: '"Inter", sans-serif', // Mantener fuente
+    family: '"Inter", sans-serif',
     sizes: {
       small: 10,
       medium: 11,
@@ -36,9 +33,9 @@ function getBaseChartOptions() {
     animation: chartConfig.animation,
     scales: {
       x: {
-        grid: { color: chartConfig.colors.grid }, // Usar nuevo color de rejilla
+        grid: { color: chartConfig.colors.grid },
         ticks: {
-          color: chartConfig.colors.text, // Usar nuevo color de texto
+          color: chartConfig.colors.text,
           font: { family: chartConfig.fonts.family, size: chartConfig.fonts.sizes.small },
           padding: 10
         },
@@ -49,9 +46,9 @@ function getBaseChartOptions() {
         }
       },
       y: {
-        grid: { color: chartConfig.colors.grid }, // Usar nuevo color de rejilla
+        grid: { color: chartConfig.colors.grid },
         ticks: {
-          color: chartConfig.colors.text, // Usar nuevo color de texto
+          color: chartConfig.colors.text,
           font: { family: chartConfig.fonts.family, size: chartConfig.fonts.sizes.small },
           callback: value => formatUtils.compactNumber(value)
         },
@@ -65,14 +62,14 @@ function getBaseChartOptions() {
     },
     plugins: {
       tooltip: {
-        backgroundColor: 'rgba(21, 28, 46, 0.9)', // Fondo de tooltip más oscuro (var(--color-bg-card) con opacidad)
+        backgroundColor: 'rgba(21, 28, 46, 0.9)',
         titleFont: { family: chartConfig.fonts.family, size: chartConfig.fonts.sizes.large },
         bodyFont: { family: chartConfig.fonts.family, size: chartConfig.fonts.sizes.medium },
-        titleColor: 'rgba(224, 230, 241, 0.9)', // var(--color-text-primary) con opacidad
-        bodyColor: 'rgba(160, 174, 192, 0.9)', // var(--color-text-secondary) con opacidad
+        titleColor: 'rgba(224, 230, 241, 0.9)',
+        bodyColor: 'rgba(160, 174, 192, 0.9)',
         usePointStyle: true,
         boxPadding: 6,
-        borderColor: 'rgba(255, 255, 255, 0.1)', // Borde sutil para tooltip
+        borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1
       },
       legend: { display: false }
@@ -86,9 +83,8 @@ function getBaseChartOptions() {
 
 function createProjectionChart(canvas, data) {
   const ctx = canvas.getContext('2d');
-  const options = getBaseChartOptions(); // Obtiene las nuevas opciones base
+  const options = getBaseChartOptions();
 
-  // ... (configuración específica de escalas x/y como antes) ...
   options.scales.x.ticks.autoSkip = false;
   options.scales.x.ticks.callback = value => {
     const year = new Date().getFullYear() + parseInt(value);
@@ -97,11 +93,9 @@ function createProjectionChart(canvas, data) {
   options.scales.x.min = 0;
   options.scales.x.offset = false;
 
-  // Ajustes iniciales para Y
-  options.scales.y.min = 0; // Mantener el mínimo absoluto en 0 si es apropiado
+  options.scales.y.min = 0;
   options.scales.y.ticks.count = 7;
   options.scales.y.ticks.precision = 0;
-  // options.scales.y.grace = 0; // No usaremos grace, controlaremos con suggestedMin/Max
   options.scales.y.transition = chartConfig.animation;
 
   options.plugins.tooltip.callbacks = {
@@ -118,27 +112,27 @@ function createProjectionChart(canvas, data) {
       {
         label: 'Proyección',
         data: data.standardValues,
-        backgroundColor: chartConfig.colors.primary.light, // Nuevo color
-        borderColor: chartConfig.colors.primary.base, // Nuevo color
+        backgroundColor: chartConfig.colors.primary.light,
+        borderColor: chartConfig.colors.primary.base,
         borderWidth: 2,
         pointRadius: 3,
         pointHoverRadius: 5,
         order: 1,
-        fill: { target: 'origin', above: chartConfig.colors.primary.light }, // Nuevo color
-        pointBackgroundColor: chartConfig.colors.primary.base // Nuevo color
+        fill: { target: 'origin', above: chartConfig.colors.primary.light },
+        pointBackgroundColor: chartConfig.colors.primary.base
       },
       {
         label: 'Aporte',
         data: data.extraValues,
-        backgroundColor: chartConfig.colors.secondary.light, // Nuevo color
-        borderColor: chartConfig.colors.secondary.base, // Nuevo color
+        backgroundColor: chartConfig.colors.secondary.light,
+        borderColor: chartConfig.colors.secondary.base,
         borderWidth: 2,
         pointRadius: 3,
         pointHoverRadius: 5,
-        fill: { target: 0, above: chartConfig.colors.secondary.light }, // Nuevo color
+        fill: { target: 0, above: chartConfig.colors.secondary.light },
         hidden: true,
         order: 2,
-        pointBackgroundColor: chartConfig.colors.secondary.base // Nuevo color
+        pointBackgroundColor: chartConfig.colors.secondary.base
       }
     ]
   };
@@ -146,33 +140,28 @@ function createProjectionChart(canvas, data) {
   const chart = new Chart(ctx, {
     type: 'line',
     data: chartData,
-    options // Usa las opciones actualizadas
+    options
   });
 
-  // Calcular las escalas de forma simétrica
-  const initialValue = chartData.datasets[0].data[0]; // Valor inicial (capital)
-  const finalValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1]; // Valor final
+  const initialValue = chartData.datasets[0].data[0];
+  const finalValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1];
 
-  // El rango total debe ser: (finalValue - 0) + (initialValue - 0) = finalValue + initialValue
-  // Para que haya simetría, initialValue debe estar a la misma distancia de 0 que finalValue del límite superior
   const totalRange = finalValue + initialValue;
   
   chart.options.scales.y.min = 0;
   chart.options.scales.y.max = totalRange;
   
-  chart.update(); // Actualizar con los nuevos límites calculados
+  chart.update();
 
   createContributionToggle(chart, initialValue);
 
   return chart;
 }
 
-// Modificada para recibir initialValue para cálculos de simetría
 function createContributionToggle(chart, initialValue) {
   const legendContainer = document.querySelector('.chart-legend-container');
   if (!legendContainer) return;
 
-  // HTML para el interruptor (toggle switch) con texto simplificado
   const toggleHTML = `
     <label class="toggle-switch" for="contribution-toggle">
       <input type="checkbox" id="contribution-toggle">
@@ -183,33 +172,26 @@ function createContributionToggle(chart, initialValue) {
   legendContainer.innerHTML = toggleHTML;
 
   const toggleInput = legendContainer.querySelector('#contribution-toggle');
-  const datasetIndex = 1; // Índice del dataset "Aporte"
+  const datasetIndex = 1;
 
-  // Asegurarse de que el dataset de aporte esté oculto inicialmente
   chart.setDatasetVisibility(datasetIndex, false);
-  chart.update(); // Actualizar gráfico para reflejar estado inicial
+  chart.update();
 
   toggleInput.addEventListener('change', function() {
     const isVisible = this.checked;
     chart.setDatasetVisibility(datasetIndex, isVisible);
 
-    // Calcular límites para mantener la simetría visual
     let maxValue;
     
     if (isVisible) {
-      // Considerar el máximo entre ambos datasets
       const data1 = chart.data.datasets[0].data;
       const data2 = chart.data.datasets[1].data;
       maxValue = Math.max(Math.max(...data1), Math.max(...data2));
-      
-      // Se eliminó el padding adicional del 5%
     } else {
-      // Solo considerar el dataset principal
       const data1 = chart.data.datasets[0].data;
       maxValue = Math.max(...data1);
     }
 
-    // Establecer el máximo para mantener simetría: initialValue abajo, maxValue arriba
     const totalRange = maxValue + initialValue;
     chart.options.scales.y.min = 0;
     chart.options.scales.y.max = totalRange;
@@ -226,7 +208,7 @@ function prepareProjectionData(capital, tasaAnual, years = 6) {
   );
 
   const aporteMensual = APORTE_MENSUAL;
-  const extraValues = [capital]; 
+  const extraValues = [capital];
   let valorConAportes = capital;
   const tasaMensual = Math.pow(1 + tasaAnual / 100, 1 / 12) - 1;
 

@@ -1,24 +1,22 @@
 let dataService = null;
 let projectionChart = null;
-let totalDepositosCalculado = 0; 
+let totalDepositosCalculado = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
   dataService = new DataService();
   initializeApp();
-  setupTabListeners(); 
+  setupTabListeners();
 });
 
 async function initializeApp() {
   try {
     const data = await loadDataWithTimeout();
     totalDepositosCalculado = data.totalDepositos || 0;
-    updateUI(data); 
+    updateUI(data);
     calculateAndLogRentabilidad();
     await createProjectionChartIfNeeded(data);
-
-    updateFactoringCard([], data.factoringData, null); 
+    updateFactoringCard([], data.factoringData, null);
     document.querySelectorAll('.tabs-container .tab').forEach(tab => tab.classList.remove('active'));
-
   } catch (error) {
     handleInitError(error);
   } finally {
@@ -47,7 +45,6 @@ function showFactoringWaitingState(message = "Selecciona una categoría") {
       <tr class="waiting-state-row">
         <td colspan="3">
           <div class="empty-state waiting-message">
-            
             <p class="primary-text">${message}</p>
             <p class="secondary-text">Haz clic en una de las pestañas superiores para ver los contratos</p>
           </div>
@@ -57,7 +54,7 @@ function showFactoringWaitingState(message = "Selecciona una categoría") {
   }
   const contractsCountElement = document.getElementById("factoring-contracts-count");
   if (contractsCountElement) {
-    contractsCountElement.textContent = "Selecciona pestaña"; 
+    contractsCountElement.textContent = "Selecciona pestaña";
   }
 }
 
@@ -88,7 +85,7 @@ async function createProjectionChartIfNeeded(data) {
     const montoGanado = data?.factoringData?.montoGanado || 0;
     const capitalInicialProyeccion = totalDepositosCalculado + montoGanado;
     const tasa = data?.factoringData?.tasa || 0;
-    const capitalParaGrafico = capitalInicialProyeccion > 0 ? capitalInicialProyeccion : 10000; 
+    const capitalParaGrafico = capitalInicialProyeccion > 0 ? capitalInicialProyeccion : 10000;
     const projectionData = prepareProjectionData(capitalParaGrafico, tasa);
     projectionChart = createProjectionChart(canvas, projectionData);
   }
@@ -105,7 +102,6 @@ function transitionFromLoadingState() {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       document.body.classList.remove('is-loading');
-      
       setTimeout(() => {
         if (typeof LazyLoader !== 'undefined' && LazyLoader.loadDeferredResources) {
           LazyLoader.loadDeferredResources();
@@ -123,72 +119,21 @@ function setTextContent(elementId, text) {
 }
 
 function updateDashboardSummary(factoringData) {
-  const data = factoringData || { tasa: 0, montoGanado: 0, totalInvertido: 0, gananciaUltimoMes: 0 }; // Añadir gananciaUltimoMes por defecto
-  const tasa = data.tasa || 0;
-  const montoGanado = data.montoGanado || 0;
-  const gananciaUltimoMes = data.gananciaUltimoMes || 0; // Obtener ganancia del último mes
-  const inversionTotalMostrada = totalDepositosCalculado + montoGanado;
-
-  setTextContent("total-inversion", formatUtils.currency(inversionTotalMostrada));
-  setTextContent("tasa-promedio", formatUtils.percentage(tasa));
-
-  // Actualizar tarjeta de Inversión Total
-  const inversionTrendElement = document.getElementById("inversion-trend"); // Seleccionar por ID
-  if (inversionTrendElement) {
-    let trendClassInv = 'neutral'; // Renombrar variables para evitar conflictos
-    let iconIdInv = 'icon-trending-neutral';
-    if (gananciaUltimoMes > 1) { // Umbral pequeño para considerar positivo
-        trendClassInv = 'positive';
-        iconIdInv = 'icon-trending-up';
-    } else if (gananciaUltimoMes < -1) { // Umbral pequeño para considerar negativo
-        trendClassInv = 'negative';
-        iconIdInv = 'icon-trending-down';
-    }
-    inversionTrendElement.className = `summary-trend ${trendClassInv}`;
-    // Mostrar ganancia del último mes
-    inversionTrendElement.innerHTML = `${formatUtils.currency(gananciaUltimoMes)} último mes`;
-  }
-
-  // Actualizar tarjeta de Tasa Promedio (sin cambios aquí)
-  const tasaTrendElement = document.getElementById("tasa-trend"); // Usar ID si existe o selector
-  if (tasaTrendElement) {
-    let trendClassTasa = 'neutral'; // Usar nombres de variables distintos
-    let iconIdTasa = 'icon-trending-neutral'; // Definir iconId aquí basado en la tasa
-    if (tasa > 0.1) { trendClassTasa = 'positive'; iconIdTasa = 'icon-trending-up'; }
-    else if (tasa < -0.1) { trendClassTasa = 'negative'; iconIdTasa = 'icon-trending-down'; }
-    tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    tasaTrendElement.innerHTML = `Anualizada`; // Usar iconIdTasa
-  }
-
-  // Actualizar tarjeta de Meta (sin cambios aquí)
-  const metaTiempoElement = document.getElementById("meta-tiempo");
-  // ... (código existente para la meta) ...
-}
-
-function updateDashboardSummary(factoringData) {
   const data = factoringData || { tasa: 0, montoGanado: 0, totalInvertido: 0, gananciaUltimoMes: 0 };
   const tasa = data.tasa || 0;
   const montoGanado = data.montoGanado || 0;
   const gananciaUltimoMes = data.gananciaUltimoMes || 0;
-  // Asegurarse que totalDepositosCalculado sea un número
   const depositosValidos = typeof totalDepositosCalculado === 'number' && !isNaN(totalDepositosCalculado) ? totalDepositosCalculado : 0;
   const inversionTotalMostrada = depositosValidos + montoGanado;
 
   setTextContent("total-inversion", formatUtils.currency(inversionTotalMostrada));
   setTextContent("tasa-promedio", formatUtils.percentage(tasa));
 
-  // ... (actualización tarjeta Inversión Total y Tasa Promedio como antes) ...
   const inversionTrendElement = document.getElementById("inversion-trend");
   if (inversionTrendElement) {
     let trendClassInv = 'neutral';
-    let iconIdInv = 'icon-trending-neutral';
-    if (gananciaUltimoMes > 1) {
-        trendClassInv = 'positive';
-        iconIdInv = 'icon-trending-up';
-    } else if (gananciaUltimoMes < -1) {
-        trendClassInv = 'negative';
-        iconIdInv = 'icon-trending-down';
-    }
+    if (gananciaUltimoMes > 1) trendClassInv = 'positive';
+    else if (gananciaUltimoMes < -1) trendClassInv = 'negative';
     inversionTrendElement.className = `summary-trend ${trendClassInv}`;
     inversionTrendElement.innerHTML = `${formatUtils.currency(gananciaUltimoMes)} último mes`;
   }
@@ -196,60 +141,43 @@ function updateDashboardSummary(factoringData) {
   const tasaTrendElement = document.getElementById("tasa-trend");
   if (tasaTrendElement) {
     let trendClassTasa = 'neutral';
-    let iconIdTasa = 'icon-trending-neutral';
-    if (tasa > 0.1) { trendClassTasa = 'positive'; iconIdTasa = 'icon-trending-up'; }
-    else if (tasa < -0.1) { trendClassTasa = 'negative'; iconIdTasa = 'icon-trending-down'; }
+    if (tasa > 0.1) trendClassTasa = 'positive';
+    else if (tasa < -0.1) trendClassTasa = 'negative';
     tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
     tasaTrendElement.innerHTML = `Anualizada`;
   }
 
-
-  // Actualizar tarjeta de Meta
   const metaTiempoElement = document.getElementById("meta-tiempo");
   const metaDescripcionElement = document.getElementById("meta-descripcion");
-
   if (metaTiempoElement && metaDescripcionElement) {
-    let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null }; // Incluir fechaEstimada null por defecto
-    // Asegurar que capitalInicialMeta sea un número válido
+    let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null };
     const capitalInicialMeta = typeof inversionTotalMostrada === 'number' && !isNaN(inversionTotalMostrada) && inversionTotalMostrada > 0 ? inversionTotalMostrada : 0;
-    // Asegurar que tasa sea un número válido para el cálculo
-    const tasaValidaParaCalculo = typeof tasa === 'number' && !isNaN(tasa) ? tasa : 0; // Usar 0 si la tasa es inválida
-
-    // Solo calcular si hay aportes o si la tasa es positiva (si tasa es 0 o negativa sin aportes, no se alcanzará)
+    const tasaValidaParaCalculo = typeof tasa === 'number' && !isNaN(tasa) ? tasa : 0;
     if (APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
-         tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo); // Usar tasaValidaParaCalculo
+      tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo);
     }
-    // Si no hay aportes y la tasa no es positiva, tiempoHastaMeta se queda en Infinity (inalcanzable)
-
-    // Actualizar UI SIEMPRE después del cálculo
-    if (!isFinite(tiempoHastaMeta.años)) { // Usar isFinite para chequear Infinity o NaN
+    if (!isFinite(tiempoHastaMeta.años)) {
       metaTiempoElement.textContent = "Meta Inalcanzable";
-      metaDescripcionElement.innerHTML = `Tasa o aportes insuficientes`; // Texto ajustado
+      metaDescripcionElement.innerHTML = `Tasa o aportes insuficientes`;
       metaDescripcionElement.className = "summary-trend negative";
     } else {
       let tiempoTexto = "";
       const fechaEstimadaValida = tiempoHastaMeta.fechaEstimada instanceof Date && !isNaN(tiempoHastaMeta.fechaEstimada);
-
       if (tiempoHastaMeta.años <= 0 && tiempoHastaMeta.meses <= 0) {
-           tiempoTexto = "Meta Alcanzada";
-           // Mostrar solo icono y fecha si es válida, o solo icono y texto
-           metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
-           metaDescripcionElement.className = "summary-trend positive";
+        tiempoTexto = "Meta Alcanzada";
+        metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
+        metaDescripcionElement.className = "summary-trend positive";
       } else {
-          // ... (código existente para calcular tiempoTexto) ...
-          if (tiempoHastaMeta.años === 0) tiempoTexto = `En ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
-          else if (tiempoHastaMeta.meses === 0) tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'}`;
-          else tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'} y ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
-
-          // Mostrar solo icono y fecha estimada si es válida, o solo icono
-          metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`; // Quitado texto de aportes
-          metaDescripcionElement.className = fechaEstimadaValida ? "summary-trend positive" : "summary-trend neutral"; // Clase basada en validez
+        if (tiempoHastaMeta.años === 0) tiempoTexto = `En ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
+        else if (tiempoHastaMeta.meses === 0) tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'}`;
+        else tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'} y ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
+        metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`;
+        metaDescripcionElement.className = fechaEstimadaValida ? "summary-trend positive" : "summary-trend neutral";
       }
       metaTiempoElement.textContent = tiempoTexto;
     }
   } else {
-      // Si los elementos no existen, limpiar el texto por si acaso
-      if (metaTiempoElement) metaTiempoElement.textContent = "Error UI";
+    if (metaTiempoElement) metaTiempoElement.textContent = "Error UI";
   }
 }
 
@@ -258,17 +186,16 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
   const data = factoringData || { contratos: 0, contratosPendientes: 0, contratosPagados: 0 };
 
   if (tabType === null) {
-      showFactoringWaitingState("Selecciona una categoría"); 
-      return;
+    showFactoringWaitingState("Selecciona una categoría");
+    return;
   }
 
   const validContracts = Array.isArray(contracts) ? contracts : [];
-
   if (contractsCountElement) {
-      let countText = `Total: ${data.contratos || 0}`; 
-      if (tabType === 'pending') countText = `Por cobrar: ${data.contratosPendientes || 0}`;
-      else if (tabType === 'paid') countText = `Pagados: ${data.contratosPagados || 0}`;
-      contractsCountElement.textContent = countText;
+    let countText = `Total: ${data.contratos || 0}`;
+    if (tabType === 'pending') countText = `Por cobrar: ${data.contratosPendientes || 0}`;
+    else if (tabType === 'paid') countText = `Pagados: ${data.contratosPagados || 0}`;
+    contractsCountElement.textContent = countText;
   }
 
   const detailsList = document.getElementById("factoring-details");
@@ -276,18 +203,17 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
     console.error("Element with ID 'factoring-details' not found.");
     return;
   }
-  detailsList.innerHTML = ""; 
+  detailsList.innerHTML = "";
 
-  let currentYear = null; 
-
+  let currentYear = null;
   if (validContracts.length > 0) {
     validContracts.forEach((contrato, index) => {
       if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined') {
-          console.warn("Skipping rendering of invalid contract:", contrato);
-          return;
+        console.warn("Skipping rendering of invalid contract:", contrato);
+        return;
       }
       const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
-      const fechaPagoDate = fechaPagoStr ? dateUtils.parse(fechaPagoStr) : null; 
+      const fechaPagoDate = fechaPagoStr ? dateUtils.parse(fechaPagoStr) : null;
       const contractYear = fechaPagoDate ? fechaPagoDate.getFullYear() : null;
 
       if (contractYear !== null && contractYear !== currentYear) {
@@ -295,7 +221,7 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
         const yearRow = document.createElement("tr");
         yearRow.classList.add('year-header-row');
         const yearCell = document.createElement("td");
-        yearCell.colSpan = 3; 
+        yearCell.colSpan = 3;
         yearCell.classList.add('year-header-cell');
         yearCell.textContent = `Año ${currentYear}`;
         yearRow.appendChild(yearCell);
@@ -304,7 +230,7 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
 
       const fechaPagoDisplay = fechaPagoStr ? formatUtils.dateShort(fechaPagoStr) : 'Fecha Desc.';
       const row = document.createElement("tr");
-      row.classList.add(index % 2 === 0 ? 'even-row' : 'alt-row'); 
+      row.classList.add(index % 2 === 0 ? 'even-row' : 'alt-row');
       row.classList.add(contrato.isPaid ? 'paid-contract' : 'pending-contract');
       row.dataset.contractId = contrato.codigoSubasta || 'N/A';
 
@@ -327,7 +253,7 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       dateCell.classList.add('date-cell');
       const dateSpan = document.createElement("span");
       dateSpan.className = "detail-date";
-      dateSpan.textContent = fechaPagoDisplay; 
+      dateSpan.textContent = fechaPagoDisplay;
       dateCell.appendChild(dateSpan);
 
       const gainCell = document.createElement("td");
@@ -342,7 +268,6 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       row.appendChild(gainCell);
       detailsList.appendChild(row);
 
-      // Evento para mostrar popup al hacer clic en la fila
       row.style.cursor = "pointer";
       row.onclick = () => showContractDetailsPopup(contrato);
     });
@@ -351,12 +276,10 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
     if (tabType === 'pending') emptyMessage = "No hay contratos pendientes por cobrar.";
     else if (tabType === 'paid') emptyMessage = "No se encontraron contratos pagados.";
     else if (tabType === 'all') emptyMessage = "No se encontraron contratos.";
-
     detailsList.innerHTML = `
       <tr class="empty-state-row">
         <td colspan="3">
           <div class="empty-state">
-            
             <p>${emptyMessage}</p>
           </div>
         </td>
@@ -377,7 +300,6 @@ function showErrorState(message) {
       <tr class="error-state-row">
         <td colspan="3">
           <div class="error-state">
-            
             <p>${message}</p>
           </div>
         </td>
@@ -407,36 +329,28 @@ function showErrorState(message) {
 function setupTabListeners() {
   const tabsContainer = document.querySelector('.tabs-container');
   if (!tabsContainer) return;
-
-  const tabs = tabsContainer.querySelectorAll('.tab'); 
-
+  const tabs = tabsContainer.querySelectorAll('.tab');
   tabsContainer.addEventListener('click', (event) => {
     const tab = event.target.closest('.tab');
     if (!tab || tab.classList.contains('active')) return;
-
-    const tabType = tab.getAttribute('data-tab'); 
+    const tabType = tab.getAttribute('data-tab');
     const allTabs = tabsContainer.querySelectorAll('.tab');
-
     requestAnimationFrame(() => {
       allTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-
       if (dataService) {
         const contracts = dataService.changeTab(tabType);
-        const globalFactoringData = dataService.buildFactoringData(); 
-        updateFactoringCard(contracts, globalFactoringData, tabType); 
+        const globalFactoringData = dataService.buildFactoringData();
+        updateFactoringCard(contracts, globalFactoringData, tabType);
       }
     });
   });
 }
 
-// --- Popup Modal para detalles de contrato ---
 function showContractDetailsPopup(contract) {
-  // Elimina cualquier popup existente
   let existing = document.getElementById('contract-details-popup');
   if (existing) existing.remove();
 
-  // Buscar el contrato original en el JSON si está disponible (por código de subasta)
   let originalData = null;
   if (window.dataService && window.dataService.factoring) {
     originalData = window.dataService.factoring.find(c =>
@@ -444,10 +358,8 @@ function showContractDetailsPopup(contract) {
     );
   }
 
-  // Buscar la fecha de pago real en los archivos de ganancia
   let fechaPagoReal = null;
   if (window.dataService && window.dataService.ganancias) {
-    // Buscar en ambas monedas
     const ganancias = Array.isArray(window.dataService.ganancias) ? window.dataService.ganancias : [];
     const gananciaContrato = ganancias.find(g =>
       g["Código de subasta"] === contract.codigoSubasta
@@ -457,7 +369,6 @@ function showContractDetailsPopup(contract) {
     }
   }
 
-  // Alias amigables para los campos
   const fieldLabels = {
     nombre: "Cliente",
     Cliente: "Cliente",
@@ -483,25 +394,20 @@ function showContractDetailsPopup(contract) {
     Hora: "Hora"
   };
 
-  // Categorías para organizar y colorear campos
   const fieldCategories = {
     important: ["nombre", "Cliente", "monto", "Inversion", "montoPagoNeto"],
     dates: ["fechaIngreso", "Fecha", "fechaPagoEstimado", "fechaPagoReal", "Fecha de pago", "Fecha de cierre de subasta"],
     status: ["Estado", "Riesgo"],
-    // Quitar "moneda" de financial para que no se muestre como fila
     financial: ["Retorno mensual (%)", "retornoMensual"]
   };
 
-  // Unir datos originales y calculados, priorizando los calculados
   const merged = {};
   if (originalData && originalData.originalRow) {
     Object.assign(merged, originalData.originalRow);
   }
   Object.assign(merged, contract);
 
-  // Determinar estado visual
   const isPaid = merged.isPaid === true;
-  // Determinar si está atrasado (no pagado y fecha de pago estimada pasada)
   let isLate = false;
   if (!isPaid) {
     let fechaPagoEstimada = merged.fechaPagoReal || merged.fechaPagoEstimado || merged["Fecha de pago"];
@@ -513,7 +419,6 @@ function showContractDetailsPopup(contract) {
     }
   }
 
-  // Crear grupos de campos para organizarlos mejor en el popup
   const groups = {
     important: [],
     dates: [],
@@ -522,10 +427,13 @@ function showContractDetailsPopup(contract) {
     other: []
   };
 
-  // Mostrar todos los campos disponibles, sin duplicados
   const shownKeys = new Set();
 
-  // Procesar los campos para agruparlos (omitimos isPaid, isPending, código de subasta, Estado y moneda)
+  const extraIndentKeys = [
+    "nombre", "Cliente", "monto", "Inversion", "montoPagoNeto",
+    "fechaIngreso", "Fecha", "fechaPagoEstimado", "fechaPagoReal"
+  ];
+
   for (const [key, value] of Object.entries(merged)) {
     if (
       key === 'isPaid' ||
@@ -540,14 +448,12 @@ function showContractDetailsPopup(contract) {
     if (shownKeys.has(key)) continue;
     shownKeys.add(key);
 
-    // Mostrar solo campos relevantes (oculta funciones, arrays, objetos complejos)
     if (typeof value === "object" && value !== null) continue;
 
     let displayValue = value;
     let categoryClass = 'other-field';
     let groupKey = 'other';
 
-    // Determinar categoría para estilos y agrupación
     for (const [category, keys] of Object.entries(fieldCategories)) {
       if (keys.includes(key)) {
         categoryClass = `${category}-field`;
@@ -556,9 +462,7 @@ function showContractDetailsPopup(contract) {
       }
     }
 
-    // Formatear montos y añadir sufijo de moneda
     if (typeof value === 'number' && key.match(/monto|inversion|ganancia|pago/i)) {
-      // Determinar sufijo de moneda
       let sufijoMoneda = '';
       const moneda = (merged.moneda || merged.Moneda || '').toUpperCase();
       if (moneda === 'USD' || moneda === 'DOLARES' || moneda === 'DÓLARES') sufijoMoneda = ' - USD';
@@ -568,82 +472,85 @@ function showContractDetailsPopup(contract) {
       groupKey = 'financial';
     }
 
-    // Formatear fechas
     if (key.toLowerCase().includes('fecha') && value) {
       displayValue = formatUtils.dateShort(value);
       categoryClass = 'date-field';
       groupKey = 'dates';
     }
 
-    // Formatear booleanos
     if (typeof value === "boolean") {
-      
       const statusClass = value ? "status-positive" : "status-negative";
-      displayValue = `<span class="status-value ${statusClass}">
-                        
+      displayValue = `<span class="status-value ${statusClass}">                        
                         ${value ? "Sí" : "No"}
                       </span>`;
       if (groupKey === 'other') categoryClass = 'status-field';
     }
 
-    // Alias amigable
     const label = fieldLabels[key] || key;
+
+    const needsExtraIndent = extraIndentKeys.includes(key);
 
     groups[groupKey].push(`
       <tr class="${categoryClass}">
         <td class="popup-key">${label}</td>
-        <td class="popup-value">${displayValue ?? '-'}</td>
+        <td class="popup-value"${needsExtraIndent ? ' style="padding-left: 2.5em;"' : ''}>${displayValue ?? '-'}</td>
       </tr>
     `);
   }
 
-  // Construir las filas de la tabla, organizadas por grupos
-  const detailRows = [
-    ...groups.important,
-    groups.important.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
-    ...groups.financial,
-    groups.financial.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
-    ...groups.dates,
-    groups.dates.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
-    ...groups.status,
-    groups.status.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
-    ...groups.other
-  ];
+  function buildDetailRows(groups) {
+    const order = ['important', 'financial', 'dates', 'status', 'other'];
+    const rows = [];
+    for (let i = 0; i < order.length; i++) {
+      const groupRows = groups[order[i]];
+      if (groupRows.length > 0) {
+        rows.push(...groupRows);
+        let nextHasRows = false;
+        for (let j = i + 1; j < order.length; j++) {
+          if (groups[order[j]].length > 0) {
+            nextHasRows = true;
+            break;
+          }
+        }
+        if (nextHasRows) {
+          rows.push('<tr class="group-separator"><td colspan="2"></td></tr>');
+        }
+      }
+    }
+    return rows;
+  }
 
-  // Obtener el cliente para el encabezado
+  const detailRows = buildDetailRows(groups);
+
   const clientName = merged.nombre || merged.Cliente || "Detalle de Contrato";
   const contractCode = merged.codigoSubasta || merged["Codigo de subasta"] || "";
 
-  // Estado visual y texto
   let estadoTexto = "";
   let estadoColor = "";
   let estadoIcon = "";
   if (isPaid) {
     estadoTexto = "Pagado";
-    estadoColor = "#1ecb7a"; // Verde (ya estaba)
+    estadoColor = "#1ecb7a";
     estadoIcon = "icon-check-circle";
   } else if (isLate) {
     estadoTexto = "Atrasado";
-    estadoColor = "#e74c3c"; // Rojo
+    estadoColor = "#e74c3c";
     estadoIcon = "icon-warning";
   } else {
     estadoTexto = "Pendiente";
-    estadoColor = "#ffd600"; // Amarillo
+    estadoColor = "#ffd600";
     estadoIcon = "icon-time";
   }
 
-  // Fecha de pago real (si existe)
   let fechaPagoRealHtml = "";
   if (fechaPagoReal) {
     fechaPagoRealHtml = `
-      <div style="margin-top: 4px; font-size: 0.95em; color: var(--color-text-secondary);">
-        
+      <div style="margin-top: 4px; font-size: 0.95em; color: var(--color-text-secondary);">        
         Pago real: <b>${formatUtils.dateShort(fechaPagoReal)}</b>
       </div>
     `;
   }
 
-  // Crear y añadir el popup al DOM con estilos mejorados
   const popup = document.createElement('div');
   popup.id = 'contract-details-popup';
   popup.className = 'popup-overlay';
@@ -660,8 +567,7 @@ function showContractDetailsPopup(contract) {
                        display: flex; align-items: center; justify-content: center; border-radius: 50%;">&times;</button>
         <div>
           <h3 style="margin: 0 0 4px 0; color: var(--color-text-primary);">${clientName}</h3>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            
+          <div style="display: flex; align-items: center; gap: 8px;">            
             <span style="color: ${estadoColor}; font-weight: 600; font-size: 1em;">${estadoTexto}</span>
             <span style="color: var(--color-text-tertiary); font-size: 0.95em; margin-left: 8px;">
               ${contractCode ? `Código: <b>${contractCode}</b>` : ""}
@@ -671,7 +577,7 @@ function showContractDetailsPopup(contract) {
         </div>
       </div>
       <div style="padding: 8px;">
-        <table class="popup-details-table" style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+        <table class="popup-details-table" style="width: 100%; border-collapse: separate; border-spacing: 0 0px;">
           <tbody>
             ${detailRows.join('')}
           </tbody>
@@ -682,7 +588,6 @@ function showContractDetailsPopup(contract) {
 
   document.body.appendChild(popup);
 
-  // Agregar estilos específicos para el popup
   const style = document.createElement('style');
   style.id = 'contract-popup-styles';
   style.textContent = `
@@ -707,14 +612,17 @@ function showContractDetailsPopup(contract) {
       color: var(--color-text-secondary);
       padding: 8px 8px 8px 0;
       font-size: 0.9em;
-      vertical-align: top;
+      vertical-align: middle;
       width: 40%;
     }
     .popup-details-table .popup-value {
-      padding: 8px 0;
+      padding-top: 8px;
+      padding-bottom: 8px;
       font-weight: 500;
       color: var(--color-text-primary);
       word-break: break-word;
+      text-align: right;
+      vertical-align: middle;
     }
     .important-field .popup-value {
       font-weight: 600;
@@ -741,10 +649,10 @@ function showContractDetailsPopup(contract) {
       opacity: 0.5;
     }
     .popup-details-table tr:nth-child(even):not(.group-separator) {
-      background-color: rgba(0,0,0,0.02);
+      background-color: rgba(0,0,0,0);
     }
     .popup-details-table tr:not(.group-separator):hover {
-      background-color: rgba(0,0,0,0.05);
+      background-color: rgba(0,0,0,0);
     }
     #close-contract-popup:hover {
       background-color: rgba(0,0,0,0.1);
@@ -756,20 +664,19 @@ function showContractDetailsPopup(contract) {
     document.head.appendChild(style);
   }
 
-  // Cerrar popup
   document.getElementById('close-contract-popup').onclick = () => {
-    popup.style.animation = 'fadeIn 0.15s ease-in reverse';
-    setTimeout(() => popup.remove(), 150);
+    popup.style.display = 'none';
     const popupStyle = document.getElementById('contract-popup-styles');
     if (popupStyle) popupStyle.remove();
+    setTimeout(() => popup.remove(), 150);
   };
 
   popup.onclick = (e) => {
     if (e.target === popup) {
-      popup.style.animation = 'fadeIn 0.15s ease-in reverse';
-      setTimeout(() => popup.remove(), 150);
+      popup.style.display = 'none';
       const popupStyle = document.getElementById('contract-popup-styles');
-      if (popupStyle) popupStyle.remove();
+      if (popupStyle) remove();
+      setTimeout(() => popup.remove(), 150);
     }
   };
 }

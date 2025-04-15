@@ -72,35 +72,30 @@
     <main class="main-content">
       <div class="dashboard-content">
         <section class="summary-cards">
-           <!-- Tarjeta Meta movida a la primera posición y hecha full-width -->
            <div class="summary-card full-width">
             <div class="summary-info">
               <h3 class="text-sm font-medium text-secondary">Meta: 2 millones</h3>
               <p class="summary-value text-xl font-semibold" id="meta-tiempo">Calculando...</p>
               <p class="summary-trend positive" id="meta-descripcion">
                 <span class="svg-icon"><svg><use xlink:href="#icon-timeline"></use></svg></span>
-                 <!-- El texto se actualizará por JS -->
               </p>
             </div>
           </div>
-          <!-- Tarjeta Inversión Total movida a la segunda fila, primera posición (sin full-width) -->
           <div class="summary-card">
             <div class="summary-info">
               <h3 class="text-sm font-medium text-secondary">Inversión Total</h3>
               <p class="summary-value text-xl font-semibold" id="total-inversion">S/ 0.00</p>
-               <p class="summary-trend positive" id="inversion-trend"> <!-- Añadido id="inversion-trend" -->
+               <p class="summary-trend positive" id="inversion-trend">
                  <span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span>
-                 <!-- El texto se actualizará por JS -->
                </p>
             </div>
           </div>
-          <!-- Tarjeta Tasa Promedio movida a la segunda fila, segunda posición -->
           <div class="summary-card">
             <div class="summary-info">
               <h3 class="text-sm font-medium text-secondary">Tasa Promedio</h3>
               <p class="summary-value text-xl font-semibold" id="tasa-promedio">0.00%</p>
-              <p class="summary-trend positive" id="tasa-trend"> <!-- Cambiado 'neutral' a 'positive' y añadido id -->
-                <span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span> <!-- Cambiado icono -->
+              <p class="summary-trend positive" id="tasa-trend">
+                <span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span>
                  Anualizada
               </p>
             </div>
@@ -116,7 +111,6 @@
               <h4>Proyección</h4>
             </div>
             <div class="header-right chart-legend-container">
-              <!-- El interruptor se generará aquí por JS -->
             </div>
           </div>
           <canvas id="proyeccion-chart"></canvas>
@@ -167,8 +161,6 @@
       </div>
     </main>
   </div>
-
-  <!-- Popup de detalles de contrato (se inyecta por JS) -->
 
   <script src="js/utils.js" defer></script>
   <script src="js/lazyLoader.js" defer></script>

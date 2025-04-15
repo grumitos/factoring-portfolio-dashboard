@@ -83,7 +83,7 @@ const dateUtils = {
 
   calcularFechaFutura: (años, meses) => {
     if (!isFinite(años) || !isFinite(meses)) {
-      return null; // No se puede calcular fecha si el tiempo es infinito
+      return null;
     }
     const hoy = new Date();
     const fechaFutura = new Date(hoy);
@@ -179,7 +179,6 @@ const financeUtils = {
   },
 
   calcularTiempoHastaMeta: (capitalInicial, tasaAnual, metaMillones = CONFIG.METAS.MILLONES, aporteMensual = CONFIG.METAS.APORTE_MENSUAL) => {
-    // Validar entradas iniciales
     if (isNaN(capitalInicial) || isNaN(tasaAnual) || isNaN(metaMillones) || isNaN(aporteMensual)) {
         console.warn("Inputs inválidos para calcularTiempoHastaMeta:", { capitalInicial, tasaAnual, metaMillones, aporteMensual });
         return { años: Infinity, meses: Infinity, fechaEstimada: null };
@@ -187,57 +186,42 @@ const financeUtils = {
 
     const tasaMensual = Math.pow(1 + tasaAnual / 100, 1 / 12) - 1;
 
-    // Validar tasa mensual calculada
     if (isNaN(tasaMensual)) {
         console.warn("Tasa mensual calculada es NaN:", { tasaAnual });
-        // Si la tasa es NaN pero hay aportes y el capital es menor a la meta, podría ser alcanzable,
-        // pero la fórmula actual no lo soporta. Devolvemos Inalcanzable por seguridad.
-        // Si no hay aportes o el capital ya es mayor, el resultado es trivial.
         if (aporteMensual <= 0 && capitalInicial < metaMillones) {
              return { años: Infinity, meses: Infinity, fechaEstimada: null };
         }
-         // Si ya se alcanzó o hay aportes, la tasa NaN no impide el cálculo (se tratará como 0 en la iteración)
-         // aunque esto es matemáticamente impreciso. Mejor devolver inalcanzable si la tasa es inválida.
          return { años: Infinity, meses: Infinity, fechaEstimada: null };
     }
 
-
     let saldo = capitalInicial;
     let meses = 0;
-    const MAX_MESES = 1200; // Límite de 100 años
+    const MAX_MESES = 1200;
 
-    // Casos base
     if (saldo >= metaMillones) {
         return { años: 0, meses: 0, fechaEstimada: dateUtils.calcularFechaFutura(0, 0) };
     }
-    // Si la tasa es no positiva, no hay aportes, y no se ha alcanzado la meta, es inalcanzable.
     if (tasaMensual <= 0 && aporteMensual <= 0) {
         return { años: Infinity, meses: Infinity, fechaEstimada: null };
     }
 
-
     while (saldo < metaMillones && meses < MAX_MESES) {
-      // Aplicar interés (si la tasa es válida) y luego aporte
       if (!isNaN(tasaMensual)) {
           saldo = saldo * (1 + tasaMensual);
       }
       saldo += aporteMensual;
       meses++;
 
-      // Seguridad contra bucles infinitos si algo sale mal (ej. saldo se vuelve NaN)
       if (isNaN(saldo)) {
           console.warn("Saldo se volvió NaN durante el cálculo de la meta.");
           return { años: Infinity, meses: Infinity, fechaEstimada: null };
       }
     }
 
-    // Verificar si se alcanzó la meta al salir del bucle
     if (saldo < metaMillones || meses >= MAX_MESES) {
-      // Si el saldo sigue siendo menor O se alcanzó el límite de meses, es inalcanzable
       return { años: Infinity, meses: Infinity, fechaEstimada: null };
     }
 
-    // Si se alcanzó la meta
     const años = Math.floor(meses / 12);
     const mesesRestantes = meses % 12;
     return {

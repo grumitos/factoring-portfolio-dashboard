@@ -1,14 +1,3 @@
-// Asegúrate de que TASA_CAMBIO_USD_PEN esté definida globalmente o importada.
-// Ejemplo: const TASA_CAMBIO_USD_PEN = 3.75; 
-
-// Asegúrate de que dateUtils esté disponible (importado o global).
-// Ejemplo: import dateUtils from './dateUtils.js'; 
-// O: const dateUtils = window.dateUtils;
-
-// Asegúrate de que financeUtils esté disponible (importado o global).
-// Ejemplo: import financeUtils from './financeUtils.js';
-// O: const financeUtils = window.financeUtils;
-
 class DataService {
   constructor() {
     this.factoring = [];
@@ -21,13 +10,12 @@ class DataService {
   
   async loadAllData() {
     try {
-      // Cambiar las rutas a los archivos .json
       const [factoringData, gananciasUSDData, gananciasPENData, penData, usdData] = await Promise.all([
-        this.loadJsonFile('assets/mis-inversiones.json'), // Cambiado
-        this.loadJsonFile('assets/gananciaUSD.json'),    // Cambiado
-        this.loadJsonFile('assets/gananciaPEN.json'),    // Cambiado
-        this.loadJsonFile('assets/pen.json'),           // Cambiado
-        this.loadJsonFile('assets/usd.json')            // Cambiado
+        this.loadJsonFile('assets/mis-inversiones.json'),
+        this.loadJsonFile('assets/gananciaUSD.json'),
+        this.loadJsonFile('assets/gananciaPEN.json'),
+        this.loadJsonFile('assets/pen.json'),
+        this.loadJsonFile('assets/usd.json')
       ]);
       
       this.totalDepositosCalculado = this.calculateTotalDeposits(penData, usdData);
@@ -64,19 +52,14 @@ class DataService {
     }
   }
 
-  // Renombrar y modificar la función para cargar JSON
   async loadJsonFile(filepath) {
     try {
       const response = await fetch(filepath);
       if (!response.ok) throw new Error(`Error al cargar ${filepath}: ${response.statusText}`);
-
-      // Parsear la respuesta como JSON directamente
-      const jsonData = await response.json();
-      return jsonData;
-
+      return await response.json();
     } catch (error) {
       console.error(`Error al procesar archivo ${filepath}:`, error);
-      return []; // Devolver array vacío en caso de error
+      return [];
     }
   }
   
@@ -84,7 +67,6 @@ class DataService {
     if (!data || data.length === 0) return [];
     
     return data.map(row => {
-      // Usar directamente las fechas del JSON (asumiendo formato ISO o similar)
       const fechaIngreso = row["Fecha"] ? new Date(row["Fecha"]).toISOString().slice(0, 10) : "";
       const fechaPago = row["Fecha de pago"] ? new Date(row["Fecha de pago"]).toISOString().slice(0, 10) : "";
 
@@ -104,7 +86,6 @@ class DataService {
     if (!data || data.length === 0) return [];
     
     return data.map(row => {
-       // Usar directamente la fecha del JSON
        const fecha = row["Fecha"] ? new Date(row["Fecha"]).toISOString().slice(0, 10) : "";
       return {
         "Código de subasta": row["Código de subasta"] || row["Codigo de subasta"] || "",
@@ -122,12 +103,9 @@ class DataService {
   }
   
   calculateTotalDeposits(penData, usdData) {
-    let totalPEN = 0;
-    let totalUSD = 0;
-    const movimientoKey = "Movimiento"; 
-    const montoKey = "Monto";         
-    const tipoDeposito = "deposito";  
-    const tipoRetiro = "retiro";      // Nuevo: clave para retiros
+    let totalPEN = 0, totalUSD = 0;
+    const movimientoKey = "Movimiento", montoKey = "Monto";
+    const tipoDeposito = "deposito", tipoRetiro = "retiro";
 
     if (Array.isArray(penData)) {
       penData.forEach(row => {
@@ -136,11 +114,8 @@ class DataService {
           const tipo = row[movimientoKey].toLowerCase();
           const monto = Number(row[montoKey]);
           if (!isNaN(monto)) {
-            if (tipo === tipoDeposito) {
-              totalPEN += monto;
-            } else if (tipo === tipoRetiro) {
-              totalPEN -= monto;
-            }
+            if (tipo === tipoDeposito) totalPEN += monto;
+            else if (tipo === tipoRetiro) totalPEN -= monto;
           }
         }
       });
@@ -153,11 +128,8 @@ class DataService {
           const tipo = row[movimientoKey].toLowerCase();
           const monto = Number(row[montoKey]);
           if (!isNaN(monto)) {
-            if (tipo === tipoDeposito) {
-              totalUSD += monto;
-            } else if (tipo === tipoRetiro) {
-              totalUSD -= monto;
-            }
+            if (tipo === tipoDeposito) totalUSD += monto;
+            else if (tipo === tipoRetiro) totalUSD -= monto;
           }
         }
       });
@@ -185,9 +157,7 @@ class DataService {
     const mapping = {};
     (ganancias || []).forEach(row => {
       const codigo = (row["Código de subasta"] || row["Codigo de subasta"] || '').toString().trim();
-      if (codigo) {
-        mapping[codigo] = row;
-      }
+      if (codigo) mapping[codigo] = row;
     });
     return mapping;
   }
@@ -275,7 +245,7 @@ class DataService {
         contratos: 0,
         contratosPagados: 0,
         contratosPendientes: 0,
-        gananciaUltimoMes: 0 // Valor inicial
+        gananciaUltimoMes: 0
       };
     }
 
@@ -307,7 +277,6 @@ class DataService {
       const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
       const fechaPago = dateUtils.parse(fechaPagoStr);
 
-      // Sumar ganancia si el pago fue en el último mes
       if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy) {
         acc.gananciaUltimoMes += interestPEN;
       }
@@ -352,7 +321,7 @@ class DataService {
       contratosPagados: 0,        
       contratosPendientes: 0,     
       totalPrincipalForRate: 0,   
-      gananciaUltimoMes: 0 // Inicializar en el acumulador
+      gananciaUltimoMes: 0
     });
 
     const overallRate = result.totalPrincipalForRate > 0 ? (result.weightedRateSum / result.totalPrincipalForRate) * 100 : 0;
@@ -367,7 +336,7 @@ class DataService {
       contratos: result.numContratos,
       contratosPagados: actualPagados,
       contratosPendientes: actualPendientes,
-      gananciaUltimoMes: result.gananciaUltimoMes // Añadir al objeto devuelto
+      gananciaUltimoMes: result.gananciaUltimoMes
     };
   }
   

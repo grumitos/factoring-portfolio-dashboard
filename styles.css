@@ -1,61 +1,48 @@
 :root {
-  /* Paleta de colores modo oscuro elegante y minimalista */
-  --color-bg-primary: #0a0f1e; /* Azul muy oscuro casi negro para el fondo principal */
-  --color-bg-secondary: #101727; /* Azul oscuro ligeramente más claro */
-  --color-bg-tertiary: #1a2035; /* Azul oscuro para elementos como cabeceras */
-  --color-bg-card: #151c2e; /* Fondo de las tarjetas, un poco más claro */
-  --color-bg-hover: #1f2940; /* Color al pasar el ratón, más claro */
-  --color-bg-stripe: rgba(255, 255, 255, 0.02); /* Rayas muy sutiles en tablas */
-  --color-accent-primary: #4f85ff; /* Azul brillante como acento principal */
-  --color-accent-secondary: #3b71e8; /* Azul más oscuro para estados activos/hover */
-  --color-accent-tertiary: #8cb0ff; /* Azul más claro para iconos o elementos secundarios */
-  --color-text-primary: #e0e6f1; /* Texto principal casi blanco */
-  --color-text-secondary: #a0aec0; /* Texto secundario gris azulado */
-  --color-text-tertiary: #718096; /* Texto terciario gris más oscuro */
-  --color-positive: #48bb78; /* Verde para valores positivos */
-  --color-negative: #f56565; /* Rojo para valores negativos */
-  --color-neutral: #ecc94b; /* Amarillo/Naranja para neutral */
+  --color-bg-primary: #0a0f1e;
+  --color-bg-secondary: #101727;
+  --color-bg-tertiary: #1a2035;
+  --color-bg-card: #151c2e;
+  --color-bg-hover: #1f2940;
+  --color-bg-stripe: rgba(255, 255, 255, 0.02);
+  --color-accent-primary: #4f85ff;
+  --color-accent-secondary: #3b71e8;
+  --color-accent-tertiary: #8cb0ff;
+  --color-text-primary: #e0e6f1;
+  --color-text-secondary: #a0aec0;
+  --color-text-tertiary: #718096;
+  --color-positive: #48bb78;
+  --color-negative: #f56565;
+  --color-neutral: #ecc94b;
   --color-badge-active: var(--color-positive);
-  --color-border: rgba(255, 255, 255, 0.08); /* Borde muy sutil, blanco translúcido */
-
-  /* Fuentes y Tamaños (se mantienen, pero puedes ajustarlos si lo deseas) */
+  --color-border: rgba(255, 255, 255, 0.08);
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
-
-  /* Espaciado (se mantienen, pero puedes ajustarlos) */
   --spacing-xs: 0.5rem;
   --spacing-sm: 0.75rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
-
-  /* Bordes y Sombras (simplificados para minimalismo) */
-  --border-radius-sm: 4px; /* Bordes más sutiles */
+  --border-radius-sm: 4px;
   --border-radius-md: 6px;
   --border-radius-lg: 8px;
-  --box-shadow-sm: none; /* Sin sombra por defecto */
-  --box-shadow-md: none; /* Sin sombra por defecto */
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
-
-  /* Optimizaciones (se mantienen) */
   --render-critical: contents;
   --render-offscreen: auto;
   --layout-contain: paint;
-
-  /* Tamaños de componentes (se mantienen) */
   --summary-card-min-height: 7.5rem;
   --summary-card-max-height: 10rem;
   --chart-container-height: 26.25rem;
   --investment-card-max-height: 31.25rem;
-
-  /* Scrollbar (colores ajustados al tema) */
-  --scrollbar-thumb-color: #3a4763; /* Pulgar del scrollbar más oscuro */
-  --scrollbar-track-color: var(--color-bg-secondary); /* Fondo del scrollbar */
+  --scrollbar-thumb-color: #3a4763;
+  --scrollbar-track-color: var(--color-bg-secondary);
 }
 
 *, *::before, *::after {
@@ -71,7 +58,7 @@ html, body {
   font-size: 16px;
   line-height: 1.5;
   color: var(--color-text-primary);
-  background: var(--color-bg-primary) !important; /* Fondo sólido oscuro */
+  background: var(--color-bg-primary) !important;
   background-attachment: fixed;
   overflow-y: auto;
   min-height: 100vh;
@@ -139,8 +126,8 @@ body:not(.is-loading) {
 .card {
   background-color: var(--color-bg-card);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--box-shadow-sm); /* Usar sombra simplificada */
-  border: 1px solid var(--color-border); /* Borde sutil */
+  box-shadow: var(--box-shadow-sm);
+  border: 1px solid var(--color-border);
 }
 
 .summary-cards {
@@ -154,7 +141,7 @@ body:not(.is-loading) {
   background-color: var(--color-bg-card);
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--box-shadow-sm); /* Usar sombra simplificada */
+  box-shadow: var(--box-shadow-sm);
   border: 1px solid var(--color-border);
   text-align: center;
   display: flex;
@@ -191,11 +178,12 @@ body:not(.is-loading) {
 .summary-trend {
   display: flex;
   align-items: center;
-  justify-content: center; /* Asegura centrado horizontal del contenido */
-  gap: 0.3em; /* Espacio entre icono y texto, ajusta según sea necesario */
+  justify-content: center;
+  gap: 0.3em;
   font-size: var(--font-size-xs);
   font-weight: 500;
-  line-height: 1.2; /* Ajustar si es necesario para alineación vertical */
+  line-height: 1.2;
+  color: var(--color-positive);
 }
 
 .summary-trend .icon {
@@ -215,13 +203,13 @@ body:not(.is-loading) {
 }
 
 .summary-trend.neutral .svg-icon {
-  color: var(--color-neutral); /* Usar color neutral */
+  color: var(--color-neutral);
 }
 
 .chart-container {
   background-color: var(--color-bg-card);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--box-shadow-sm); /* Usar sombra simplificada */
+  box-shadow: var(--box-shadow-sm);
   border: 1px solid var(--color-border);
   padding: 0;
   margin-bottom: 0;
@@ -247,7 +235,7 @@ body:not(.is-loading) {
 .investment-card {
   background-color: var(--color-bg-card);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--box-shadow-sm); /* Usar sombra simplificada */
+  box-shadow: var(--box-shadow-sm);
   overflow: hidden;
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   border: 1px solid var(--color-border);
@@ -257,12 +245,12 @@ body:not(.is-loading) {
 }
 
 .card-header,
-.card-body { /* card-body no se usa, pero por si acaso */
+.card-body {
   padding: var(--spacing-md);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: transparent; /* Hacer transparente, el fondo lo da .card */
+  background-color: transparent;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -272,9 +260,9 @@ body:not(.is-loading) {
 }
 
 .card-header .svg-icon {
-  color: var(--color-accent-tertiary); /* Usar acento más claro */
+  color: var(--color-accent-tertiary);
   margin-right: 6px;
-  font-size: 22px; 
+  font-size: 22px;
 }
 
 .card-header .header-left {
@@ -291,16 +279,16 @@ body:not(.is-loading) {
 .card-header .header-right {
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var (--color-text-secondary);
 }
 
 .tabs-container {
   display: flex;
-  background-color: transparent; /* Hacer transparente */
+  background-color: transparent;
   border-bottom: 1px solid var(--color-border);
-  overflow-x: auto; 
-  -webkit-overflow-scrolling: touch; 
-  scrollbar-width: none; 
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
 .tabs-container::-webkit-scrollbar {
@@ -311,12 +299,12 @@ body:not(.is-loading) {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-text-secondary); /* Texto secundario por defecto */
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: color var(--transition-fast), border-bottom-color var(--transition-fast);
   border-bottom: 2px solid transparent;
   white-space: nowrap;
-  will-change: color, border-bottom-color; 
+  will-change: color, border-bottom-color;
 }
 
 .tab[data-tab="pending"], 
@@ -337,12 +325,12 @@ body:not(.is-loading) {
 
 .tab:hover {
   color: var(--color-text-primary);
-  background-color: var(--color-bg-hover); /* Usar variable de hover */
+  background-color: var(--color-bg-hover);
 }
 
 .tab.active {
-  color: var(--color-text-primary); /* Texto primario cuando está activo */
-  border-bottom: 2px solid var(--color-accent-primary); /* Usar acento primario */
+  color: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-accent-primary);
   font-weight: 600;
 }
 
@@ -357,7 +345,7 @@ body:not(.is-loading) {
   width: 100%;
   border-collapse: collapse;
   margin: 0;
-  table-layout: fixed; /* Añadido para forzar anchos de columna */
+  table-layout: fixed;
 }
 
 .details-table th {
@@ -366,38 +354,38 @@ body:not(.is-loading) {
   font-weight: 500;
   color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg-secondary); /* Fondo secundario para cabecera */
+  background-color: var(--color-bg-secondary);
   text-align: left;
-  position: sticky; 
-  top: 0; 
-  z-index: 2; 
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .year-header-row {
-  background-color: var(--color-bg-secondary); /* Fondo secundario */
-  position: sticky; 
-  top: 35px; 
-  z-index: 1; 
+  background-color: var(--color-bg-secondary);
+  position: sticky;
+  top: 35px;
+  z-index: 1;
 }
 
 .year-header-cell {
-  padding: var(--spacing-xs) var(--spacing-md); 
+  padding: var(--spacing-xs) var(--spacing-md);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
-  color: var(--color-text-primary); /* Texto primario para año */
+  color: var(--color-text-primary);
   text-align: left;
   border-bottom: 1px solid var(--color-border);
-  border-top: 1px solid var(--color-border); /* Borde superior también */
+  border-top: 1px solid var(--color-border);
 }
 
 .details-table th:nth-child(1),
 .details-table td:nth-child(1) {
   width: 45%;
   text-align: left;
-  padding-left: var(--spacing-md); /* Aumentado de sm a md */
-  padding-top: var(--spacing-sm); /* Añadido padding vertical */
-  padding-bottom: var(--spacing-sm); /* Añadido padding vertical */
-  vertical-align: top; /* Alinear contenido al top */
+  padding-left: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  vertical-align: top;
 }
 
 .details-table th:nth-child(2),
@@ -405,37 +393,37 @@ body:not(.is-loading) {
   width: 30%;
   text-align: center;
   white-space: nowrap;
-  padding-top: var(--spacing-sm); /* Añadido padding vertical */
-  padding-bottom: var(--spacing-sm); /* Añadido padding vertical */
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
 }
 
 .details-table th:nth-child(3),
 .details-table td:nth-child(3) {
   width: 25%;
   text-align: right;
-  padding-right: var(--spacing-md); /* Aumentado de sm a md */
+  padding-right: var(--spacing-md);
   white-space: nowrap;
-  padding-top: var(--spacing-sm); /* Añadido padding vertical */
-  padding-bottom: var(--spacing-sm); /* Añadido padding vertical */
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
 }
 
 .client-name {
-  font-weight: 500; /* Mantener o ajustar según preferencia */
+  font-weight: 500;
   color: var(--color-text-primary);
-  display: block; /* Asegurar que ocupe el ancho */
-  white-space: nowrap; /* Forzar una sola línea */
-  overflow: hidden; /* Ocultar desbordamiento */
-  text-overflow: ellipsis; /* Mostrar puntos suspensivos */
-  max-width: 100%; /* Asegurar que no exceda el ancho de la celda */
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 #factoring-details tr:not(.year-header-row):not(.waiting-state-row):not(.empty-state-row):not(.error-state-row) {
-  cursor: pointer; /* Añadir cursor de puntero a las filas de datos */
-  transition: background-color var(--transition-fast); /* Transición suave para hover */
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
 }
 
 #factoring-details tr:not(.year-header-row):not(.waiting-state-row):not(.empty-state-row):not(.error-state-row):hover {
-  background-color: var(--color-bg-hover); /* Usar variable de hover */
+  background-color: var(--color-bg-hover);
 }
 
 .detail-client {
@@ -446,16 +434,16 @@ body:not(.is-loading) {
 
 .invested-amount {
   display: block;
-  font-size: var(--font-size-xs); /* Reducido de sm a xs */
-  color: var(--color-text-secondary); /* Texto secundario para monto invertido */
-  margin-top: 4px; /* Aumentado de 2px a 4px */
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: 4px;
 }
 
 .alt-row {
-  background-color: var(--color-bg-stripe); /* Usar variable de stripe */
+  background-color: var(--color-bg-stripe);
 }
 .year-header-row.alt-row {
-  background-color: var(--color-bg-secondary); /* Mantener fondo secundario */
+  background-color: var(--color-bg-secondary);
 }
 
 .details-table th:nth-child(1),
@@ -474,7 +462,7 @@ body:not(.is-loading) {
 .details-table td:nth-child(3) {
   width: 25%;
   text-align: right;
-  padding-right: var(--spacing-md); /* Asegurado que sea md */
+  padding-right: var(--spacing-md);
 }
 
 .detail-client {
@@ -493,7 +481,7 @@ body:not(.is-loading) {
 .card-details,
 .details-table,
 #factoring-details {
-  background-color: var(--color-bg-card) !important; /* Asegurar fondo de tarjeta */
+  background-color: var(--color-bg-card) !important;
 }
 
 .paid-contract td:nth-child(3) .detail-gain {
@@ -505,10 +493,10 @@ body:not(.is-loading) {
 }
 
 .investment-card .card-details {
-  max-height: 300px; 
-  overflow-y: auto; 
-  position: relative; 
-  background-color: var(--color-bg-card); 
+  max-height: 300px;
+  overflow-y: auto;
+  position: relative;
+  background-color: var(--color-bg-card);
   padding-top: 0;
 }
 
@@ -536,17 +524,17 @@ body:not(.is-loading) {
 .error-state .svg-icon {
   font-size: 24px;
   margin-bottom: var(--spacing-sm);
-  color: var(--color-text-tertiary); /* Usar color terciario */
+  color: var(--color-text-tertiary);
 }
 
 .empty-state .icon {
   font-size: 32px;
-  opacity: 0.6; /* Ajustar opacidad si es necesario */
+  opacity: 0.6;
 }
 
 .empty-state .svg-icon {
   font-size: 32px;
-  opacity: 0.6; /* Ajustar opacidad si es necesario */
+  opacity: 0.6;
 }
 
 .error-state {
@@ -555,23 +543,22 @@ body:not(.is-loading) {
 
 .error-state .icon {
   font-size: 32px;
-  opacity: 0.8; /* Ajustar opacidad si es necesario */
+  opacity: 0.8;
 }
 
 .error-state .svg-icon {
   font-size: 32px;
-  opacity: 0.8; /* Ajustar opacidad si es necesario */
+  opacity: 0.8;
 }
 
-/* Estilos para el interruptor (Toggle Switch) */
 .toggle-switch {
   position: relative;
-  display: inline-flex; /* Cambiado a inline-flex */
-  align-items: center; /* Alinear verticalmente */
-  width: auto; /* Ancho automático basado en contenido */
-  height: 22px; /* Altura ajustada */
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  height: 22px;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent; /* Evitar highlight en móvil */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .toggle-switch input {
@@ -581,63 +568,49 @@ body:not(.is-loading) {
 }
 
 .toggle-slider {
-  position: relative; /* Cambiado de absolute a relative para flujo normal */
-  display: inline-block; /* Para que esté en línea con el texto */
-  width: 36px; /* Ancho del slider */
-  height: 20px; /* Altura del slider */
-  background-color: var(--color-bg-tertiary); /* Usar nuevo fondo terciario */
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  background-color: var(--color-bg-tertiary);
   border-radius: 20px;
   transition: background-color var(--transition-fast);
-  margin-right: 8px; /* Añadir margen derecho al slider para separar del texto */
-  flex-shrink: 0; /* Evitar que se encoja */
-  vertical-align: middle; /* Alinear mejor con el texto */
+  margin-right: 8px;
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 16px; /* Tamaño del círculo */
+  height: 16px;
   width: 16px;
-  left: 2px; /* Posición inicial */
+  left: 2px;
   bottom: 2px;
-  background-color: var(--color-text-primary); /* Color del círculo */
+  background-color: var(--color-text-primary);
   border-radius: 50%;
   transition: transform var(--transition-fast);
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: var(--color-accent-primary); /* Usar nuevo acento primario */
+  background-color: var(--color-accent-primary);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
-  transform: translateX(16px); /* Mover el círculo a la derecha */
+  transform: translateX(16px);
 }
 
 .toggle-label {
-  font-size: var(--font-size-xs); /* Tamaño de fuente más pequeño */
-  color: var(--color-text-secondary); /* Usar nuevo color secundario */
-  white-space: nowrap; /* Evitar que el texto se rompa */
-  line-height: 20px; /* Alinear con la altura del slider */
-  /* margin-right: 8px; */ /* Quitar margen derecho del texto */
-  vertical-align: middle; /* Alinear mejor con el slider */
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  line-height: 20px;
+  vertical-align: middle;
 }
 
-/* Ajustar contenedor de leyenda si es necesario */
 .chart-legend-container {
   display: flex;
   align-items: center;
-  /* Eliminar estilos anteriores si los había */
-}
-
-
-/* Eliminar estilos de la leyenda anterior si aún existen */
-.custom-legend,
-.legend-item,
-.legend-color,
-.legend-text {
-  /* Estos estilos ya no son necesarios para el interruptor */
-   /* Puedes comentarlos o eliminarlos si no se usan en otro lugar */
-   /* display: none; */ /* Ocultar si prefieres mantenerlos por si acaso */
 }
 
 .icon {
@@ -648,15 +621,15 @@ body:not(.is-loading) {
 }
 
 .svg-icon {
-  display: inline-flex; /* Mantenido */
-  align-items: center; /* Mantenido */
-  justify-content: center; /* Mantenido */
-  width: 1em; /* Mantenido */
-  height: 1em; /* Mantenido */
-  vertical-align: middle; /* Mantenido */
-  margin-right: 0; /* Eliminado margen derecho para usar gap del padre */
-  font-size: 16px; /* Mantenido */
-  flex-shrink: 0; /* Evitar que el icono se encoja */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  margin-right: 0;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .svg-icon svg {
@@ -676,7 +649,7 @@ body:not(.is-loading) {
   font-size: 40px;
   margin-bottom: var(--spacing-sm);
   color: var(--color-accent-tertiary);
-  opacity: 0.7; /* Ajustar opacidad */
+  opacity: 0.7;
 }
 
 .waiting-message .primary-text {
@@ -702,7 +675,7 @@ html, body, * {
 }
 
 ::-webkit-scrollbar {
-  width: 6px !important; /* Ligeramente más ancho para mejor usabilidad */
+  width: 6px !important;
   height: 6px !important;
 }
 
@@ -713,7 +686,7 @@ html, body, * {
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb-color) !important;
   border-radius: 6px !important;
-  border: 1px solid var(--scrollbar-track-color); /* Borde sutil para el pulgar */
+  border: 1px solid var(--scrollbar-track-color);
 }
 
 .details-table .waiting-state-row td,
@@ -745,8 +718,8 @@ html, body, * {
 
   .details-table th,
   .details-table td {
-    padding-top: var(--spacing-xs); /* Ajustado padding vertical para móvil */
-    padding-bottom: var(--spacing-xs); /* Ajustado padding vertical para móvil */
+    padding-top: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
     font-size: var(--font-size-xs);
   }
 
@@ -763,25 +736,19 @@ html, body, * {
   .details-table .waiting-state-row td,
   .details-table .empty-state-row td,
   .details-table .error-state-row td {
-    padding-left: var(--spacing-sm); /* Asegurar padding horizontal consistente */
+    padding-left: var(--spacing-sm);
     padding-right: var(--spacing-sm);
-    /* text-align: center; ya está heredado o aplicado */
   }
 
   .invested-amount {
-    font-size: var(--font-size-xs); /* Ya es xs, se mantiene */
-    margin-top: 2px; /* Revertido a 2px para móvil si es necesario, o mantener 4px */
+    font-size: var(--font-size-xs);
+    margin-top: 2px;
   }
 
   .detail-client {
     white-space: nowrap;
     text-overflow: ellipsis;
     max-width: 100%;
-  }
-
-  .client-name {
-     /* Estilos de nowrap, overflow, ellipsis ya aplicados */
-     /* max-width: 100%; ya aplicado */
   }
 
   .investment-card {
@@ -825,11 +792,11 @@ html, body, * {
   }
 
   .year-header-row {
-    top: 30px; 
+    top: 30px;
   }
 
   .details-table th {
-    top: 0; 
+    top: 0;
   }
 }
 
@@ -886,21 +853,22 @@ html, body, * {
   }
 }
 
-/* --- Popup Modal para detalles de contrato --- */
 .popup-overlay {
   position: fixed;
   z-index: 9999;
   inset: 0;
-  background: rgba(10,15,30,0.65);
+  background: rgba(10,15,30,0.75);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
 }
 .popup-modal {
-  background: var(--color-bg-card, #181f36);
-  border-radius: 16px;
+  background: var(--color-bg-card);
+  border-radius: var(--border-radius-lg);
   box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+  border: 1px solid var(--color-border);
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   min-width: 320px;
   max-width: 95vw;
@@ -909,8 +877,8 @@ html, body, * {
   position: relative;
   animation: popup-in 0.18s;
   width: 100%;
-  color: var(--color-text-primary, #f4f7fa);
-  font-family: inherit;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
 }
 @media (max-width: 600px) {
   .popup-modal {
@@ -932,19 +900,19 @@ html, body, * {
   background: none;
   border: none;
   font-size: 2rem;
-  color: var(--color-accent, #4f85ff);
+  color: var(--color-accent-primary);
   cursor: pointer;
   line-height: 1;
   transition: color 0.15s;
 }
 .popup-close:hover {
-  color: var(--color-negative, #e74c3c);
+  color: var(--color-negative);
 }
 .popup-modal h3 {
   margin: 0 0 1rem 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-accent-primary, #4f85ff);
+  color: var(--color-text-primary);
   letter-spacing: 0.01em;
   text-align: left;
 }
@@ -956,52 +924,100 @@ html, body, * {
   table-layout: fixed;
   word-break: break-word;
   background: none;
-  border-radius: 10px;
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: none;
 }
 .popup-details-table tr {
-  background: none;
+  background: var(--color-bg-card);
+}
+.popup-details-table tr:hover {
+  background: var(--color-bg-card);
 }
 .popup-details-table tr:nth-child(even) {
-  background: rgba(255,255,255,0.025);
+  background: var(--color-bg-card);
 }
 .popup-details-table tr:nth-child(odd) {
-  background: rgba(79,133,255,0.04);
+  background: var(--color-bg-card);
 }
 .popup-details-table td {
   padding: 0.6em 0.7em;
-  border-bottom: 1px solid rgba(255,255,255,0.09);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 1rem;
-  vertical-align: top;
+  vertical-align: middle;
   background: none;
   text-align: left;
 }
 .popup-details-table tr:last-child td {
   border-bottom: none;
 }
+.popup-details-table tr.group-separator {
+  display: none;
+  height: 0;
+  overflow: hidden;
+}
 .popup-key {
   font-weight: 500;
-  color: var(--color-secondary, #a0aec0);
+  color: var(--color-text-secondary);
   width: 44%;
   text-align: right;
   letter-spacing: 0.01em;
   font-size: 1em;
   padding-right: 1em;
   background: none;
+  vertical-align: middle;
 }
 .popup-value {
-  color: var(--color-primary, #f4f7fa);
+  color: var(--color-text-primary);
   width: 56%;
   text-align: left;
   word-break: break-all;
   font-size: 1em;
   background: none;
+  vertical-align: middle;
 }
+
+.popup-value.status-field {
+  display: flex;
+  align-items: center;
+}
+
+.popup-value.status-field .svg-icon {
+  margin-right: 6px;
+}
+
+.popup-value.financial-field {
+  color: var(--color-positive);
+  font-weight: 500;
+}
+
+.popup-value.date-field {
+  color: var(--color-accent-tertiary);
+}
+
+.status-value {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.5em;
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+}
+
+.status-value.status-positive {
+  background-color: rgba(72, 187, 120, 0.15);
+  color: var(--color-positive);
+}
+
+.status-value.status-negative {
+  background-color: rgba(245, 101, 101, 0.15);
+  color: var(--color-negative);
+}
+
 @media (max-width: 480px) {
   .popup-modal {
     padding: 0.7rem 0.2rem 0.7rem 0.2rem;
     font-size: 0.96em;
+    border-radius: var(--border-radius-md);
   }
   .popup-details-table td {
     font-size: 0.96em;
@@ -1009,5 +1025,8 @@ html, body, * {
   }
   .popup-key, .popup-value {
     font-size: 0.96em;
+  }
+  .status-value {
+    padding: 0.15em 0.3em;
   }
 }

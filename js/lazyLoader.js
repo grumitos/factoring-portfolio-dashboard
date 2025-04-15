@@ -7,7 +7,6 @@ const LazyLoader = {
     }
 
     if (window[globalVar]) {
-      console.log(`Biblioteca ${globalVar} ya está cargada globalmente`);
       this._loadedLibraries[url] = Promise.resolve(window[globalVar]);
       return this._loadedLibraries[url];
     }
@@ -35,7 +34,6 @@ const LazyLoader = {
       script.onload = () => {
         clearTimeout(timeout);
         if (window[globalVar]) {
-          console.log(`Biblioteca ${globalVar} cargada correctamente`);
           resolve(window[globalVar]);
         } else {
           const error = new Error(`La biblioteca ${globalVar} no se expuso globalmente después de cargar ${url}`);
@@ -56,7 +54,6 @@ const LazyLoader = {
     if (chartTypes.length === 0 || chartTypes.length > 3) {
       return this._loadScript('https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js', 'Chart')
         .catch(error => {
-          console.warn('Fallando al plan B para cargar Chart.js');
           delete this._loadedLibraries['https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'];
           return this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', 'Chart');
         });
@@ -104,10 +101,8 @@ const LazyLoader = {
         delete this._loadedLibraries[key];
       });
       
-      console.log(`Caché liberada para ${library}`);
     } else {
       this._loadedLibraries = {};
-      console.log('Caché liberada completamente');
     }
   }
 };
