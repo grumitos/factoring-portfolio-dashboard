@@ -47,9 +47,7 @@ function showFactoringWaitingState(message = "Selecciona una categoría") {
       <tr class="waiting-state-row">
         <td colspan="3">
           <div class="empty-state waiting-message">
-            <span class="svg-icon">
-              <svg><use xlink:href="#icon-touch"></use></svg>
-            </span>
+            
             <p class="primary-text">${message}</p>
             <p class="secondary-text">Haz clic en una de las pestañas superiores para ver los contratos</p>
           </div>
@@ -148,7 +146,7 @@ function updateDashboardSummary(factoringData) {
     }
     inversionTrendElement.className = `summary-trend ${trendClassInv}`;
     // Mostrar ganancia del último mes
-    inversionTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdInv}"></use></svg></span> ${formatUtils.currency(gananciaUltimoMes)} último mes`;
+    inversionTrendElement.innerHTML = `${formatUtils.currency(gananciaUltimoMes)} último mes`;
   }
 
   // Actualizar tarjeta de Tasa Promedio (sin cambios aquí)
@@ -159,7 +157,7 @@ function updateDashboardSummary(factoringData) {
     if (tasa > 0.1) { trendClassTasa = 'positive'; iconIdTasa = 'icon-trending-up'; }
     else if (tasa < -0.1) { trendClassTasa = 'negative'; iconIdTasa = 'icon-trending-down'; }
     tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdTasa}"></use></svg></span> Anualizada`; // Usar iconIdTasa
+    tasaTrendElement.innerHTML = `Anualizada`; // Usar iconIdTasa
   }
 
   // Actualizar tarjeta de Meta (sin cambios aquí)
@@ -192,7 +190,7 @@ function updateDashboardSummary(factoringData) {
         iconIdInv = 'icon-trending-down';
     }
     inversionTrendElement.className = `summary-trend ${trendClassInv}`;
-    inversionTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdInv}"></use></svg></span> ${formatUtils.currency(gananciaUltimoMes)} último mes`;
+    inversionTrendElement.innerHTML = `${formatUtils.currency(gananciaUltimoMes)} último mes`;
   }
 
   const tasaTrendElement = document.getElementById("tasa-trend");
@@ -202,7 +200,7 @@ function updateDashboardSummary(factoringData) {
     if (tasa > 0.1) { trendClassTasa = 'positive'; iconIdTasa = 'icon-trending-up'; }
     else if (tasa < -0.1) { trendClassTasa = 'negative'; iconIdTasa = 'icon-trending-down'; }
     tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#${iconIdTasa}"></use></svg></span> Anualizada`;
+    tasaTrendElement.innerHTML = `Anualizada`;
   }
 
 
@@ -226,7 +224,7 @@ function updateDashboardSummary(factoringData) {
     // Actualizar UI SIEMPRE después del cálculo
     if (!isFinite(tiempoHastaMeta.años)) { // Usar isFinite para chequear Infinity o NaN
       metaTiempoElement.textContent = "Meta Inalcanzable";
-      metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-warning"></use></svg></span> Tasa o aportes insuficientes`; // Texto ajustado
+      metaDescripcionElement.innerHTML = `Tasa o aportes insuficientes`; // Texto ajustado
       metaDescripcionElement.className = "summary-trend negative";
     } else {
       let tiempoTexto = "";
@@ -235,7 +233,7 @@ function updateDashboardSummary(factoringData) {
       if (tiempoHastaMeta.años <= 0 && tiempoHastaMeta.meses <= 0) {
            tiempoTexto = "Meta Alcanzada";
            // Mostrar solo icono y fecha si es válida, o solo icono y texto
-           metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-check"></use></svg></span> ${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
+           metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
            metaDescripcionElement.className = "summary-trend positive";
       } else {
           // ... (código existente para calcular tiempoTexto) ...
@@ -244,7 +242,7 @@ function updateDashboardSummary(factoringData) {
           else tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'} y ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
 
           // Mostrar solo icono y fecha estimada si es válida, o solo icono
-          metaDescripcionElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-timeline"></use></svg></span> ${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`; // Quitado texto de aportes
+          metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`; // Quitado texto de aportes
           metaDescripcionElement.className = fechaEstimadaValida ? "summary-trend positive" : "summary-trend neutral"; // Clase basada en validez
       }
       metaTiempoElement.textContent = tiempoTexto;
@@ -358,7 +356,7 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       <tr class="empty-state-row">
         <td colspan="3">
           <div class="empty-state">
-            <span class="svg-icon"><svg><use xlink:href="#icon-info"></use></svg></span>
+            
             <p>${emptyMessage}</p>
           </div>
         </td>
@@ -379,7 +377,7 @@ function showErrorState(message) {
       <tr class="error-state-row">
         <td colspan="3">
           <div class="error-state">
-            <span class="svg-icon"><svg><use xlink:href="#icon-error"></use></svg></span>
+            
             <p>${message}</p>
           </div>
         </td>
@@ -402,7 +400,7 @@ function showErrorState(message) {
     errorBanner.style.fontSize = 'var(--font-size-sm)';
     document.body.insertBefore(errorBanner, document.body.firstChild);
   }
-  errorBanner.innerHTML = `<span class="svg-icon" style="vertical-align: middle; margin-right: 8px;"><svg><use xlink:href="#icon-error"></use></svg></span> ${message}`;
+  errorBanner.innerHTML = `${message}`;
   errorBanner.style.display = 'block';
 }
 
@@ -446,6 +444,19 @@ function showContractDetailsPopup(contract) {
     );
   }
 
+  // Buscar la fecha de pago real en los archivos de ganancia
+  let fechaPagoReal = null;
+  if (window.dataService && window.dataService.ganancias) {
+    // Buscar en ambas monedas
+    const ganancias = Array.isArray(window.dataService.ganancias) ? window.dataService.ganancias : [];
+    const gananciaContrato = ganancias.find(g =>
+      g["Código de subasta"] === contract.codigoSubasta
+    );
+    if (gananciaContrato && gananciaContrato.Fecha) {
+      fechaPagoReal = gananciaContrato.Fecha;
+    }
+  }
+
   // Alias amigables para los campos
   const fieldLabels = {
     nombre: "Cliente",
@@ -468,10 +479,17 @@ function showContractDetailsPopup(contract) {
     "Fecha de pago": "Fecha de pago",
     "Fecha de cierre de subasta": "Fecha de cierre de subasta",
     Estado: "Estado",
-    montoPagoNeto: "Ganancia estimada/calculada",
-    isPaid: "Pagado",
-    isPending: "Pendiente",
+    montoPagoNeto: "Ganancia estimada",
     Hora: "Hora"
+  };
+
+  // Categorías para organizar y colorear campos
+  const fieldCategories = {
+    important: ["nombre", "Cliente", "monto", "Inversion", "montoPagoNeto"],
+    dates: ["fechaIngreso", "Fecha", "fechaPagoEstimado", "fechaPagoReal", "Fecha de pago", "Fecha de cierre de subasta"],
+    status: ["Estado", "Riesgo"],
+    // Quitar "moneda" de financial para que no se muestre como fila
+    financial: ["Retorno mensual (%)", "retornoMensual"]
   };
 
   // Unir datos originales y calculados, priorizando los calculados
@@ -479,13 +497,46 @@ function showContractDetailsPopup(contract) {
   if (originalData && originalData.originalRow) {
     Object.assign(merged, originalData.originalRow);
   }
-  // Añadir todos los campos del contrato procesado
   Object.assign(merged, contract);
+
+  // Determinar estado visual
+  const isPaid = merged.isPaid === true;
+  // Determinar si está atrasado (no pagado y fecha de pago estimada pasada)
+  let isLate = false;
+  if (!isPaid) {
+    let fechaPagoEstimada = merged.fechaPagoReal || merged.fechaPagoEstimado || merged["Fecha de pago"];
+    if (!fechaPagoEstimada && merged["Fecha de pago"]) fechaPagoEstimada = merged["Fecha de pago"];
+    let fechaPago = fechaPagoEstimada ? new Date(fechaPagoEstimada) : null;
+    if (fechaPago && !isNaN(fechaPago.getTime())) {
+      const hoy = new Date();
+      if (fechaPago < hoy) isLate = true;
+    }
+  }
+
+  // Crear grupos de campos para organizarlos mejor en el popup
+  const groups = {
+    important: [],
+    dates: [],
+    financial: [],
+    status: [],
+    other: []
+  };
 
   // Mostrar todos los campos disponibles, sin duplicados
   const shownKeys = new Set();
-  const detailRows = [];
+
+  // Procesar los campos para agruparlos (omitimos isPaid, isPending, código de subasta, Estado y moneda)
   for (const [key, value] of Object.entries(merged)) {
+    if (
+      key === 'isPaid' ||
+      key === 'isPending' ||
+      key === 'codigoSubasta' ||
+      key === 'Codigo de subasta' ||
+      key === 'Código de subasta' ||
+      key === 'Estado' ||
+      key === 'moneda' ||
+      key === 'Moneda'
+    ) continue;
     if (shownKeys.has(key)) continue;
     shownKeys.add(key);
 
@@ -493,45 +544,232 @@ function showContractDetailsPopup(contract) {
     if (typeof value === "object" && value !== null) continue;
 
     let displayValue = value;
-    // Formatear montos
-    if (typeof value === 'number' && key.match(/monto|inversion|ganancia|pago/i)) {
-      displayValue = formatUtils.currency(value, merged.moneda || merged.Moneda || "PEN");
+    let categoryClass = 'other-field';
+    let groupKey = 'other';
+
+    // Determinar categoría para estilos y agrupación
+    for (const [category, keys] of Object.entries(fieldCategories)) {
+      if (keys.includes(key)) {
+        categoryClass = `${category}-field`;
+        groupKey = category;
+        break;
+      }
     }
+
+    // Formatear montos y añadir sufijo de moneda
+    if (typeof value === 'number' && key.match(/monto|inversion|ganancia|pago/i)) {
+      // Determinar sufijo de moneda
+      let sufijoMoneda = '';
+      const moneda = (merged.moneda || merged.Moneda || '').toUpperCase();
+      if (moneda === 'USD' || moneda === 'DOLARES' || moneda === 'DÓLARES') sufijoMoneda = ' - USD';
+      else if (moneda === 'PEN' || moneda === 'SOLES' || moneda === 'SOL') sufijoMoneda = ' - Soles';
+      displayValue = formatUtils.currency(value, moneda) + sufijoMoneda;
+      categoryClass = 'financial-field';
+      groupKey = 'financial';
+    }
+
     // Formatear fechas
     if (key.toLowerCase().includes('fecha') && value) {
       displayValue = formatUtils.dateShort(value);
+      categoryClass = 'date-field';
+      groupKey = 'dates';
     }
+
     // Formatear booleanos
     if (typeof value === "boolean") {
-      displayValue = value ? "Sí" : "No";
+      
+      const statusClass = value ? "status-positive" : "status-negative";
+      displayValue = `<span class="status-value ${statusClass}">
+                        
+                        ${value ? "Sí" : "No"}
+                      </span>`;
+      if (groupKey === 'other') categoryClass = 'status-field';
     }
+
     // Alias amigable
     const label = fieldLabels[key] || key;
-    detailRows.push(`
-      <tr>
+
+    groups[groupKey].push(`
+      <tr class="${categoryClass}">
         <td class="popup-key">${label}</td>
         <td class="popup-value">${displayValue ?? '-'}</td>
       </tr>
     `);
   }
 
+  // Construir las filas de la tabla, organizadas por grupos
+  const detailRows = [
+    ...groups.important,
+    groups.important.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
+    ...groups.financial,
+    groups.financial.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
+    ...groups.dates,
+    groups.dates.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
+    ...groups.status,
+    groups.status.length > 0 ? '<tr class="group-separator"><td colspan="2"></td></tr>' : '',
+    ...groups.other
+  ];
+
+  // Obtener el cliente para el encabezado
+  const clientName = merged.nombre || merged.Cliente || "Detalle de Contrato";
+  const contractCode = merged.codigoSubasta || merged["Codigo de subasta"] || "";
+
+  // Estado visual y texto
+  let estadoTexto = "";
+  let estadoColor = "";
+  let estadoIcon = "";
+  if (isPaid) {
+    estadoTexto = "Pagado";
+    estadoColor = "#1ecb7a"; // Verde (ya estaba)
+    estadoIcon = "icon-check-circle";
+  } else if (isLate) {
+    estadoTexto = "Atrasado";
+    estadoColor = "#e74c3c"; // Rojo
+    estadoIcon = "icon-warning";
+  } else {
+    estadoTexto = "Pendiente";
+    estadoColor = "#ffd600"; // Amarillo
+    estadoIcon = "icon-time";
+  }
+
+  // Fecha de pago real (si existe)
+  let fechaPagoRealHtml = "";
+  if (fechaPagoReal) {
+    fechaPagoRealHtml = `
+      <div style="margin-top: 4px; font-size: 0.95em; color: var(--color-text-secondary);">
+        
+        Pago real: <b>${formatUtils.dateShort(fechaPagoReal)}</b>
+      </div>
+    `;
+  }
+
+  // Crear y añadir el popup al DOM con estilos mejorados
   const popup = document.createElement('div');
   popup.id = 'contract-details-popup';
   popup.className = 'popup-overlay';
+  popup.style.animation = 'fadeIn 0.2s ease-out';
+
   popup.innerHTML = `
-    <div class="popup-modal">
-      <button class="popup-close" id="close-contract-popup" title="Cerrar">&times;</button>
-      <h3>Detalle del Contrato</h3>
-      <table class="popup-details-table">
-        <tbody>
-          ${detailRows.join('')}
-        </tbody>
-      </table>
+    <div class="popup-modal" style="border-radius: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.25); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 8px;">
+      <div class="popup-header"
+           style="padding: 8px; border-bottom: 1px solid var(--color-border); background-color: var(--color-bg-card); 
+                  border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 1;">
+        <button class="popup-close" id="close-contract-popup" title="Cerrar" 
+                style="position: absolute; right: 12px; top: 12px; background: none; border: none; font-size: 24px; 
+                       cursor: pointer; color: var(--color-text-secondary); width: 30px; height: 30px; 
+                       display: flex; align-items: center; justify-content: center; border-radius: 50%;">&times;</button>
+        <div>
+          <h3 style="margin: 0 0 4px 0; color: var(--color-text-primary);">${clientName}</h3>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            
+            <span style="color: ${estadoColor}; font-weight: 600; font-size: 1em;">${estadoTexto}</span>
+            <span style="color: var(--color-text-tertiary); font-size: 0.95em; margin-left: 8px;">
+              ${contractCode ? `Código: <b>${contractCode}</b>` : ""}
+            </span>
+          </div>
+          ${fechaPagoRealHtml}
+        </div>
+      </div>
+      <div style="padding: 8px;">
+        <table class="popup-details-table" style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+          <tbody>
+            ${detailRows.join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
+
   document.body.appendChild(popup);
 
+  // Agregar estilos específicos para el popup
+  const style = document.createElement('style');
+  style.id = 'contract-popup-styles';
+  style.textContent = `
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .popup-details-table .popup-key {
+      color: var(--color-text-secondary);
+      padding: 8px 8px 8px 0;
+      font-size: 0.9em;
+      vertical-align: top;
+      width: 40%;
+    }
+    .popup-details-table .popup-value {
+      padding: 8px 0;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      word-break: break-word;
+    }
+    .important-field .popup-value {
+      font-weight: 600;
+      font-size: 1.05em;
+    }
+    .financial-field .popup-value {
+      color: var(--color-positive);
+    }
+    .date-field {
+      color: var(--color-accent-secondary);
+    }
+    .status-positive {
+      color: var(--color-positive);
+      font-weight: 500;
+    }
+    .status-negative {
+      color: var(--color-negative);
+      font-weight: 500;
+    }
+    .group-separator td {
+      height: 1px;
+      background-color: var(--color-border);
+      padding: 0;
+      opacity: 0.5;
+    }
+    .popup-details-table tr:nth-child(even):not(.group-separator) {
+      background-color: rgba(0,0,0,0.02);
+    }
+    .popup-details-table tr:not(.group-separator):hover {
+      background-color: rgba(0,0,0,0.05);
+    }
+    #close-contract-popup:hover {
+      background-color: rgba(0,0,0,0.1);
+      color: var(--color-text-primary);
+    }
+  `;
+
+  if (!document.getElementById('contract-popup-styles')) {
+    document.head.appendChild(style);
+  }
+
   // Cerrar popup
-  document.getElementById('close-contract-popup').onclick = () => popup.remove();
-  popup.onclick = (e) => { if (e.target === popup) popup.remove(); };
+  document.getElementById('close-contract-popup').onclick = () => {
+    popup.style.animation = 'fadeIn 0.15s ease-in reverse';
+    setTimeout(() => popup.remove(), 150);
+    const popupStyle = document.getElementById('contract-popup-styles');
+    if (popupStyle) popupStyle.remove();
+  };
+
+  popup.onclick = (e) => {
+    if (e.target === popup) {
+      popup.style.animation = 'fadeIn 0.15s ease-in reverse';
+      setTimeout(() => popup.remove(), 150);
+      const popupStyle = document.getElementById('contract-popup-styles');
+      if (popupStyle) popupStyle.remove();
+    }
+  };
 }
