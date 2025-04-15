@@ -118,41 +118,28 @@ function setTextContent(elementId, text) {
   }
 }
 
-function updateDashboardSummary(factoringData) {
-  const data = factoringData || { tasa: 0, montoGanado: 0, totalInvertido: 0, gananciaUltimoMes: 0 };
-  const tasa = data.tasa || 0;
-  const montoGanado = data.montoGanado || 0;
-  const gananciaUltimoMes = data.gananciaUltimoMes || 0;
-  const depositosValidos = typeof totalDepositosCalculado === 'number' && !isNaN(totalDepositosCalculado) ? totalDepositosCalculado : 0;
-  const inversionTotalMostrada = depositosValidos + montoGanado;
+async function updateDashboardSummary(factoringData) {
+  const dataService = new DataService();
+  // Calcula totales y tasas usando las nuevas funciones manuales
+  const [res, tasaAnualizada] = await Promise.all([
+    dataService.calcularInteresManual(),
+    (async () => {
+      // Calcula la tasa anualizada real usando los flujos
+      await dataService.loadAllData(); // Asegura que los contratos estén cargados
+      return dataService.calcularRentabilidadConFlujos();
+    })()
+  ]);
 
-  setTextContent("total-inversion", formatUtils.currency(inversionTotalMostrada));
-  setTextContent("tasa-promedio", formatUtils.percentage(tasa));
-
-  const inversionTrendElement = document.getElementById("inversion-trend");
-  if (inversionTrendElement) {
-    let trendClassInv = 'neutral';
-    if (gananciaUltimoMes > 1) trendClassInv = 'positive';
-    else if (gananciaUltimoMes < -1) trendClassInv = 'negative';
-    inversionTrendElement.className = `summary-trend ${trendClassInv}`;
-    inversionTrendElement.innerHTML = `${formatUtils.currency(gananciaUltimoMes)} último mes`;
-  }
-
-  const tasaTrendElement = document.getElementById("tasa-trend");
-  if (tasaTrendElement) {
-    let trendClassTasa = 'neutral';
-    if (tasa > 0.1) trendClassTasa = 'positive';
-    else if (tasa < -0.1) trendClassTasa = 'negative';
-    tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    tasaTrendElement.innerHTML = `Anualizada`;
-  }
-
+  // Actualiza meta y tasa promedio
   const metaTiempoElement = document.getElementById("meta-tiempo");
   const metaDescripcionElement = document.getElementById("meta-descripcion");
-  if (metaTiempoElement && metaDescripcionElement) {
+  const tasaPromedioElement = document.getElementById("tasa-promedio");
+  const tasaTrendElement = document.getElementById("tasa-trend");
+  if (metaTiempoElement && metaDescripcionElement && tasaPromedioElement && tasaTrendElement) {
+    // Mantén la lógica de meta
     let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null };
-    const capitalInicialMeta = typeof inversionTotalMostrada === 'number' && !isNaN(inversionTotalMostrada) && inversionTotalMostrada > 0 ? inversionTotalMostrada : 0;
-    const tasaValidaParaCalculo = typeof tasa === 'number' && !isNaN(tasa) ? tasa : 0;
+    const capitalInicialMeta = typeof res.totalInvertidoPENeq === 'number' && !isNaN(res.totalInvertidoPENeq) && res.totalInvertidoPENeq > 0 ? res.totalInvertidoPENeq : 0;
+    const tasaValidaParaCalculo = typeof tasaAnualizada === 'number' && !isNaN(tasaAnualizada) ? tasaAnualizada : 0;
     if (APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
       tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo);
     }
@@ -168,16 +155,36 @@ function updateDashboardSummary(factoringData) {
         metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
         metaDescripcionElement.className = "summary-trend positive";
       } else {
-        if (tiempoHastaMeta.años === 0) tiempoTexto = `En ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
-        else if (tiempoHastaMeta.meses === 0) tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'}`;
-        else tiempoTexto = `En ${tiempoHastaMeta.años} ${tiempoHastaMeta.años === 1 ? 'año' : 'años'} y ${tiempoHastaMeta.meses} ${tiempoHastaMeta.meses === 1 ? 'mes' : 'meses'}`;
-        metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Estimado: ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`;
-        metaDescripcionElement.className = fechaEstimadaValida ? "summary-trend positive" : "summary-trend neutral";
+        tiempoTexto = `${tiempoHastaMeta.años} años, ${tiempoHastaMeta.meses} meses`;
+        metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Est. ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`;
+        metaDescripcionElement.className = "summary-trend positive";
       }
       metaTiempoElement.textContent = tiempoTexto;
     }
-  } else {
-    if (metaTiempoElement) metaTiempoElement.textContent = "Error UI";
+    // Tasa promedio anualizada real
+    tasaPromedioElement.textContent = formatUtils.percentage(tasaAnualizada);
+    let trendClassTasa = 'neutral';
+    if (tasaAnualizada > 0.1) trendClassTasa = 'positive';
+    else if (tasaAnualizada < -0.1) trendClassTasa = 'negative';
+    tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
+    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span> Anualizada`;
+  }
+
+  // Actualiza totales y ganancias en soles
+  const totalSolesElement = document.getElementById("total-soles");
+  const gananciaSolesElement = document.getElementById("ganancia-soles");
+  if (totalSolesElement && gananciaSolesElement) {
+    // Mostrar total invertido + ganancia
+    totalSolesElement.textContent = formatUtils.currency(res.totalInvertidoPEN + res.totalGanadoPEN, 'PEN');
+    gananciaSolesElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoPEN, 'PEN')}`;
+  }
+
+  // Actualiza totales y ganancias en dólares
+  const totalDolaresElement = document.getElementById("total-dolares");
+  const gananciaDolaresElement = document.getElementById("ganancia-dolares");
+  if (totalDolaresElement && gananciaDolaresElement) {
+    totalDolaresElement.textContent = formatUtils.currency(res.totalInvertidoUSD + res.totalGanadoUSD, 'USD');
+    gananciaDolaresElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoUSD, 'USD')}`;
   }
 }
 
@@ -692,4 +699,28 @@ function showContractDetailsPopup(contract) {
       setTimeout(() => popup.remove(), 150);
     }
   };
+}
+
+async function mostrarSaldosReales() {
+  // Cargar los archivos necesarios
+  const [pen, usd, gananciaPEN, gananciaUSD, conversiones] = await Promise.all([
+    fetch('assets/pen.json').then(r => r.json()),
+    fetch('assets/usd.json').then(r => r.json()),
+    fetch('assets/gananciaPEN.json').then(r => r.json()),
+    fetch('assets/gananciaUSD.json').then(r => r.json()),
+    fetch('assets/dolares-a-soles.json').then(r => r.json())
+  ]);
+  // Calcular los saldos reales usando la función del dataService
+  const dataServiceTmp = new DataService();
+  const saldos = await dataServiceTmp.calculateTotalDepositsConAjuste(pen, usd, gananciaPEN, gananciaUSD, conversiones);
+  // Mostrar en la UI (agrega estos elementos en tu HTML si no existen)
+  setTextContent('saldo-pen-real', formatUtils.currency(saldos.saldoPEN, 'PEN'));
+  setTextContent('saldo-usd-real', formatUtils.currency(saldos.saldoUSD, 'USD'));
+}
+
+// Llamar al cargar la app
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mostrarSaldosReales);
+} else {
+  mostrarSaldosReales();
 }

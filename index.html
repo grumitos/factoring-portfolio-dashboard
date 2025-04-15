@@ -71,32 +71,45 @@
   <div class="app-container">
     <main class="main-content">
       <div class="dashboard-content">
-        <section class="summary-cards">
-           <div class="summary-card full-width">
+        <section class="summary-cards summary-cards-grid">
+          <!-- Mueve primero la fila de soles/dólares -->
+          <div class="summary-card" style="grid-column: 1 / -1;">
+            <div class="summary-info" style="display: flex; align-items: center; justify-content: center;">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 0; width: 100%;">
+                <div style="flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <h3 class="text-sm font-medium text-secondary">Total en Soles</h3>
+                  <p class="summary-value text-xl font-semibold" id="total-soles">S/ 0.00</p>
+                  <p class="summary-trend positive" id="ganancia-soles">Ganancia: S/ 0.00</p>
+                </div>
+                <!-- Línea vertical perfectamente centrada -->
+                <div style="display: flex; align-items: center; height: 56px; margin: 0 32px;">
+                  <div style="width:1.5px; height: 80%; background:var(--color-border,#e5e7eb);"></div>
+                </div>
+                <div style="flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <h3 class="text-sm font-medium text-secondary">Total en Dólares</h3>
+                  <p class="summary-value text-xl font-semibold" id="total-dolares">$ 0.00</p>
+                  <p class="summary-trend positive" id="ganancia-dolares">Ganancia: $ 0.00</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Después la fila de tasa/meta -->
+          <div class="summary-card">
             <div class="summary-info">
-              <h3 class="text-sm font-medium text-secondary">Meta: 2 millones</h3>
-              <p class="summary-value text-xl font-semibold" id="meta-tiempo">Calculando...</p>
-              <p class="summary-trend positive" id="meta-descripcion">
-                <span class="svg-icon"><svg><use xlink:href="#icon-timeline"></use></svg></span>
+              <h3 class="text-sm font-medium text-secondary">Tasa Promedio</h3>
+              <p class="summary-value text-xl font-semibold" id="tasa-promedio">0.00%</p>
+              <p class="summary-trend positive" id="tasa-trend" style="justify-content: center; display: flex;">
+                <span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span>
+                Anualizada
               </p>
             </div>
           </div>
           <div class="summary-card">
             <div class="summary-info">
-              <h3 class="text-sm font-medium text-secondary">Inversión Total</h3>
-              <p class="summary-value text-xl font-semibold" id="total-inversion">S/ 0.00</p>
-               <p class="summary-trend positive" id="inversion-trend">
-                 <span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span>
-               </p>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-info">
-              <h3 class="text-sm font-medium text-secondary">Tasa Promedio</h3>
-              <p class="summary-value text-xl font-semibold" id="tasa-promedio">0.00%</p>
-              <p class="summary-trend positive" id="tasa-trend">
-                <span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span>
-                 Anualizada
+              <h3 class="text-sm font-medium text-secondary">Meta: 2 millones</h3>
+              <p class="summary-value text-xl font-semibold" id="meta-tiempo" style="text-align: center;">Calculando...</p>
+              <p class="summary-trend positive" id="meta-descripcion" style="text-align: center;">
+                <span class="svg-icon"><svg><use xlink:href="#icon-timeline"></use></svg></span>
               </p>
             </div>
           </div>
