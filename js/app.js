@@ -120,10 +120,11 @@ function setTextContent(elementId, text) {
 
 async function updateDashboardSummary(factoringData) {
   const dataService = new DataService();
+  // res ahora contiene totalInvertidoPEN/USD (depósitos) y totalGanadoPEN/USD (ganancias)
   const [res, tasaAnualizada] = await Promise.all([
     dataService.calcularInteresManual(),
     (async () => {
-      await dataService.loadAllData(); 
+      await dataService.loadAllData();
       return dataService.calcularRentabilidadConFlujos();
     })()
   ]);
@@ -134,8 +135,10 @@ async function updateDashboardSummary(factoringData) {
   const tasaTrendElement = document.getElementById("tasa-trend");
   if (metaTiempoElement && metaDescripcionElement && tasaPromedioElement && tasaTrendElement) {
     let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null };
+    // Usar el capital total depositado equivalente para el cálculo de la meta
     const capitalInicialMeta = typeof res.totalInvertidoPENeq === 'number' && !isNaN(res.totalInvertidoPENeq) && res.totalInvertidoPENeq > 0 ? res.totalInvertidoPENeq : 0;
     const tasaValidaParaCalculo = typeof tasaAnualizada === 'number' && !isNaN(tasaAnualizada) ? tasaAnualizada : 0;
+    // ... resto del cálculo de la meta sin cambios ...
     if (APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
       tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo);
     }
@@ -162,21 +165,24 @@ async function updateDashboardSummary(factoringData) {
     if (tasaAnualizada > 0.1) trendClassTasa = 'positive';
     else if (tasaAnualizada < -0.1) trendClassTasa = 'negative';
     tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    // Modificado para eliminar el icono SVG
     tasaTrendElement.innerHTML = `Anualizada`;
   }
 
   const totalSolesElement = document.getElementById("total-soles");
   const gananciaSolesElement = document.getElementById("ganancia-soles");
   if (totalSolesElement && gananciaSolesElement) {
+    // Mostrar Depósitos + Ganancias como total
     totalSolesElement.textContent = formatUtils.currency(res.totalInvertidoPEN + res.totalGanadoPEN, 'PEN');
+    // Mostrar solo Ganancias
     gananciaSolesElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoPEN, 'PEN')}`;
   }
 
   const totalDolaresElement = document.getElementById("total-dolares");
   const gananciaDolaresElement = document.getElementById("ganancia-dolares");
   if (totalDolaresElement && gananciaDolaresElement) {
+    // Mostrar Depósitos + Ganancias como total
     totalDolaresElement.textContent = formatUtils.currency(res.totalInvertidoUSD + res.totalGanadoUSD, 'USD');
+    // Mostrar solo Ganancias
     gananciaDolaresElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoUSD, 'USD')}`;
   }
 }
@@ -695,15 +701,17 @@ function showContractDetailsPopup(contract) {
 }
 
 async function mostrarSaldosReales() {
-  const [pen, usd, gananciaPEN, gananciaUSD, conversiones] = await Promise.all([
+  // Modificado: Eliminado 'dolares-a-soles.json' de Promise.all
+  const [pen, usd, gananciaPEN, gananciaUSD] = await Promise.all([
     fetch('assets/pen.json').then(r => r.json()),
     fetch('assets/usd.json').then(r => r.json()),
     fetch('assets/gananciaPEN.json').then(r => r.json()),
-    fetch('assets/gananciaUSD.json').then(r => r.json()),
-    fetch('assets/dolares-a-soles.json').then(r => r.json())
+    fetch('assets/gananciaUSD.json').then(r => r.json())
+    // Eliminado: fetch('assets/dolares-a-soles.json').then(r => r.json())
   ]);
   const dataServiceTmp = new DataService();
-  const saldos = await dataServiceTmp.calculateTotalDepositsConAjuste(pen, usd, gananciaPEN, gananciaUSD, conversiones);
+  // Modificado: Eliminado 'conversiones' de la llamada
+  const saldos = await dataServiceTmp.calculateTotalDepositsConAjuste(pen, usd, gananciaPEN, gananciaUSD);
   setTextContent('saldo-pen-real', formatUtils.currency(saldos.saldoPEN, 'PEN'));
   setTextContent('saldo-usd-real', formatUtils.currency(saldos.saldoUSD, 'USD'));
 }
