@@ -494,10 +494,14 @@ function showContractDetailsPopup(contract) {
 
     const label = fieldLabels[key] || key;
 
+    // Añadir una clase específica para campos de Cliente
+    const isClientField = label === "Cliente" || key === "nombre" || key === "Cliente";
+    const extraClass = isClientField ? "client-field" : "";
+
     const needsExtraIndent = extraIndentKeys.includes(key);
 
     groups[groupKey].push(`
-      <tr class="${categoryClass}">
+      <tr class="${categoryClass} ${extraClass}">
         <td class="popup-key">${label}</td>
         <td class="popup-value"${needsExtraIndent ? ' style="padding-left: 2.5em;"' : ''}>${displayValue ?? '-'}</td>
       </tr>
