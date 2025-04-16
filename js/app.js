@@ -162,7 +162,8 @@ async function updateDashboardSummary(factoringData) {
     if (tasaAnualizada > 0.1) trendClassTasa = 'positive';
     else if (tasaAnualizada < -0.1) trendClassTasa = 'negative';
     tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span> Anualizada`;
+    // Modificado para eliminar el icono SVG
+    tasaTrendElement.innerHTML = `Anualizada`;
   }
 
   const totalSolesElement = document.getElementById("total-soles");

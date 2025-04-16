@@ -699,6 +699,19 @@ html, body, * {
   height: 100%;
 }
 
+/* Ocultar los iconos SVG en los mensajes de espera y placeholders */
+.waiting-message .svg-icon,
+.empty-state .svg-icon,
+.summary-trend .svg-icon {
+  display: none; /* Cambiar de display:flex a display:none */
+}
+
+/* Ajustar el espaciado cuando no hay iconos */
+.waiting-message .primary-text,
+.empty-state .primary-text {
+  margin-top: var(--spacing-md);
+}
+
 @media screen and (max-width: 48rem) {
   :root {
     --render-critical: auto;
