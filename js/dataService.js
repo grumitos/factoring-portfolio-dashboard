@@ -6,6 +6,7 @@ class DataService {
     this.paidContracts = [];
     this.currentTab = null; 
     this.totalDepositosCalculado = 0; 
+    this._jsonCache = {};  // nuevo caché para JSON
   }
   
   async loadAllData() {
@@ -55,14 +56,21 @@ class DataService {
   }
 
   async loadJsonFile(filepath) {
-    try {
-      const response = await fetch(filepath);
-      if (!response.ok) throw new Error(`Error al cargar ${filepath}: ${response.statusText}`);
-      return await response.json();
-    } catch (error) {
-      console.error(`Failed to load JSON file ${filepath}:`, error); // Log specific file error
-      return []; // Return empty array on error to avoid breaking Promise.all
+    if (this._jsonCache[filepath]) {
+      return this._jsonCache[filepath];
     }
+    const promise = (async () => {
+      try {
+        const response = await fetch(filepath);
+        if (!response.ok) throw new Error(`Error al cargar ${filepath}: ${response.statusText}`);
+        return await response.json();
+      } catch (error) {
+        console.error(`Failed to load JSON file ${filepath}:`, error);
+        return [];
+      }
+    })();
+    this._jsonCache[filepath] = promise;
+    return promise;
   }
   
   processFactoringData(data) {

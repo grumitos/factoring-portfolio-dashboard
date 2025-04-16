@@ -616,14 +616,13 @@ function showContractDetailsPopup(contract) {
     }
     .popup-details-table .popup-key {
       color: var(--color-text-secondary);
-      padding: 8px 8px 8px 0;
+      padding: 4px 4px 4px 0;
       font-size: 0.9em;
       vertical-align: middle;
       width: 40%;
     }
     .popup-details-table .popup-value {
-      padding-top: 8px;
-      padding-bottom: 8px;
+      padding: 4px 4px;
       font-weight: 500;
       color: var(--color-text-primary);
       word-break: break-word;
@@ -701,16 +700,13 @@ function showContractDetailsPopup(contract) {
 }
 
 async function mostrarSaldosReales() {
-  // Modificado: Eliminado 'dolares-a-soles.json' de Promise.all
-  const [pen, usd, gananciaPEN, gananciaUSD] = await Promise.all([
-    fetch('assets/pen.json').then(r => r.json()),
-    fetch('assets/usd.json').then(r => r.json()),
-    fetch('assets/gananciaPEN.json').then(r => r.json()),
-    fetch('assets/gananciaUSD.json').then(r => r.json())
-    // Eliminado: fetch('assets/dolares-a-soles.json').then(r => r.json())
-  ]);
   const dataServiceTmp = new DataService();
-  // Modificado: Eliminado 'conversiones' de la llamada
+  const [pen, usd, gananciaPEN, gananciaUSD] = await Promise.all([
+    dataServiceTmp.loadJsonFile('assets/pen.json'),
+    dataServiceTmp.loadJsonFile('assets/usd.json'),
+    dataServiceTmp.loadJsonFile('assets/gananciaPEN.json'),
+    dataServiceTmp.loadJsonFile('assets/gananciaUSD.json')
+  ]);
   const saldos = await dataServiceTmp.calculateTotalDepositsConAjuste(pen, usd, gananciaPEN, gananciaUSD);
   setTextContent('saldo-pen-real', formatUtils.currency(saldos.saldoPEN, 'PEN'));
   setTextContent('saldo-usd-real', formatUtils.currency(saldos.saldoUSD, 'USD'));
