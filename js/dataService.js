@@ -104,75 +104,30 @@ class DataService {
     return saldoRow ? Number(saldoRow["Saldo"]) : 0;
   }
   
+  static _netAmount(data, depositTypes = [], withdrawTypes = [], movimientoKey = "Movimiento", montoKey = "Monto") {
+    let total = 0;
+    if (Array.isArray(data)) {
+      data.forEach(row => {
+        if (row && row[movimientoKey] && row[montoKey] != null) {
+          const tipo = String(row[movimientoKey]).toLowerCase();
+          const monto = Number(row[montoKey]) || 0;
+          if (depositTypes.includes(tipo)) total += monto;
+          else if (withdrawTypes.includes(tipo)) total -= monto;
+        }
+      });
+    }
+    return total;
+  }
+
   calculateTotalDeposits(penData, usdData) {
-    let totalPEN = 0, totalUSD = 0;
-    const movimientoKey = "Movimiento", montoKey = "Monto";
-    const tipoDeposito = "deposito", tipoRetiro = "retiro";
-
-    if (Array.isArray(penData)) {
-      penData.forEach(row => {
-        if (row && row[movimientoKey] && typeof row[movimientoKey] === 'string' &&
-            row[montoKey] !== undefined && row[montoKey] !== null) {
-          const tipo = row[movimientoKey].toLowerCase();
-          const monto = Number(row[montoKey]);
-          if (!isNaN(monto)) {
-            if (tipo === tipoDeposito) totalPEN += monto;
-            else if (tipo === tipoRetiro) totalPEN -= monto;
-          }
-        }
-      });
-    }
-
-    if (Array.isArray(usdData)) {
-      usdData.forEach(row => {
-        if (row && row[movimientoKey] && typeof row[movimientoKey] === 'string' &&
-            row[montoKey] !== undefined && row[montoKey] !== null) {
-          const tipo = row[movimientoKey].toLowerCase();
-          const monto = Number(row[montoKey]);
-          if (!isNaN(monto)) {
-            if (tipo === tipoDeposito) totalUSD += monto;
-            else if (tipo === tipoRetiro) totalUSD -= monto;
-          }
-        }
-      });
-    }
-
-    const totalDepositosEnPEN = totalPEN + (totalUSD * TASA_CAMBIO_USD_PEN);
-    return totalDepositosEnPEN;
+    const totalPEN = DataService._netAmount(penData, ["deposito"], ["retiro"]);
+    const totalUSD = DataService._netAmount(usdData, ["deposito"], ["retiro"]);
+    return totalPEN + (totalUSD * TASA_CAMBIO_USD_PEN);
   }
 
   async calculateTotalDepositsConAjuste(penData, usdData, gananciaPEN, gananciaUSD, conversiones) {
-    let totalPEN = 0, totalUSD = 0;
-    const movimientoKey = "Movimiento", montoKey = "Monto";
-    const tipoDeposito = "deposito", tipoRetiro = "retiro";
-
-    if (Array.isArray(penData)) {
-      penData.forEach(row => {
-        if (row && row[movimientoKey] && typeof row[movimientoKey] === 'string' &&
-            row[montoKey] !== undefined && row[montoKey] !== null) {
-          const tipo = row[movimientoKey].toLowerCase();
-          const monto = Number(row[montoKey]);
-          if (!isNaN(monto)) {
-            if (tipo === tipoDeposito) totalPEN += monto;
-            else if (tipo === tipoRetiro) totalPEN -= monto;
-          }
-        }
-      });
-    }
-
-    if (Array.isArray(usdData)) {
-      usdData.forEach(row => {
-        if (row && row[movimientoKey] && typeof row[movimientoKey] === 'string' &&
-            row[montoKey] !== undefined && row[montoKey] !== null) {
-          const tipo = row[movimientoKey].toLowerCase();
-          const monto = Number(row[montoKey]);
-          if (!isNaN(monto)) {
-            if (tipo === tipoDeposito) totalUSD += monto;
-            else if (tipo === tipoRetiro) totalUSD -= monto;
-          }
-        }
-      });
-    }
+    let totalPEN = DataService._netAmount(penData, ["deposito"], ["retiro"]);
+    let totalUSD = DataService._netAmount(usdData, ["deposito"], ["retiro"]);
 
     if (Array.isArray(conversiones)) {
       conversiones.forEach(conv => {
