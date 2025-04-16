@@ -17,11 +17,11 @@
   --color-badge-active: var(--color-positive);
   --color-border: rgba(255, 255, 255, 0.08);
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-size-xs: 0.8rem;     /* Ligeramente aumentado desde 0.75rem */
-  --font-size-sm: 0.925rem;   /* Ligeramente aumentado desde 0.875rem */
-  --font-size-md: 1.05rem;    /* Ligeramente aumentado desde 1rem */
-  --font-size-lg: 1.2rem;     /* Ligeramente aumentado desde 1.125rem */
-  --font-size-xl: 1.35rem;    /* Ligeramente aumentado desde 1.25rem */
+  --font-size-xs: 0.72rem;     /* Reducido desde 0.8rem */
+  --font-size-sm: 0.83rem;   /* Reducido desde 0.925rem */
+  --font-size-md: 0.95rem;    /* Reducido desde 1.05rem */
+  --font-size-lg: 1.08rem;     /* Reducido desde 1.2rem */
+  --font-size-xl: 1.22rem;    /* Reducido desde 1.35rem */
   --font-weight-normal: 400;  /* Nuevas variables para homogeneizar pesos de fuente */
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
