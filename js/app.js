@@ -120,23 +120,19 @@ function setTextContent(elementId, text) {
 
 async function updateDashboardSummary(factoringData) {
   const dataService = new DataService();
-  // Calcula totales y tasas usando las nuevas funciones manuales
   const [res, tasaAnualizada] = await Promise.all([
     dataService.calcularInteresManual(),
     (async () => {
-      // Calcula la tasa anualizada real usando los flujos
-      await dataService.loadAllData(); // Asegura que los contratos estén cargados
+      await dataService.loadAllData(); 
       return dataService.calcularRentabilidadConFlujos();
     })()
   ]);
 
-  // Actualiza meta y tasa promedio
   const metaTiempoElement = document.getElementById("meta-tiempo");
   const metaDescripcionElement = document.getElementById("meta-descripcion");
   const tasaPromedioElement = document.getElementById("tasa-promedio");
   const tasaTrendElement = document.getElementById("tasa-trend");
   if (metaTiempoElement && metaDescripcionElement && tasaPromedioElement && tasaTrendElement) {
-    // Mantén la lógica de meta
     let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null };
     const capitalInicialMeta = typeof res.totalInvertidoPENeq === 'number' && !isNaN(res.totalInvertidoPENeq) && res.totalInvertidoPENeq > 0 ? res.totalInvertidoPENeq : 0;
     const tasaValidaParaCalculo = typeof tasaAnualizada === 'number' && !isNaN(tasaAnualizada) ? tasaAnualizada : 0;
@@ -161,7 +157,6 @@ async function updateDashboardSummary(factoringData) {
       }
       metaTiempoElement.textContent = tiempoTexto;
     }
-    // Tasa promedio anualizada real
     tasaPromedioElement.textContent = formatUtils.percentage(tasaAnualizada);
     let trendClassTasa = 'neutral';
     if (tasaAnualizada > 0.1) trendClassTasa = 'positive';
@@ -170,16 +165,13 @@ async function updateDashboardSummary(factoringData) {
     tasaTrendElement.innerHTML = `<span class="svg-icon"><svg><use xlink:href="#icon-trending-up"></use></svg></span> Anualizada`;
   }
 
-  // Actualiza totales y ganancias en soles
   const totalSolesElement = document.getElementById("total-soles");
   const gananciaSolesElement = document.getElementById("ganancia-soles");
   if (totalSolesElement && gananciaSolesElement) {
-    // Mostrar total invertido + ganancia
     totalSolesElement.textContent = formatUtils.currency(res.totalInvertidoPEN + res.totalGanadoPEN, 'PEN');
     gananciaSolesElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoPEN, 'PEN')}`;
   }
 
-  // Actualiza totales y ganancias en dólares
   const totalDolaresElement = document.getElementById("total-dolares");
   const gananciaDolaresElement = document.getElementById("ganancia-dolares");
   if (totalDolaresElement && gananciaDolaresElement) {
@@ -702,7 +694,6 @@ function showContractDetailsPopup(contract) {
 }
 
 async function mostrarSaldosReales() {
-  // Cargar los archivos necesarios
   const [pen, usd, gananciaPEN, gananciaUSD, conversiones] = await Promise.all([
     fetch('assets/pen.json').then(r => r.json()),
     fetch('assets/usd.json').then(r => r.json()),
@@ -710,15 +701,12 @@ async function mostrarSaldosReales() {
     fetch('assets/gananciaUSD.json').then(r => r.json()),
     fetch('assets/dolares-a-soles.json').then(r => r.json())
   ]);
-  // Calcular los saldos reales usando la función del dataService
   const dataServiceTmp = new DataService();
   const saldos = await dataServiceTmp.calculateTotalDepositsConAjuste(pen, usd, gananciaPEN, gananciaUSD, conversiones);
-  // Mostrar en la UI (agrega estos elementos en tu HTML si no existen)
   setTextContent('saldo-pen-real', formatUtils.currency(saldos.saldoPEN, 'PEN'));
   setTextContent('saldo-usd-real', formatUtils.currency(saldos.saldoUSD, 'USD'));
 }
 
-// Llamar al cargar la app
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', mostrarSaldosReales);
 } else {

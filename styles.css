@@ -17,11 +17,15 @@
   --color-badge-active: var(--color-positive);
   --color-border: rgba(255, 255, 255, 0.08);
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
+  --font-size-xs: 0.8rem;     /* Ligeramente aumentado desde 0.75rem */
+  --font-size-sm: 0.925rem;   /* Ligeramente aumentado desde 0.875rem */
+  --font-size-md: 1.05rem;    /* Ligeramente aumentado desde 1rem */
+  --font-size-lg: 1.2rem;     /* Ligeramente aumentado desde 1.125rem */
+  --font-size-xl: 1.35rem;    /* Ligeramente aumentado desde 1.25rem */
+  --font-weight-normal: 400;  /* Nuevas variables para homogeneizar pesos de fuente */
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
   --spacing-xs: 0.5rem;
   --spacing-sm: 0.75rem;
   --spacing-md: 1rem;
@@ -126,11 +130,15 @@ body:not(.is-loading) {
   max-width: 100%;
 }
 
-.card {
+.card, 
+.summary-card,
+.chart-container,
+.investment-card {
   background-color: var(--color-bg-card);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--box-shadow-sm);
   border: 1px solid var(--color-border);
+  overflow: hidden;
 }
 
 .summary-cards {
@@ -163,19 +171,29 @@ body:not(.is-loading) {
 
 .summary-info {
   width: 100%;
+  display: flex; /* Añadido */
+  flex-direction: column; /* Añadido */
+  justify-content: center; /* Añadido */
+  height: 100%; /* Añadido */
+  gap: var(--spacing-xs); /* Añadido para espaciar los elementos */
+}
+
+/* Aplica gap también a las secciones internas de Soles/Dólares en la tarjeta full-width */
+.summary-card.full-width .summary-info > div > div[style*="flex:1"] {
+  gap: var(--spacing-xs); /* Añade gap para espaciado interno */
 }
 
 .summary-info h3 {
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xs);
+  /* margin-bottom: var(--spacing-xs); */ /* Asegúrate que esté eliminado/comentado */
 }
 
 .summary-value {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-xl); /* Aumentado de lg a xl */
+  font-weight: var(--font-weight-semibold);
+  /* margin-bottom: var(--spacing-xs); */ /* Asegúrate que esté eliminado/comentado */
 }
 
 .summary-trend {
@@ -183,8 +201,8 @@ body:not(.is-loading) {
   align-items: center;
   justify-content: center;
   gap: 0.3em;
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-size: var(--font-size-sm); /* Cambiado de xs a sm */
+  font-weight: var(--font-weight-medium);
   line-height: 1.2;
   color: var(--color-positive);
 }
@@ -351,44 +369,31 @@ body:not(.is-loading) {
   table-layout: fixed;
 }
 
+/* Consolidación de estilos base para th y td */
+.details-table th,
+.details-table td {
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left; /* Alineación base */
+  vertical-align: middle; /* Alineación vertical base */
+}
+
 .details-table th {
-  padding: var(--spacing-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium); /* Usar variable */
   color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg-secondary);
-  text-align: left;
   position: sticky;
   top: 0;
   z-index: 2;
 }
 
-.year-header-row {
-  background-color: var(--color-bg-secondary);
-  position: sticky;
-  top: 35px;
-  z-index: 1;
-}
-
-.year-header-cell {
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-  border-top: 1px solid var(--color-border);
-}
-
+/* Especificidad de columnas para th y td agrupada */
 .details-table th:nth-child(1),
 .details-table td:nth-child(1) {
   width: 45%;
-  text-align: left;
   padding-left: var(--spacing-md);
-  padding-top: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  vertical-align: top;
+  vertical-align: top; /* Mantenido para la primera celda si es necesario */
 }
 
 .details-table th:nth-child(2),
@@ -396,8 +401,6 @@ body:not(.is-loading) {
   width: 30%;
   text-align: center;
   white-space: nowrap;
-  padding-top: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
 }
 
 .details-table th:nth-child(3),
@@ -406,13 +409,12 @@ body:not(.is-loading) {
   text-align: right;
   padding-right: var(--spacing-md);
   white-space: nowrap;
-  padding-top: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
 }
 
 .client-name {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -439,45 +441,21 @@ body:not(.is-loading) {
   display: block;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  margin-top: 4px;
+  margin-top: 4px; /* Reducido de 4px */
 }
 
-.alt-row {
+.alt-row:not(.year-header-row) { /* Evitar aplicar a year-header */
   background-color: var(--color-bg-stripe);
-}
-.year-header-row.alt-row {
-  background-color: var(--color-bg-secondary);
-}
-
-.details-table th:nth-child(1),
-.details-table td:nth-child(1) {
-  width: 45%;
-  text-align: left;
-}
-
-.details-table th:nth-child(2),
-.details-table td:nth-child(2) {
-  width: 30%;
-  text-align: center;
-}
-
-.details-table th:nth-child(3),
-.details-table td:nth-child(3) {
-  width: 25%;
-  text-align: right;
-  padding-right: var(--spacing-md);
-}
-
-.detail-client {
-  font-weight: 500;
 }
 
 .detail-date {
   color: var(--color-text-secondary);
+  font-size: var(--font-size-sm); /* Asegurar consistencia */
 }
 
 .detail-gain {
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-positive);
 }
 
@@ -641,6 +619,18 @@ body:not(.is-loading) {
   fill: currentColor;
 }
 
+.svg-icon, 
+.icon, 
+.summary-trend .icon,
+.summary-trend .svg-icon {
+  font-size: 1em;
+  margin-right: 0.3em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
 .waiting-message {
   display: flex;
   flex-direction: column;
@@ -673,7 +663,7 @@ html, body, * {
 
 @supports (scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color)) {
   html, body {
-    scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color) !important;
+    scrollbar-color: var(--scrollbar-thumb-color) var (--scrollbar-track-color) !important;
   }
 }
 
@@ -699,6 +689,16 @@ html, body, * {
   padding: 40px 20px;
 }
 
+/* Centrado vertical y espaciado para las columnas internas de la tarjeta full-width */
+.summary-card[style*="grid-column: 1 / -1;"] .summary-info > div > div[style*="flex:1"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--spacing-xs) !important;
+  height: 100%;
+}
+
 @media screen and (max-width: 48rem) {
   :root {
     --render-critical: auto;
@@ -719,36 +719,32 @@ html, body, * {
     padding: var(--spacing-sm);
   }
 
-  .summary-value,
+  .summary-value {
+    font-size: var(--font-size-lg); /* Ajuste para dispositivos pequeños pero manteniendo proporciones */
+  }
+
   .detail-gain,
-  .details-table th,
-  .details-table td,
-  .client-name,
-  .year-header-cell,
   .popup-details-table td,
   .popup-details-table .popup-key,
   .popup-details-table .popup-value {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-md); /* Ajustado para móvil */
   }
 
   .summary-info h3,
   .details-table th,
-  .year-header-cell,
+  .details-table td, /* Añadido para consistencia */
   .client-name,
-  .invested-amount,
+  .year-header-cell,
+  .invested-amount, /* Movido aquí */
   .popup-details-table .popup-key {
-    font-size: var(--font-size-sm);
-  }
-
-  .invested-amount {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm); /* Ajustado para móvil */
   }
 
   .details-table th,
   .details-table td {
     padding-top: var(--spacing-xs);
     padding-bottom: var(--spacing-xs);
-    font-size: var(--font-size-sm); /* Homogéneo con tarjetas resumen */
+    /* font-size ya definido arriba */
   }
 
   .details-table th:nth-child(1),
@@ -780,8 +776,8 @@ html, body, * {
   }
 
   .detail-gain {
-    font-size: var(--font-size-md); /* Valor homogéneo, ni muy grande ni muy chico */
-    font-weight: 600;
+    /* font-size ya definido arriba */
+    font-weight: var(--font-weight-semibold); /* Usar variable */
   }
 
   .client-name {
@@ -795,7 +791,7 @@ html, body, * {
 
   .tab {
     padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm); /* Aumentado ligeramente de xs para mejor legibilidad */
   }
 
   .year-header-row {
@@ -807,21 +803,6 @@ html, body, * {
   }
 }
 
-/* Ajuste para PC: usa proporciones similares para consistencia */
-.details-table th,
-.details-table td {
-  font-size: var(--font-size-sm);
-}
-
-.detail-gain {
-  font-size: var(--font-size-md);
-  font-weight: 600;
-}
-
-.client-name {
-  font-size: var(--font-size-sm);
-}
-
 @media screen and (min-width: 75rem) {
   :root {
     --render-critical: auto;
@@ -829,12 +810,12 @@ html, body, * {
   }
 
   .main-content {
-    max-width: 37.5rem;
+    max-width: 42rem;
     margin: 0 auto;
   }
 
   .dashboard-content {
-    max-width: 33.75rem;
+    max-width: 100%;
     margin: 0 auto;
     width: 100%;
     padding-left: var(--spacing-md);
@@ -940,7 +921,7 @@ html, body, * {
 }
 .popup-details-table {
   width: 100%;
-  border-collapse: separate;
+  border-collapse: separate; /* Asegurar que border-spacing funcione */
   border-spacing: 0;
   margin-top: 0.5rem;
   table-layout: fixed;
@@ -960,14 +941,14 @@ html, body, * {
   background: var(--color-bg-stripe);
 }
 .popup-details-table tr:nth-child(odd) {
-  background: var(--color-bg-card);
+  background: var(--color-bg-card); /* Puede ser redundante si el modal ya tiene este fondo */
 }
 .popup-details-table td {
   padding: 0.6em 0.7em;
   border-bottom: 1px solid var(--color-border);
-  font-size: 1rem;
+  font-size: var(--font-size-md); /* Homogeneizar con :root */
   vertical-align: middle;
-  background: none;
+  background: none; /* Simplificado */
   text-align: left;
   color: var(--color-text-primary);
 }
@@ -979,25 +960,24 @@ html, body, * {
   height: 0;
   overflow: hidden;
 }
+.popup-key, .popup-value {
+  font-size: 1em; /* Relativo al td padre */
+  vertical-align: middle;
+  background: none;
+}
 .popup-key {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium); /* Usar variable */
   color: var(--color-text-secondary);
   width: 44%;
   text-align: right;
   letter-spacing: 0.01em;
-  font-size: 1em;
   padding-right: 1em;
-  background: none;
-  vertical-align: middle;
 }
 .popup-value {
   color: var(--color-text-primary);
   width: 56%;
   text-align: left;
-  word-break: break-all;
-  font-size: 1em;
-  background: none;
-  vertical-align: middle;
+  word-break: break-all; /* Mover aquí */
 }
 
 .popup-value.status-field {
@@ -1064,17 +1044,13 @@ html, body, * {
 @media (max-width: 480px) {
   .popup-modal {
     padding: 0.7rem 0.2rem 0.7rem 0.2rem;
-    font-size: 0.96em;
+    font-size: 0.96em; /* Mantener ajuste específico si es necesario */
     border-radius: var(--border-radius-md);
   }
-  .popup-details-table td {
-    font-size: 0.96em;
-    padding: 0.18em 0.2em;
-  }
-  .popup-key, .popup-value {
-    font-size: 0.96em;
-  }
-  .status-value {
-    padding: 0.15em 0.3em;
+  .popup-details-table td,
+  .popup-key, 
+  .popup-value {
+    font-size: 1em; /* Relativo al font-size del modal */
+    padding: 0.18em 0.2em; /* Ajuste de padding */
   }
 }

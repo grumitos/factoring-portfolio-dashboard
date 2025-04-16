@@ -138,7 +138,6 @@ class DataService {
   }
 
   async calculateTotalDepositsConAjuste(penData, usdData, gananciaPEN, gananciaUSD, conversiones) {
-    // Sumar depósitos y restar retiros
     let totalPEN = 0, totalUSD = 0;
     const movimientoKey = "Movimiento", montoKey = "Monto";
     const tipoDeposito = "deposito", tipoRetiro = "retiro";
@@ -171,7 +170,6 @@ class DataService {
       });
     }
 
-    // Ajustar por conversiones reales USD->PEN
     if (Array.isArray(conversiones)) {
       conversiones.forEach(conv => {
         totalUSD -= Number(conv["Monto Enviado"] || 0);
@@ -179,7 +177,6 @@ class DataService {
       });
     }
 
-    // Sumar ganancias efectivas
     let totalGananciaPEN = 0, totalGananciaUSD = 0;
     if (Array.isArray(gananciaPEN)) {
       gananciaPEN.forEach(row => {
@@ -192,7 +189,6 @@ class DataService {
       });
     }
 
-    // El saldo final es el capital + ganancias efectivas
     return {
       saldoPEN: totalPEN + totalGananciaPEN,
       saldoUSD: totalUSD + totalGananciaUSD
@@ -449,9 +445,7 @@ class DataService {
     });
   }
 
-  // Lógica exacta para saldo PEN igual a la plataforma
   async calcularSaldoPENPlataforma() {
-    // Cargar los archivos necesarios
     const [pen, gananciaPEN] = await Promise.all([
       this.loadJsonFile('assets/pen.json'),
       this.loadJsonFile('assets/gananciaPEN.json')
@@ -460,7 +454,6 @@ class DataService {
     let totalRetiros = 0;
     let totalConversiones = 0;
     let totalGanancias = 0;
-    // Sumar depósitos y conversiones a PEN
     pen.forEach(row => {
       if (row.Movimiento && typeof row.Movimiento === 'string' && row.Monto !== undefined && row.Monto !== null) {
         const tipo = row.Movimiento.toLowerCase();
@@ -472,18 +465,12 @@ class DataService {
         }
       }
     });
-    // Sumar ganancias efectivas en PEN
     gananciaPEN.forEach(row => {
       totalGanancias += Number(row.Monto || 0);
     });
-    // Aplicar la lógica: depósitos + conversiones - retiros + ganancias
     return totalDepositos + totalConversiones - totalRetiros + totalGanancias;
   }
 
-  /**
-   * Suma manualmente depósitos, ganancias en soles y cambios a soles.
-   * Devuelve el total en PEN.
-   */
   async calcularTotalManualSoles() {
     const [pen, gananciaPEN, conversiones] = await Promise.all([
       this.loadJsonFile('assets/pen.json'),
@@ -520,15 +507,10 @@ class DataService {
       });
     }
 
-    // Suma manual: depósitos + ganancias + conversiones - retiros
     const total = totalDepositos + totalGanancias + totalConversiones - totalRetiros;
     return total;
   }
 
-  /**
-   * Suma manualmente depósitos y ganancias en dólares.
-   * Devuelve el total en USD.
-   */
   async calcularTotalManualUSD() {
     const [usd, gananciaUSD, conversiones] = await Promise.all([
       this.loadJsonFile('assets/usd.json'),
@@ -536,9 +518,8 @@ class DataService {
       this.loadJsonFile('assets/dolares-a-soles.json')
     ]);
     
-    let totalUSD = 0; // Inicia el total en 0
+    let totalUSD = 0; 
 
-    // Sumar depósitos y restar retiros
     if (Array.isArray(usd)) {
       usd.forEach(row => {
         if (row.Movimiento && typeof row.Movimiento === 'string' && row.Monto !== undefined && row.Monto !== null) {
@@ -546,43 +527,36 @@ class DataService {
           const monto = Number(row.Monto);
           if (!isNaN(monto)) {
             if (tipo === 'deposito') {
-              totalUSD += monto; // Suma depósitos
+              totalUSD += monto; 
             } else if (tipo === 'retiro') {
-              totalUSD -= monto; // Resta retiros
+              totalUSD -= monto; 
             }
           }
         }
       });
     }
 
-    // Sumar ganancias
     if (Array.isArray(gananciaUSD)) {
       gananciaUSD.forEach(row => {
         const montoGanancia = Number(row.Monto || 0);
         if (!isNaN(montoGanancia)) {
-          totalUSD += montoGanancia; // Suma ganancias
+          totalUSD += montoGanancia; 
         }
       });
     }
 
-    // Restar los dólares enviados en conversiones a soles
     if (Array.isArray(conversiones)) {
       conversiones.forEach(conv => {
-        // Asegúrate que la clave "Monto Enviado" es correcta
         const montoEnviado = Number(conv["Monto Enviado"] || 0); 
         if (!isNaN(montoEnviado)) {
-          totalUSD -= montoEnviado; // Resta directamente el monto enviado de la conversión
+          totalUSD -= montoEnviado; 
         }
       });
     }
 
-    return totalUSD; // Devuelve el total calculado
+    return totalUSD; 
   }
 
-  /**
-   * Calcula el interés total ganado (ganancias PEN + USD) y el porcentaje de interés respecto al capital invertido.
-   * Devuelve un objeto con los totales y el interés.
-   */
   async calcularInteresManual() {
     const [pen, gananciaPEN, conversiones, usd, gananciaUSD] = await Promise.all([
       this.loadJsonFile('assets/pen.json'),
@@ -591,10 +565,10 @@ class DataService {
       this.loadJsonFile('assets/usd.json'),
       this.loadJsonFile('assets/gananciaUSD.json')
     ]);
-    // Calcular capital invertido (sin ganancias)
     let capitalPEN = 0, capitalUSD = 0;
     let retirosPEN = 0, retirosUSD = 0;
     let conversionesPEN = 0;
+    let conversionesUSDEnviado = 0; 
     if (Array.isArray(pen)) {
       pen.forEach(row => {
         if (row.Movimiento && typeof row.Movimiento === 'string' && row.Monto !== undefined && row.Monto !== null) {
@@ -610,6 +584,7 @@ class DataService {
     if (Array.isArray(conversiones)) {
       conversiones.forEach(conv => {
         conversionesPEN += Number(conv["Monto Recibido"] || 0);
+        conversionesUSDEnviado += Number(conv["Monto Enviado"] || 0); 
       });
     }
     if (Array.isArray(usd)) {
@@ -624,7 +599,6 @@ class DataService {
         }
       });
     }
-    // Ganancias
     let gananciasPEN = 0, gananciasUSD = 0;
     if (Array.isArray(gananciaPEN)) {
       gananciaPEN.forEach(row => {
@@ -636,14 +610,12 @@ class DataService {
         gananciasUSD += Number(row.Monto || 0);
       });
     }
-    // Totales
     const totalInvertidoPEN = capitalPEN + conversionesPEN - retirosPEN;
-    const totalInvertidoUSD = capitalUSD - retirosUSD;
+    const totalInvertidoUSD = capitalUSD - retirosUSD - conversionesUSDEnviado;
     const TASA_CAMBIO_USD_PEN = typeof CONFIG !== "undefined" ? CONFIG.TASAS.CAMBIO_USD_PEN : 3.7;
     const totalInvertidoPENeq = totalInvertidoPEN + (totalInvertidoUSD * TASA_CAMBIO_USD_PEN);
     const totalGanadoPENeq = gananciasPEN + (gananciasUSD * TASA_CAMBIO_USD_PEN);
     const interesPorcentaje = totalInvertidoPENeq > 0 ? (totalGanadoPENeq / totalInvertidoPENeq) * 100 : 0;
-    // El frontend ahora usará la tasa anualizada real calculada por calcularRentabilidadConFlujos
     return {
       totalInvertidoPEN,
       totalInvertidoUSD,
@@ -651,19 +623,17 @@ class DataService {
       totalGanadoPEN: gananciasPEN,
       totalGanadoUSD: gananciasUSD,
       totalGanadoPENeq,
-      interesPorcentaje // Este es solo referencial, el frontend usará la tasa anualizada real
+      interesPorcentaje 
     };
   }
 }
 
-// Mostrar el dinero total en soles (PEN) en el navegador para depuración
 window.mostrarDineroTotalEnSoles = async function() {
   const dataService = new DataService();
   const total = await dataService.calcularTotalManualSoles();
   alert('Dinero total en soles (PEN): ' + total);
 };
 
-// Exportar funciones para pruebas manuales desde la consola
 window.mostrarDineroTotalEnDolares = async function() {
   const dataService = new DataService();
   const total = await dataService.calcularTotalManualUSD();
@@ -679,6 +649,3 @@ window.mostrarInteresManual = async function() {
     '\nPorcentaje de interés: ' + res.interesPorcentaje.toFixed(2) + '%'
   );
 };
-
-// Solo para pruebas automáticas, descomenta la siguiente línea:
-// window.mostrarDineroTotalEnSoles();
