@@ -994,10 +994,12 @@ html, body, * {
 }
 
 /* Cliente: key 20% / value 80% */
-.popup-details-table tr.important-field .popup-key {
+.popup-details-table tr.important-field .popup-key,
+.popup-details-table tr.client-field .popup-key {
   width: 20%;
 }
-.popup-details-table tr.important-field .popup-value {
+.popup-details-table tr.important-field .popup-value,
+.popup-details-table tr.client-field .popup-value {
   width: 80%;
 }
 
