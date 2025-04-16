@@ -981,16 +981,24 @@ html, body, * {
 .popup-key {
   font-weight: var(--font-weight-medium); /* Usar variable */
   color: var(--color-text-secondary);
-  width: 44%;
+  width: 30%; /* Base width */
   text-align: right;
   letter-spacing: 0.01em;
   padding-right: 1em;
 }
 .popup-value {
   color: var(--color-text-primary);
-  width: 56%;
+  width: 70%; /* Base width */
   text-align: left;
   word-break: break-all; /* Mover aquí */
+}
+
+/* Cliente: key 20% / value 80% */
+.popup-details-table tr.important-field .popup-key {
+  width: 20%;
+}
+.popup-details-table tr.important-field .popup-value {
+  width: 80%;
 }
 
 .popup-value.status-field {
