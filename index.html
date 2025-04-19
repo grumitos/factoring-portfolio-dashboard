@@ -27,6 +27,7 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
 
   <link rel="icon" href="assets/piggy.svg" type="image/svg+xml" />
+
 </head>
 <body class="no-fouc is-loading">
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -146,6 +147,13 @@
             <div class="tab" data-tab="paid">Pagados</div>
             <div class="tab" data-tab="all">Todos</div>
           </div>
+          
+          <!-- Barra de búsqueda para contratos -->
+          <div class="search-container">
+            <input type="text" id="search-contracts" placeholder="Buscar contratos..." class="search-input">
+            <button id="clear-search" class="clear-search-btn" title="Limpiar búsqueda">&times;</button>
+          </div>
+          
           <div class="card-details">
             <table class="details-table">
               <thead>

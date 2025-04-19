@@ -1067,3 +1067,53 @@ html, body, * {
     padding: 0.18em 0.2em; /* Ajuste de padding */
   }
 }
+
+/* Estilos para la barra de búsqueda */
+.search-container {
+  display: flex;
+  align-items: center;
+  margin: 8px -2px; /* Mantener el margen negativo si es necesario para alineación */
+  width: 100%;
+  padding: 0 8px; /* Padding horizontal para que no llegue al borde */
+  box-sizing: border-box; /* Para que el padding no aumente el ancho total */
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: var(--color-bg-card, #fff);
+  color: var(--color-text-primary, #1a202c);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-accent, #3498db);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-tertiary, #a0aec0);
+}
+
+.clear-search-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary, #a0aec0);
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: -30px; /* Para superponer el botón sobre el input */
+  padding: 0 8px;
+  visibility: hidden; /* Oculto por defecto */
+}
+
+.search-input:not(:placeholder-shown) + .clear-search-btn {
+  visibility: visible; /* Mostrar solo cuando hay texto */
+}
+
+.clear-search-btn:hover {
+  color: var(--color-text-secondary, #718096);
+}

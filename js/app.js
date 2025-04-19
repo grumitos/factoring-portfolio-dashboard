@@ -1,11 +1,13 @@
 let dataService = null;
 let projectionChart = null;
 let totalDepositosCalculado = 0;
+let currentSearchTerm = ''; // Variable para almacenar el término de búsqueda actual
 
 document.addEventListener("DOMContentLoaded", () => {
   dataService = new DataService();
   initializeApp();
   setupTabListeners();
+  setupSearchListeners(); // Añadimos los listeners para la búsqueda
 });
 
 async function initializeApp() {
@@ -196,11 +198,34 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
     return;
   }
 
-  const validContracts = Array.isArray(contracts) ? contracts : [];
+  let validContracts = Array.isArray(contracts) ? contracts : [];
+  
+  // Filtrar por término de búsqueda si existe
+  if (currentSearchTerm) {
+    validContracts = validContracts.filter(contrato => {
+      if (!contrato) return false;
+      
+      // Buscar en los campos más relevantes
+      const clienteName = (contrato.nombre || '').toLowerCase();
+      const codigo = (contrato.codigoSubasta || '').toLowerCase();
+      const fechaPago = (contrato.fechaPagoReal || contrato.fechaPagoEstimado || '').toLowerCase();
+      
+      return clienteName.includes(currentSearchTerm) || 
+             codigo.includes(currentSearchTerm) || 
+             fechaPago.includes(currentSearchTerm);
+    });
+  }
+  
   if (contractsCountElement) {
     let countText = `Total: ${data.contratos || 0}`;
     if (tabType === 'pending') countText = `Por cobrar: ${data.contratosPendientes || 0}`;
     else if (tabType === 'paid') countText = `Pagados: ${data.contratosPagados || 0}`;
+    
+    // Añadir información sobre los resultados de búsqueda si hay un filtro activo
+    if (currentSearchTerm) {
+      countText += ` (${validContracts.length} resultado${validContracts.length !== 1 ? 's' : ''})`;
+    }
+    
     contractsCountElement.textContent = countText;
   }
 
@@ -351,6 +376,34 @@ function setupTabListeners() {
       }
     });
   });
+}
+
+function setupSearchListeners() {
+  const searchInput = document.getElementById('search-contracts');
+  const clearButton = document.getElementById('clear-search');
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearchTerm = e.target.value.trim().toLowerCase();
+      if (dataService && dataService.currentTab) {
+        const contracts = dataService.changeTab(dataService.currentTab);
+        updateFactoringCard(contracts, dataService.buildFactoringData(), dataService.currentTab);
+      }
+    });
+  }
+  
+  if (clearButton) {
+    clearButton.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = '';
+        currentSearchTerm = '';
+        if (dataService && dataService.currentTab) {
+          const contracts = dataService.changeTab(dataService.currentTab);
+          updateFactoringCard(contracts, dataService.buildFactoringData(), dataService.currentTab);
+        }
+      }
+    });
+  }
 }
 
 function showContractDetailsPopup(contract) {
