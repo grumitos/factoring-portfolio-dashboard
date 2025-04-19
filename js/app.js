@@ -669,7 +669,6 @@ function showContractDetailsPopup(contract) {
     }
     .popup-details-table .popup-key {
       color: var(--color-text-secondary);
-      padding: 4px 4px 4px 0;
       font-size: 0.9em;
       vertical-align: middle;
       width: 40%;
