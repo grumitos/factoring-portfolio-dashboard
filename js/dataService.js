@@ -201,7 +201,12 @@ class DataService {
     const diffTime = Math.abs(fechaPago - fechaIngreso);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const meses = diffDays / 30.4375;
-    const montoPagoNeto = parseFloat((monto * (retornoMensual / 100) * meses).toFixed(2));
+    const montoPagoNeto = parseFloat(
+      (
+        monto *
+        (Math.pow(1 + retornoMensual / 100, meses) - 1)   // interés compuesto mensual
+      ).toFixed(2)
+    );
     
     const result = {
       nombre: contract["Cliente"],
@@ -210,7 +215,8 @@ class DataService {
       fechaIngreso: fechaIngreso.toISOString().slice(0, 10),
       fechaPagoEstimado: fechaPago.toISOString().slice(0, 10),
       montoPagoNeto,
-      codigoSubasta: contract["Codigo de subasta"]
+      codigoSubasta: contract["Codigo de subasta"],
+      tc: contract["TC"] || null // Capturamos el tipo de cambio si existe
     };
     
     const codigo = (result.codigoSubasta || '').toString().trim();
@@ -281,8 +287,10 @@ class DataService {
       const moneda = contrato.moneda ? contrato.moneda.toUpperCase() : "PEN";
       const principal = Number(contrato.monto) || 0;
       const interest = Number(contrato.montoPagoNeto) || 0; 
-      const principalPEN = !isNaN(principal) ? financeUtils.convertirAPEN(principal, moneda) : 0;
-      const interestPEN = !isNaN(interest) ? financeUtils.convertirAPEN(interest, moneda) : 0; 
+      
+      const tcPago = Number(contrato.tc) || TASA_CAMBIO_USD_PEN;
+      const principalPEN = moneda === 'USD' ? principal * tcPago : principal;
+      const interestPEN = moneda === 'USD' ? interest * tcPago : interest;
 
       acc.totalPrincipalConverted += principalPEN;
       acc.totalInterestConverted += interestPEN; 
@@ -340,7 +348,17 @@ class DataService {
       gananciaUltimoMes: 0
     });
 
-    const overallRate = result.totalPrincipalForRate > 0 ? (result.weightedRateSum / result.totalPrincipalForRate) * 100 : 0;
+    // === Tasas anualizadas ===
+    const contractsPaid      = this.paidContracts;
+    const contractsAll       = this.factoring.filter(c => c);
+    
+    const flowsReal    = financeUtils.buildCashFlowData(contractsPaid);
+    const flowsEsper   = financeUtils.buildCashFlowData(contractsAll);
+    
+    const teaReal      = financeUtils.calcularTasaAnualizada(flowsReal);
+    const teaEsperada  = financeUtils.calcularTasaAnualizada(flowsEsper);
+    
+    const overallRate = isNaN(teaEsperada) ? 0 : teaEsperada;
 
     const actualPagados = this.paidContracts.length; 
     const actualPendientes = this.pendingContracts.length;
@@ -352,7 +370,9 @@ class DataService {
       contratos: result.numContratos,
       contratosPagados: actualPagados,
       contratosPendientes: actualPendientes,
-      gananciaUltimoMes: result.gananciaUltimoMes
+      gananciaUltimoMes: result.gananciaUltimoMes,
+      tasaReal:    isNaN(teaReal)     ? 0 : teaReal,
+      tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada
     };
   }
   
