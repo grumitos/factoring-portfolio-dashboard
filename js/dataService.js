@@ -494,6 +494,23 @@ DataService.prototype.calcularRentabilidadConFlujos = function() {
   }
 };
 
+// Agregamos el método changeTab para permitir cambiar entre pestañas
+DataService.prototype.changeTab = function(tabType) {
+  // Actualizamos el tab actual
+  this.currentTab = tabType;
+  
+  // Devolvemos la lista de contratos según el tipo de tab
+  switch (tabType) {
+    case 'pending':
+      return this.pendingContracts;
+    case 'paid':
+      return this.paidContracts;
+    case 'all':
+    default:
+      return this.factoring;
+  }
+};
+
 
 window.mostrarDineroTotalEnSoles = async function() {
   const dataService = new DataService();
