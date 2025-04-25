@@ -11,11 +11,6 @@ const CONFIG = {
   }
 };
 
-const TASA_CAMBIO_USD_PEN = CONFIG.TASAS.CAMBIO_USD_PEN;
-const META_MILLONES = CONFIG.METAS.MILLONES;
-const APORTE_MENSUAL = CONFIG.METAS.APORTE_MENSUAL;
-const PENDING_GAIN_DISCOUNT_FACTOR = CONFIG.AJUSTES.PENDING_GAIN_DISCOUNT_FACTOR;
-
 const formatUtils = {
   currencyFormatter: new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 2,
@@ -109,7 +104,7 @@ const dateUtils = {
 
 const financeUtils = {
   convertirAPEN: (monto, moneda = "PEN") => {
-    return moneda.toUpperCase() === "USD" ? monto * TASA_CAMBIO_USD_PEN : monto;
+    return moneda.toUpperCase() === "USD" ? monto * CONFIG.TASAS.CAMBIO_USD_PEN : monto;
   },
 
   xnpv: (r, flujos) => {
@@ -186,30 +181,20 @@ const financeUtils = {
 
     const tasaMensual = Math.pow(1 + tasaAnual / 100, 1 / 12) - 1;
 
-    if (isNaN(tasaMensual)) {
-        console.warn("Tasa mensual calculada es NaN:", { tasaAnual });
-        if (aporteMensual <= 0 && capitalInicial < metaMillones) {
-             return { años: Infinity, meses: Infinity, fechaEstimada: null };
-        }
-         return { años: Infinity, meses: Infinity, fechaEstimada: null };
+    if (capitalInicial >= metaMillones) {
+        return { años: 0, meses: 0, fechaEstimada: dateUtils.calcularFechaFutura(0, 0) };
+    }
+    if (isNaN(tasaMensual) || (tasaMensual <= 0 && aporteMensual <= 0)) {
+        console.warn("Tasa o aportes insuficientes para alcanzar la meta:", { tasaAnual, tasaMensual, aporteMensual });
+        return { años: Infinity, meses: Infinity, fechaEstimada: null };
     }
 
     let saldo = capitalInicial;
     let meses = 0;
-    const MAX_MESES = 1200;
-
-    if (saldo >= metaMillones) {
-        return { años: 0, meses: 0, fechaEstimada: dateUtils.calcularFechaFutura(0, 0) };
-    }
-    if (tasaMensual <= 0 && aporteMensual <= 0) {
-        return { años: Infinity, meses: Infinity, fechaEstimada: null };
-    }
+    const MAX_MESES = 1200; // ~100 años
 
     while (saldo < metaMillones && meses < MAX_MESES) {
-      if (!isNaN(tasaMensual)) {
-          saldo = saldo * (1 + tasaMensual);
-      }
-      saldo += aporteMensual;
+      saldo = saldo * (1 + tasaMensual) + aporteMensual;
       meses++;
 
       if (isNaN(saldo)) {
@@ -218,7 +203,7 @@ const financeUtils = {
       }
     }
 
-    if (saldo < metaMillones || meses >= MAX_MESES) {
+    if (meses >= MAX_MESES || saldo < metaMillones) {
       return { años: Infinity, meses: Infinity, fechaEstimada: null };
     }
 

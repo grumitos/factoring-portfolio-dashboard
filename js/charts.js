@@ -207,7 +207,8 @@ function prepareProjectionData(capital, tasaAnual, years = 6) {
     Number((capital * Math.pow(1 + tasaAnual / 100, year)).toFixed(2))
   );
 
-  const aporteMensual = APORTE_MENSUAL;
+  // Usar CONFIG directamente
+  const aporteMensual = CONFIG.METAS.APORTE_MENSUAL;
   const extraValues = [capital];
   let valorConAportes = capital;
   const tasaMensual = Math.pow(1 + tasaAnual / 100, 1 / 12) - 1;
@@ -221,37 +222,4 @@ function prepareProjectionData(capital, tasaAnual, years = 6) {
   }
 
   return { labels, standardValues, extraValues };
-}
-
-function prepareCustomProjectionData(capital, tasaAnual, years = 6) {
-  const labels = [0];
-  const standardValues = [capital];
-  const extraValues = [capital];
-  const yearlyWithdrawals = [0];
-
-  const aporteMensual = APORTE_MENSUAL;
-  let capitalAcumulado = capital;
-  let aporteTotal = 0;
-
-  for (let year = 1; year <= years; year++) {
-    labels.push(year);
-
-    const valorEstandar = capital * Math.pow(1 + tasaAnual / 100, year);
-    standardValues.push(Number(valorEstandar.toFixed(2)));
-
-    let valorAnual = capitalAcumulado;
-    const aporteAnual = aporteMensual * 12;
-    aporteTotal += aporteAnual;
-
-    valorAnual += aporteAnual;
-    valorAnual *= Math.pow(1 + tasaAnual / 100, 1);
-
-    const gananciaAnual = valorAnual - (capitalAcumulado + aporteAnual);
-    yearlyWithdrawals.push(Number(gananciaAnual.toFixed(2)));
-
-    capitalAcumulado += aporteAnual;
-    extraValues.push(Number(capitalAcumulado.toFixed(2)));
-  }
-
-  return { labels, standardValues, extraValues, yearlyWithdrawals };
 }

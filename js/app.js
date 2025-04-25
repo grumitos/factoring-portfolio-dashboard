@@ -140,8 +140,9 @@ async function updateDashboardSummary(factoringData) {
     // Usar el capital total depositado equivalente para el cálculo de la meta
     const capitalInicialMeta = typeof res.totalInvertidoPENeq === 'number' && !isNaN(res.totalInvertidoPENeq) && res.totalInvertidoPENeq > 0 ? res.totalInvertidoPENeq : 0;
     const tasaValidaParaCalculo = typeof tasaAnualizada === 'number' && !isNaN(tasaAnualizada) ? tasaAnualizada : 0;
-    // ... resto del cálculo de la meta sin cambios ...
-    if (APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
+    
+    // Usar CONFIG directamente para APORTE_MENSUAL
+    if (CONFIG.METAS.APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
       tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo);
     }
     if (!isFinite(tiempoHastaMeta.años)) {
@@ -613,10 +614,9 @@ function showContractDetailsPopup(contract) {
   const popup = document.createElement('div');
   popup.id = 'contract-details-popup';
   popup.className = 'popup-overlay';
-  popup.style.animation = 'fadeIn 0.2s ease-out';
 
   popup.innerHTML = `
-    <div class="popup-modal" style="border-radius: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.25); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 8px;">
+    <div class="popup-modal">
       <div class="popup-header"
            style="padding: 8px; border-bottom: 1px solid var(--color-border); background-color: var(--color-bg-card); 
                   border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 1;">
@@ -647,127 +647,17 @@ function showContractDetailsPopup(contract) {
 
   document.body.appendChild(popup);
 
-  const style = document.createElement('style');
-  style.id = 'contract-popup-styles';
-  style.textContent = `
-    .popup-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .popup-details-table .popup-key {
-      color: var(--color-text-secondary);
-      font-size: 0.9em;
-      vertical-align: middle;
-      width: 40%;
-    }
-    .popup-details-table .popup-value {
-      padding: 4px 4px;
-      font-weight: 500;
-      color: var(--color-text-primary);
-      word-break: break-word;
-      text-align: right;
-      vertical-align: middle;
-    }
-    .important-field .popup-value {
-      font-weight: 600;
-      font-size: 1.05em;
-    }
-    .financial-field .popup-value {
-      color: var(--color-positive);
-    }
-    .date-field {
-      color: var(--color-accent-secondary);
-    }
-    .status-positive {
-      color: var(--color-positive);
-      font-weight: 500;
-    }
-    .status-negative {
-      color: var(--color-negative);
-      font-weight: 500;
-    }
-    .group-separator td {
-      height: 1px;
-      background-color: var(--color-border);
-      padding: 0;
-      opacity: 0.5;
-    }
-    .popup-details-table tr:nth-child(even):not(.group-separator) {
-      background-color: rgba(0,0,0,0);
-    }
-    .popup-details-table tr:not(.group-separator):hover {
-      background-color: rgba(0,0,0,0);
-    }
-    #close-contract-popup:hover {
-      background-color: rgba(0,0,0,0.1);
-      color: var(--color-text-primary);
-    }
-    @media (max-width: 600px) {
-      .popup-overlay {
-        padding: 10px;
-      }
-      .popup-modal {
-        width: 98% !important;
-        max-width: 98% !important;
-        padding: 8px !important;
-      }
-      .popup-details-table {
-        width: 100%;
-      }
-    }
-  `;
-
-  if (!document.getElementById('contract-popup-styles')) {
-    document.head.appendChild(style);
-  }
-
   document.getElementById('close-contract-popup').onclick = () => {
-    popup.style.display = 'none';
-    const popupStyle = document.getElementById('contract-popup-styles');
-    if (popupStyle) popupStyle.remove();
-    setTimeout(() => popup.remove(), 150);
+    popup.classList.add('hidden'); // Asumiendo que tienes una clase .hidden { display: none; }
+    setTimeout(() => remove(popup), 150); // Usar remove helper
   };
 
   popup.onclick = (e) => {
     if (e.target === popup) {
-      popup.style.display = 'none';
-      const popupStyle = document.getElementById('contract-popup-styles');
-      if (popupStyle) remove();
-      setTimeout(() => popup.remove(), 150);
+      popup.classList.add('hidden');
+      setTimeout(() => remove(popup), 150); // Usar remove helper
     }
   };
-}
-
-async function mostrarSaldosReales() {
-  const dataServiceTmp = new DataService();
-  const [pen, usd, gananciaPEN, gananciaUSD] = await Promise.all([
-    dataServiceTmp.loadJsonFile('assets/pen.json'),
-    dataServiceTmp.loadJsonFile('assets/usd.json'),
-    dataServiceTmp.loadJsonFile('assets/gananciaPEN.json'),
-    dataServiceTmp.loadJsonFile('assets/gananciaUSD.json')
-  ]);
-  const saldos = await dataServiceTmp.calculateTotalDepositsConAjuste(pen, usd, gananciaPEN, gananciaUSD);
-  setTextContent('saldo-pen-real', formatUtils.currency(saldos.saldoPEN, 'PEN'));
-  setTextContent('saldo-usd-real', formatUtils.currency(saldos.saldoUSD, 'USD'));
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mostrarSaldosReales);
-} else {
-  mostrarSaldosReales();
 }
 
 // Añadir esta función helper para manejar la eliminación de elementos DOM

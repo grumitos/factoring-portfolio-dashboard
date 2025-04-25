@@ -38,8 +38,8 @@ class DataService {
       
       this.processContracts(initialData); 
       
-      const TASA_CAMBIO_USD_PEN = typeof CONFIG !== "undefined" ? CONFIG.TASAS.CAMBIO_USD_PEN : 3.7;
-      const capitalTotal = saldoPEN + saldoUSD * TASA_CAMBIO_USD_PEN;
+      // Usar CONFIG directamente
+      const capitalTotal = saldoPEN + saldoUSD * CONFIG.TASAS.CAMBIO_USD_PEN;
       
       // Verificamos que buildFactoringData existe antes de llamarlo
       const factoringData = typeof this.buildFactoringData === 'function' 
@@ -138,7 +138,8 @@ class DataService {
   calculateTotalDeposits(penData, usdData) {
     const totalPEN = DataService._netAmount(penData, ["deposito"], ["retiro"]);
     const totalUSD = DataService._netAmount(usdData, ["deposito"], ["retiro"]);
-    return totalPEN + (totalUSD * TASA_CAMBIO_USD_PEN);
+    // Usar CONFIG directamente
+    return totalPEN + (totalUSD * CONFIG.TASAS.CAMBIO_USD_PEN);
   }
 
   async calculateTotalDepositsConAjuste(penData, usdData, gananciaPEN, gananciaUSD, conversiones) {
@@ -279,7 +280,6 @@ class DataService {
     this.pendingContracts = this.factoring.filter(c => !c.isPaid && c.isPending);
   }
   
-  // Función auxiliar para determinar si una fecha está dentro del último mes
   isWithinLastMonth(dateStr) {
     if (!dateStr) return false;
     const date = new Date(dateStr);
@@ -455,6 +455,7 @@ class DataService {
     const totalInvertidoPEN = capitalPEN - retirosPEN + conversionesNetasPEN;
     const totalInvertidoUSD = capitalUSD - retirosUSD + conversionesNetasUSD;
 
+    // Usar CONFIG directamente
     const TASA_CAMBIO_USD_PEN = typeof CONFIG !== "undefined" ? CONFIG.TASAS.CAMBIO_USD_PEN : 3.7;
 
     const totalInvertidoPENeq = totalInvertidoPEN + (totalInvertidoUSD * TASA_CAMBIO_USD_PEN);
@@ -521,28 +522,6 @@ DataService.prototype.changeTab = function(tabType) {
 };
 
 
-window.mostrarDineroTotalEnSoles = async function() {
-  const dataService = new DataService();
-  const total = await dataService.calcularTotalManualSoles();
-  alert('Dinero total en soles (PEN): ' + total);
-};
-
-window.mostrarDineroTotalEnDolares = async function() {
-  const dataService = new DataService();
-  const total = await dataService.calcularTotalManualUSD();
-  alert('Dinero total en dólares (USD): ' + total);
-};
-
-window.mostrarInteresManual = async function() {
-  const dataService = new DataService();
-  const res = await dataService.calcularInteresManual();
-  alert(
-    'Interés total ganado (PEN eq): ' + res.totalGanadoPENeq.toFixed(2) +
-    '\nCapital invertido (PEN eq): ' + res.totalInvertidoPENeq.toFixed(2) +
-    '\nPorcentaje de interés: ' + res.interesPorcentaje.toFixed(2) + '%'
-  );
-};
-
 // Asegurándonos que el método buildFactoringData exista y esté correctamente definido
 DataService.prototype.buildFactoringData = function() {
   if (!this.factoring || this.factoring.length === 0) {
@@ -570,7 +549,8 @@ DataService.prototype.buildFactoringData = function() {
     const principal = Number(contrato.monto) || 0;
     const interest = Number(contrato.montoPagoNeto) || 0; 
     
-    const tcPago = Number(contrato.tc) || TASA_CAMBIO_USD_PEN;
+    // Usar CONFIG directamente
+    const tcPago = Number(contrato.tc) || CONFIG.TASAS.CAMBIO_USD_PEN;
     const principalPEN = moneda === 'USD' ? principal * tcPago : principal;
     const interestPEN = moneda === 'USD' ? interest * tcPago : interest;
 
