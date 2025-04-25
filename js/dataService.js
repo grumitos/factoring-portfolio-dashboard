@@ -177,6 +177,10 @@ class DataService {
     hoy.setHours(0, 0, 0, 0);
     
     this.factoring = (data.factoringRaw || []).map(contract => {
+      // Filtramos inmediatamente los contratos rechazados
+      if (contract["Estado"] && contract["Estado"].toLowerCase() === "rechazado") {
+        return null;
+      }
       return this.processContract(contract, gananciaMapping, hoy);
     }).filter(contract => contract); 
     
@@ -194,6 +198,11 @@ class DataService {
   
   processContract(contract, gananciaMapping, hoy) {
     if (!contract) return null;
+    
+    // Doble verificación para asegurar que los contratos rechazados nunca pasen
+    if (contract["Estado"] && contract["Estado"].toLowerCase() === "rechazado") {
+      return null;
+    }
     
     const fechaIngresoRaw = contract["Fecha"];
     const fechaPagoRaw = contract["Fecha de pago"] || fechaIngresoRaw;

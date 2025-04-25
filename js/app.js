@@ -769,3 +769,10 @@ if (document.readyState === 'loading') {
 } else {
   mostrarSaldosReales();
 }
+
+// Añadir esta función helper para manejar la eliminación de elementos DOM
+function remove(element) {
+  if (element && element.parentNode) {
+    element.parentNode.removeChild(element);
+  }
+}
