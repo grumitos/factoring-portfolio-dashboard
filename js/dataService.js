@@ -11,7 +11,7 @@ class DataService {
   
   async loadAllData() {
     try {
-      const [factoringData, gananciasUSDData, gananciasPENData, penData, usdData] = await Promise.all([
+      const [rawFactoringData, gananciasUSDData, gananciasPENData, penData, usdData] = await Promise.all([
         this.loadJsonFile('assets/mis-inversiones.json'),
         this.loadJsonFile('assets/gananciaUSD.json'),
         this.loadJsonFile('assets/gananciaPEN.json'),
@@ -30,7 +30,7 @@ class DataService {
       const allGanancias = [...gananciasUSD, ...gananciasPEN]; 
       
       const initialData = {
-        factoringRaw: this.processFactoringData(factoringData), 
+        factoringRaw: this.processFactoringData(rawFactoringData), 
         ganancias: allGanancias, 
         saldoPEN,
         saldoUSD
@@ -38,19 +38,27 @@ class DataService {
       
       this.processContracts(initialData); 
       
-      const TASA_CAMBIO_USD_PEN = typeof CONFIG !== "undefined" ? CONFIG.TASAS.CAMBIO_USD_PEN : 3.7; // Asegúrate que TASA_CAMBIO_USD_PEN esté definida o usa un valor por defecto
+      const TASA_CAMBIO_USD_PEN = typeof CONFIG !== "undefined" ? CONFIG.TASAS.CAMBIO_USD_PEN : 3.7;
       const capitalTotal = saldoPEN + saldoUSD * TASA_CAMBIO_USD_PEN;
       
+      // Verificamos que buildFactoringData existe antes de llamarlo
+      const factoringData = typeof this.buildFactoringData === 'function' 
+        ? this.buildFactoringData()
+        : { 
+            totalInvertido: 0, totalRecibido: 0, montoGanado: 0, tasa: 0,
+            contratos: 0, contratosPagados: 0, contratosPendientes: 0, gananciaUltimoMes: 0
+          };
+            
       return {
         factoring: this.factoring, 
-        factoringData: this.buildFactoringData(),
+        factoringData: factoringData,
         capitalTotal,
         pendingContracts: this.pendingContracts,
         paidContracts: this.paidContracts,
         totalDepositos: this.totalDepositosCalculado 
       };
     } catch (error) {
-      console.error("Error loading all data:", error); // Añadir log de error
+      console.error("Error loading all data:", error);
       throw error;
     }
   }
@@ -262,174 +270,17 @@ class DataService {
     this.pendingContracts = this.factoring.filter(c => !c.isPaid && c.isPending);
   }
   
-  buildFactoringData() {
-    if (!this.factoring || this.factoring.length === 0) {
-      return {
-        totalInvertido: 0,
-        totalRecibido: 0,
-        montoGanado: 0,
-        tasa: 0,
-        contratos: 0,
-        contratosPagados: 0,
-        contratosPendientes: 0,
-        gananciaUltimoMes: 0
-      };
-    }
-
-    const hoy = new Date();
-    const fechaHaceUnMes = new Date();
-    fechaHaceUnMes.setDate(hoy.getDate() - 30);
-
-    const result = this.factoring.reduce((acc, contrato) => {
-      if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined' || !contrato.fechaIngreso || (!contrato.fechaPagoReal && !contrato.fechaPagoEstimado)) {
-        return acc;
-      }
-      const moneda = contrato.moneda ? contrato.moneda.toUpperCase() : "PEN";
-      const principal = Number(contrato.monto) || 0;
-      const interest = Number(contrato.montoPagoNeto) || 0; 
-      
-      const tcPago = Number(contrato.tc) || TASA_CAMBIO_USD_PEN;
-      const principalPEN = moneda === 'USD' ? principal * tcPago : principal;
-      const interestPEN = moneda === 'USD' ? interest * tcPago : interest;
-
-      acc.totalPrincipalConverted += principalPEN;
-      acc.totalInterestConverted += interestPEN; 
-      acc.numContratos++;
-      if (contrato.isPaid) {
-        acc.contratosPagados++;
-      } else if (contrato.isPending) {
-        acc.contratosPendientes++;
-      }
-
-      const fechaIngreso = dateUtils.parse(contrato.fechaIngreso);
-      const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
-      const fechaPago = dateUtils.parse(fechaPagoStr);
-
-      if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy) {
-        acc.gananciaUltimoMes += interestPEN;
-      }
-
-      if (isNaN(fechaIngreso.getTime()) || isNaN(fechaPago.getTime())) {
-        acc.totalPrincipalConverted -= principalPEN;
-        acc.totalInterestConverted -= interestPEN;
-        acc.numContratos--;
-        if (contrato.isPaid) acc.contratosPagados--;
-        else if (contrato.isPending) acc.contratosPendientes--;
-        return acc;
-      }
-
-      if (principalPEN > 0) { 
-        const flows = [
-          { date: fechaIngreso, amount: -principalPEN }, 
-          { date: fechaPago, amount: principalPEN + interestPEN } 
-        ];
-
-        try {
-          const contractTIR = financeUtils.calcularTasaAnualizada(flows);
-          if (!isNaN(contractTIR) && isFinite(contractTIR) && contractTIR > -99 && contractTIR < 500) {
-            acc.weightedRateSum += (contractTIR / 100) * principalPEN;
-            acc.totalPrincipalForRate += principalPEN; 
-          } else {
-          }
-        } catch (e) {
-        }
-      } else {
-      }
-
-      return acc;
-    }, {
-      totalPrincipalConverted: 0, 
-      weightedRateSum: 0,         
-      totalInterestConverted: 0,  
-      numContratos: 0,            
-      contratosPagados: 0,        
-      contratosPendientes: 0,     
-      totalPrincipalForRate: 0,   
-      gananciaUltimoMes: 0
-    });
-
-    // === Tasas anualizadas ===
-    const contractsPaid      = this.paidContracts;
-    const contractsAll       = this.factoring.filter(c => c);
+  // Función auxiliar para determinar si una fecha está dentro del último mes
+  isWithinLastMonth(dateStr) {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return false;
     
-    const flowsReal    = financeUtils.buildCashFlowData(contractsPaid);
-    const flowsEsper   = financeUtils.buildCashFlowData(contractsAll);
+    const today = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(today.getMonth() - 1);
     
-    const teaReal      = financeUtils.calcularTasaAnualizada(flowsReal);
-    const teaEsperada  = financeUtils.calcularTasaAnualizada(flowsEsper);
-    
-    const overallRate = isNaN(teaEsperada) ? 0 : teaEsperada;
-
-    const actualPagados = this.paidContracts.length; 
-    const actualPendientes = this.pendingContracts.length;
-    return {
-      totalInvertido: result.totalPrincipalConverted, 
-      totalRecibido: result.totalPrincipalConverted + result.totalInterestConverted, 
-      montoGanado: result.totalInterestConverted, 
-      tasa: isNaN(overallRate) ? 0 : overallRate, 
-      contratos: result.numContratos,
-      contratosPagados: actualPagados,
-      contratosPendientes: actualPendientes,
-      gananciaUltimoMes: result.gananciaUltimoMes,
-      tasaReal:    isNaN(teaReal)     ? 0 : teaReal,
-      tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada
-    };
-  }
-  
-  calcularRentabilidadConFlujos() {
-    const validFactoring = this.factoring.filter(contrato =>
-        contrato &&
-        !isNaN(Number(contrato.monto)) &&
-        !isNaN(Number(contrato.montoPagoNeto)) &&
-        contrato.fechaIngreso &&
-        (contrato.fechaPagoReal || contrato.fechaPagoEstimado) &&
-        !isNaN(dateUtils.parse(contrato.fechaIngreso).getTime()) &&
-        !isNaN(dateUtils.parse(contrato.fechaPagoReal || contrato.fechaPagoEstimado).getTime())
-    );
-    if (validFactoring.length === 0 && this.additionalFlows.length === 0) {
-      return 0;
-    }
-    const cashFlows = financeUtils.buildCashFlowData(validFactoring, this.additionalFlows);
-    if (!cashFlows || cashFlows.length < 2) {
-      return 0;
-    }
-    try {
-      const rate = financeUtils.calcularTasaAnualizada(cashFlows);
-      return isNaN(rate) || !isFinite(rate) ? 0 : rate;
-    } catch (error) {
-      return 0;
-    }
-  }
-  
-  changeTab(tab) {
-    this.currentTab = tab;
-    let contractsToShow = [];
-    switch (tab) {
-      case 'pending':
-        contractsToShow = this.pendingContracts;
-        break;
-      case 'paid':
-        contractsToShow = this.paidContracts;
-        break;
-      case 'all':
-      default:
-        contractsToShow = this.factoring.filter(c => c); 
-        tab = 'all'; 
-        this.currentTab = 'all';
-        break;
-    }
-
-    return [...contractsToShow].sort((a, b) => {
-      const fechaStrA = a.isPaid && a.fechaPagoReal ? a.fechaPagoReal : a.fechaPagoEstimado;
-      const fechaStrB = b.isPaid && b.fechaPagoReal ? b.fechaPagoReal : b.fechaPagoEstimado;
-      const fechaA = dateUtils.parse(fechaStrA); 
-      const fechaB = dateUtils.parse(fechaStrB);
-
-      const timeA = !isNaN(fechaA?.getTime()) ? fechaA.getTime() : Infinity;
-      const timeB = !isNaN(fechaB?.getTime()) ? fechaB.getTime() : Infinity;
-
-      return timeA - timeB;
-    });
+    return date >= oneMonthAgo && date <= today;
   }
 
   async calcularTotalManualSoles() {
@@ -440,6 +291,7 @@ class DataService {
     let totalDepositos = 0;
     let totalRetiros = 0;
     let totalGanancias = 0;
+    let gananciasAntiguas = 0;
 
     if (Array.isArray(penData)) {
       penData.forEach(row => {
@@ -458,11 +310,21 @@ class DataService {
 
     if (Array.isArray(gananciaPEN)) {
       gananciaPEN.forEach(row => {
-        totalGanancias += Number(row.Monto) || 0;
+        const monto = Number(row.Monto) || 0;
+        // Solo consideramos como ganancias los montos del último mes
+        if (this.isWithinLastMonth(row.Fecha)) {
+          totalGanancias += monto;
+        } else {
+          // Las ganancias antiguas se consideran como parte del capital
+          gananciasAntiguas += monto;
+        }
       });
     }
 
-    // Total = (Depósitos + Conversiones a Soles) - (Retiros + Conversiones desde Soles) + Ganancias en Soles
+    // Agregamos las ganancias antiguas al capital
+    totalDepositos += gananciasAntiguas;
+
+    // Total = (Depósitos + Ganancias antiguas + Conversiones a Soles) - (Retiros + Conversiones desde Soles) + Ganancias recientes
     return Number((totalDepositos - totalRetiros + totalGanancias).toFixed(2));
   }
 
@@ -473,6 +335,7 @@ class DataService {
     ]);
     let totalUSDNeto = 0; // Usamos una sola variable para simplificar
     let totalGanancias = 0;
+    let gananciasAntiguas = 0;
 
     if (Array.isArray(usdData)) {
       usdData.forEach(row => {
@@ -485,17 +348,27 @@ class DataService {
           // Consideramos 'retiro' y 'dolares a soles' como salidas de USD
           totalUSDNeto -= monto;
         }
-         // Otros tipos como 'interes ganado' se manejan por separado con gananciaUSD.json
+        // Otros tipos como 'interes ganado' se manejan por separado con gananciaUSD.json
       });
     }
 
     if (Array.isArray(gananciaUSD)) {
       gananciaUSD.forEach(row => {
-        totalGanancias += Number(row.Monto) || 0;
+        const monto = Number(row.Monto) || 0;
+        // Solo consideramos como ganancias los montos del último mes
+        if (this.isWithinLastMonth(row.Fecha)) {
+          totalGanancias += monto;
+        } else {
+          // Las ganancias antiguas se consideran como parte del capital
+          gananciasAntiguas += monto;
+        }
       });
     }
 
-    // Total = (Depósitos + Conversiones a USD) - (Retiros + Conversiones desde USD) + Ganancias en USD
+    // Agregamos las ganancias antiguas al capital
+    totalUSDNeto += gananciasAntiguas;
+
+    // Total = (Depósitos + Ganancias antiguas + Conversiones a USD) - (Retiros + Conversiones desde USD) + Ganancias recientes
     return Number((totalUSDNeto + totalGanancias).toFixed(2));
   }
 
@@ -510,6 +383,7 @@ class DataService {
     let capitalPEN = 0;
     let retirosPEN = 0;
     let conversionesNetasPEN = 0; // (dolares a soles) - (soles a dolares)
+    let gananciasAntiguasPEN = 0;
 
     if (Array.isArray(penData)) {
         penData.forEach(row => {
@@ -526,6 +400,7 @@ class DataService {
     let capitalUSD = 0;
     let retirosUSD = 0;
     let conversionesNetasUSD = 0; // (soles a dolares) - (dolares a soles)
+    let gananciasAntiguasUSD = 0;
 
     if (Array.isArray(usdData)) {
         usdData.forEach(row => {
@@ -535,25 +410,39 @@ class DataService {
             else if (tipo === 'retiro') retirosUSD += monto;
             else if (tipo === 'soles a dolares') conversionesNetasUSD += monto;
             else if (tipo === 'dolares a soles') conversionesNetasUSD -= monto;
-             // 'inversion' e 'interes ganado' no son capital inicial ni retiros directos
+            // 'inversion' e 'interes ganado' no son capital inicial ni retiros directos
         });
     }
 
     let totalGananciaPEN = 0;
     if (Array.isArray(gananciaPEN)) {
         gananciaPEN.forEach(row => {
-            totalGananciaPEN += Number(row.Monto) || 0;
+            const monto = Number(row.Monto) || 0;
+            if (this.isWithinLastMonth(row.Fecha)) {
+                totalGananciaPEN += monto;
+            } else {
+                gananciasAntiguasPEN += monto;
+            }
         });
     }
 
     let totalGananciaUSD = 0;
     if (Array.isArray(gananciaUSD)) {
         gananciaUSD.forEach(row => {
-            totalGananciaUSD += Number(row.Monto) || 0;
+            const monto = Number(row.Monto) || 0;
+            if (this.isWithinLastMonth(row.Fecha)) {
+                totalGananciaUSD += monto;
+            } else {
+                gananciasAntiguasUSD += monto;
+            }
         });
     }
 
-    // Capital Invertido Neto = (Depósitos - Retiros) + Conversiones Netas
+    // Añadimos las ganancias antiguas al capital invertido
+    capitalPEN += gananciasAntiguasPEN;
+    capitalUSD += gananciasAntiguasUSD;
+
+    // Capital Invertido Neto = (Depósitos - Retiros) + Conversiones Netas + Ganancias Antiguas
     const totalInvertidoPEN = capitalPEN - retirosPEN + conversionesNetasPEN;
     const totalInvertidoUSD = capitalUSD - retirosUSD + conversionesNetasUSD;
 
@@ -579,6 +468,33 @@ class DataService {
   }
 }
 
+// Agregamos el método calcularRentabilidadConFlujos que falta
+DataService.prototype.calcularRentabilidadConFlujos = function() {
+  const validFactoring = this.factoring.filter(contrato =>
+      contrato &&
+      !isNaN(Number(contrato.monto)) &&
+      !isNaN(Number(contrato.montoPagoNeto)) &&
+      contrato.fechaIngreso &&
+      (contrato.fechaPagoReal || contrato.fechaPagoEstimado) &&
+      !isNaN(dateUtils.parse(contrato.fechaIngreso).getTime()) &&
+      !isNaN(dateUtils.parse(contrato.fechaPagoReal || contrato.fechaPagoEstimado).getTime())
+  );
+  if (validFactoring.length === 0 && this.additionalFlows.length === 0) {
+    return 0;
+  }
+  const cashFlows = financeUtils.buildCashFlowData(validFactoring, this.additionalFlows);
+  if (!cashFlows || cashFlows.length < 2) {
+    return 0;
+  }
+  try {
+    const rate = financeUtils.calcularTasaAnualizada(cashFlows);
+    return isNaN(rate) || !isFinite(rate) ? 0 : rate;
+  } catch (error) {
+    return 0;
+  }
+};
+
+
 window.mostrarDineroTotalEnSoles = async function() {
   const dataService = new DataService();
   const total = await dataService.calcularTotalManualSoles();
@@ -599,4 +515,118 @@ window.mostrarInteresManual = async function() {
     '\nCapital invertido (PEN eq): ' + res.totalInvertidoPENeq.toFixed(2) +
     '\nPorcentaje de interés: ' + res.interesPorcentaje.toFixed(2) + '%'
   );
+};
+
+// Asegurándonos que el método buildFactoringData exista y esté correctamente definido
+DataService.prototype.buildFactoringData = function() {
+  if (!this.factoring || this.factoring.length === 0) {
+    return {
+      totalInvertido: 0,
+      totalRecibido: 0,
+      montoGanado: 0,
+      tasa: 0,
+      contratos: 0,
+      contratosPagados: 0,
+      contratosPendientes: 0,
+      gananciaUltimoMes: 0
+    };
+  }
+
+  const hoy = new Date();
+  const fechaHaceUnMes = new Date();
+  fechaHaceUnMes.setDate(hoy.getDate() - 30);
+
+  const result = this.factoring.reduce((acc, contrato) => {
+    if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined' || !contrato.fechaIngreso || (!contrato.fechaPagoReal && !contrato.fechaPagoEstimado)) {
+      return acc;
+    }
+    const moneda = contrato.moneda ? contrato.moneda.toUpperCase() : "PEN";
+    const principal = Number(contrato.monto) || 0;
+    const interest = Number(contrato.montoPagoNeto) || 0; 
+    
+    const tcPago = Number(contrato.tc) || TASA_CAMBIO_USD_PEN;
+    const principalPEN = moneda === 'USD' ? principal * tcPago : principal;
+    const interestPEN = moneda === 'USD' ? interest * tcPago : interest;
+
+    acc.totalPrincipalConverted += principalPEN;
+    acc.totalInterestConverted += interestPEN; 
+    acc.numContratos++;
+    if (contrato.isPaid) {
+      acc.contratosPagados++;
+    } else if (contrato.isPending) {
+      acc.contratosPendientes++;
+    }
+
+    const fechaIngreso = dateUtils.parse(contrato.fechaIngreso);
+    const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
+    const fechaPago = dateUtils.parse(fechaPagoStr);
+
+    if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy) {
+      acc.gananciaUltimoMes += interestPEN;
+    }
+
+    if (isNaN(fechaIngreso.getTime()) || isNaN(fechaPago.getTime())) {
+      acc.totalPrincipalConverted -= principalPEN;
+      acc.totalInterestConverted -= interestPEN;
+      acc.numContratos--;
+      if (contrato.isPaid) acc.contratosPagados--;
+      else if (contrato.isPending) acc.contratosPendientes--;
+      return acc;
+    }
+
+    if (principalPEN > 0) { 
+      const flows = [
+        { date: fechaIngreso, amount: -principalPEN }, 
+        { date: fechaPago, amount: principalPEN + interestPEN } 
+      ];
+
+      try {
+        const contractTIR = financeUtils.calcularTasaAnualizada(flows);
+        if (!isNaN(contractTIR) && isFinite(contractTIR) && contractTIR > -99 && contractTIR < 500) {
+          acc.weightedRateSum += (contractTIR / 100) * principalPEN;
+          acc.totalPrincipalForRate += principalPEN; 
+        }
+      } catch (e) {
+        // Error silencioso
+      }
+    }
+
+    return acc;
+  }, {
+    totalPrincipalConverted: 0, 
+    weightedRateSum: 0,         
+    totalInterestConverted: 0,  
+    numContratos: 0,            
+    contratosPagados: 0,        
+    contratosPendientes: 0,     
+    totalPrincipalForRate: 0,   
+    gananciaUltimoMes: 0
+  });
+
+  // === Tasas anualizadas ===
+  const contractsPaid = this.paidContracts;
+  const contractsAll = this.factoring.filter(c => c);
+  
+  const flowsReal = financeUtils.buildCashFlowData(contractsPaid);
+  const flowsEsper = financeUtils.buildCashFlowData(contractsAll);
+  
+  const teaReal = financeUtils.calcularTasaAnualizada(flowsReal);
+  const teaEsperada = financeUtils.calcularTasaAnualizada(flowsEsper);
+  
+  const overallRate = isNaN(teaEsperada) ? 0 : teaEsperada;
+
+  const actualPagados = this.paidContracts.length; 
+  const actualPendientes = this.pendingContracts.length;
+  return {
+    totalInvertido: result.totalPrincipalConverted, 
+    totalRecibido: result.totalPrincipalConverted + result.totalInterestConverted, 
+    montoGanado: result.totalInterestConverted, 
+    tasa: isNaN(overallRate) ? 0 : overallRate, 
+    contratos: result.numContratos,
+    contratosPagados: actualPagados,
+    contratosPendientes: actualPendientes,
+    gananciaUltimoMes: result.gananciaUltimoMes,
+    tasaReal: isNaN(teaReal) ? 0 : teaReal,
+    tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada
+  };
 };
