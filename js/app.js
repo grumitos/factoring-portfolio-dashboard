@@ -192,55 +192,124 @@ async function updateDashboardSummary(factoringData) {
 
 function updateFactoringCard(contracts, factoringData, tabType = null) {
   const contractsCountElement = document.getElementById("factoring-contracts-count");
-  const data = factoringData || { contratos: 0, contratosPendientes: 0, contratosPagados: 0 };
+  const detailsList = document.getElementById("factoring-details");
+  const data = factoringData || { contratos: 0, contratosPendientes: 0, contratosPagados: 0, totalGananciaPotencialPENeq: 0 }; // Incluir valor por defecto
+
+  if (!detailsList) {
+    console.error("Element with ID 'factoring-details' not found.");
+    return;
+  }
+  detailsList.innerHTML = ""; // Limpiar siempre al inicio
 
   if (tabType === null) {
     showFactoringWaitingState("Selecciona una categoría");
     return;
   }
 
+  // Manejar la pestaña de Ganancias Potenciales
+  if (tabType === 'potential-earnings') {
+    if (contractsCountElement) {
+      contractsCountElement.textContent = `Total: ${data.contratos || 0}`;
+    }
+    
+    // Calcular porcentaje y otros valores
+    const porcentajeGanancia = data.totalInvertido > 0 ?
+      (data.totalGananciaPotencialPENeq / data.totalInvertido) * 100 : 0;
+    
+    const esPositivo = porcentajeGanancia >= 0;
+    const colorClase = esPositivo ? 'text-positive' : 'text-negative';
+    
+    // Mostrar la información en formato de tabla usando las mismas clases que las otras pestañas
+    detailsList.innerHTML = `
+      <tr class="year-header-row">
+        <td colspan="3" class="year-header-cell">
+          Resumen de Ganancias Totales
+        </td>
+      </tr>
+      <tr class="even-row">
+        <td colspan="3" class="text-center">
+          <div class="earnings-amount ${colorClase}">${formatUtils.currency(data.totalGananciaPotencialPENeq || 0)}</div>
+          <div class="earnings-percentage">${formatUtils.percentage(porcentajeGanancia)} del capital invertido</div>
+        </td>
+      </tr>
+      <tr class="year-header-row">
+        <td>Categoría</td>
+        <td>Cantidad</td>
+        <td>Valor</td>
+      </tr>
+      <tr class="even-row">
+        <td>Contratos Pendientes</td>
+        <td class="text-center">${data.contratosPendientes || 0}</td>
+        <td class="text-right ${colorClase}">${formatUtils.currency(data.contratosPendientes * (data.totalGananciaPotencialPENeq / data.contratos) || 0)}</td>
+      </tr>
+      <tr class="alt-row">
+        <td>Contratos Pagados</td>
+        <td class="text-center">${data.contratosPagados || 0}</td>
+        <td class="text-right ${colorClase}">${formatUtils.currency(data.contratosPagados * (data.totalGananciaPotencialPENeq / data.contratos) || 0)}</td>
+      </tr>
+      <tr class="year-header-row">
+        <td colspan="3" class="text-center description-text">
+          Esta cifra representa la suma total de ganancias de todos los contratos (pagados y pendientes).
+        </td>
+      </tr>
+    `;
+    // Asegurar que no se procese la lista de contratos para esta pestaña
+    return;
+  }
+
+  // Lógica existente para otras pestañas (all, pending, paid)
   let validContracts = Array.isArray(contracts) ? contracts : [];
-  
-  // Filtrar por término de búsqueda si existe
+
+  // Filtrar por término de búsqueda si existe (solo para pestañas que muestran lista)
   if (currentSearchTerm) {
     validContracts = validContracts.filter(contrato => {
-      if (!contrato) return false;
-      
+      // ... (lógica de filtrado existente) ...
+       if (!contrato) return false;
+
       // Buscar en los campos más relevantes
       const clienteName = (contrato.nombre || '').toLowerCase();
       const codigo = (contrato.codigoSubasta || '').toLowerCase();
       const fechaPago = (contrato.fechaPagoReal || contrato.fechaPagoEstimado || '').toLowerCase();
-      
-      return clienteName.includes(currentSearchTerm) || 
-             codigo.includes(currentSearchTerm) || 
-             fechaPago.includes(currentSearchTerm);
+      const montoInv = (contrato.monto?.toString() || '').toLowerCase();
+      const montoGan = (contrato.montoPagoNeto?.toString() || '').toLowerCase();
+
+
+      return clienteName.includes(currentSearchTerm) ||
+             codigo.includes(currentSearchTerm) ||
+             fechaPago.includes(currentSearchTerm) ||
+             montoInv.includes(currentSearchTerm) ||
+             montoGan.includes(currentSearchTerm);
     });
   }
-  
+
   if (contractsCountElement) {
     let countText = `Total: ${data.contratos || 0}`;
     if (tabType === 'pending') countText = `Por cobrar: ${data.contratosPendientes || 0}`;
     else if (tabType === 'paid') countText = `Pagados: ${data.contratosPagados || 0}`;
-    
     // Añadir información sobre los resultados de búsqueda si hay un filtro activo
     if (currentSearchTerm) {
       countText += ` (${validContracts.length} resultado${validContracts.length !== 1 ? 's' : ''})`;
     }
-    
     contractsCountElement.textContent = countText;
   }
 
-  const detailsList = document.getElementById("factoring-details");
-  if (!detailsList) {
-    console.error("Element with ID 'factoring-details' not found.");
-    return;
-  }
-  detailsList.innerHTML = "";
-
+  // --- Renderizado de la lista de contratos (para all, pending, paid) ---
   let currentYear = null;
   if (validContracts.length > 0) {
+    // Ordenar contratos por fecha de pago (más reciente primero)
+    validContracts.sort((a, b) => {
+        const dateA = dateUtils.parse(a.isPaid && a.fechaPagoReal ? a.fechaPagoReal : a.fechaPagoEstimado);
+        const dateB = dateUtils.parse(b.isPaid && b.fechaPagoReal ? b.fechaPagoReal : b.fechaPagoEstimado);
+        // Manejar fechas inválidas o nulas poniéndolas al final
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateB - dateA; // Descendente
+    });
+
     validContracts.forEach((contrato, index) => {
-      if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined') {
+      // ... (validación de contrato existente) ...
+       if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined') {
         console.warn("Skipping rendering of invalid contract:", contrato);
         return;
       }
@@ -248,7 +317,8 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       const fechaPagoDate = fechaPagoStr ? dateUtils.parse(fechaPagoStr) : null;
       const contractYear = fechaPagoDate ? fechaPagoDate.getFullYear() : null;
 
-      if (contractYear !== null && contractYear !== currentYear) {
+      // Agrupar por año si aplica
+      if (contractYear !== null && contractYear !== currentYear && (tabType === 'all' || tabType === 'paid')) { // Mostrar año solo en 'all' y 'paid'
         currentYear = contractYear;
         const yearRow = document.createElement("tr");
         yearRow.classList.add('year-header-row');
@@ -262,11 +332,18 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
 
       const fechaPagoDisplay = fechaPagoStr ? formatUtils.dateShort(fechaPagoStr) : 'Fecha Desc.';
       const row = document.createElement("tr");
+      // ... (asignación de clases y data-contract-id existente) ...
       row.classList.add(index % 2 === 0 ? 'even-row' : 'alt-row');
+      // Aplicar clase específica de pestaña si es necesario (ej. resaltar pendientes)
+      if (tabType === 'pending') row.classList.add('pending-contract-tab');
+      else if (tabType === 'paid') row.classList.add('paid-contract-tab');
+
       row.classList.add(contrato.isPaid ? 'paid-contract' : 'pending-contract');
       row.dataset.contractId = contrato.codigoSubasta || 'N/A';
 
+
       const clientCell = document.createElement("td");
+      // ... (creación de clientCell existente) ...
       clientCell.classList.add('client-cell');
       const clientInfoDiv = document.createElement('div');
       clientInfoDiv.classList.add('client-info');
@@ -281,19 +358,24 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       clientInfoDiv.appendChild(investedDiv);
       clientCell.appendChild(clientInfoDiv);
 
+
       const dateCell = document.createElement("td");
+      // ... (creación de dateCell existente) ...
       dateCell.classList.add('date-cell');
       const dateSpan = document.createElement("span");
       dateSpan.className = "detail-date";
       dateSpan.textContent = fechaPagoDisplay;
       dateCell.appendChild(dateSpan);
 
+
       const gainCell = document.createElement("td");
+      // ... (creación de gainCell existente) ...
       gainCell.classList.add('gain-cell');
       const gainSpan = document.createElement("span");
       gainSpan.className = `detail-gain ${contrato.montoPagoNeto >= 0 ? 'text-positive' : 'text-negative'}`;
       gainSpan.textContent = formatUtils.currency(contrato.montoPagoNeto, contrato.moneda);
       gainCell.appendChild(gainSpan);
+
 
       row.appendChild(clientCell);
       row.appendChild(dateCell);
@@ -303,11 +385,13 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       row.style.cursor = "pointer";
       row.onclick = () => showContractDetailsPopup(contrato);
     });
-  } else {
+  } else { // Mensaje de estado vacío para pestañas de lista
     let emptyMessage = "No hay contratos disponibles.";
-    if (tabType === 'pending') emptyMessage = "No hay contratos pendientes por cobrar.";
+    if (currentSearchTerm) emptyMessage = "No se encontraron contratos que coincidan con la búsqueda.";
+    else if (tabType === 'pending') emptyMessage = "No hay contratos pendientes por cobrar.";
     else if (tabType === 'paid') emptyMessage = "No se encontraron contratos pagados.";
     else if (tabType === 'all') emptyMessage = "No se encontraron contratos.";
+
     detailsList.innerHTML = `
       <tr class="empty-state-row">
         <td colspan="3">
@@ -318,7 +402,8 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       </tr>
     `;
   }
-  const tableContainer = detailsList.closest('.card-details');
+  // ... (scroll reset existente) ...
+   const tableContainer = detailsList.closest('.card-details');
   if (tableContainer) {
     tableContainer.scrollTop = 0;
     tableContainer.scrollLeft = 0;
@@ -359,24 +444,36 @@ function showErrorState(message) {
 }
 
 function setupTabListeners() {
-  const tabsContainer = document.querySelector('.tabs-container');
-  if (!tabsContainer) return;
-  const tabs = tabsContainer.querySelectorAll('.tab');
-  tabsContainer.addEventListener('click', (event) => {
-    const tab = event.target.closest('.tab');
-    if (!tab || tab.classList.contains('active')) return;
-    const tabType = tab.getAttribute('data-tab');
-    const allTabs = tabsContainer.querySelectorAll('.tab');
-    requestAnimationFrame(() => {
-      allTabs.forEach(t => t.classList.remove('active'));
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabType = tab.getAttribute('data-tab');
+      
+      // Remover clase 'active' de todas las pestañas
+      tabs.forEach(t => t.classList.remove('active'));
+      
+      // Añadir clase 'active' a la pestaña seleccionada
       tab.classList.add('active');
-      if (dataService) {
-        const contracts = dataService.changeTab(tabType);
-        const globalFactoringData = dataService.buildFactoringData();
-        updateFactoringCard(contracts, globalFactoringData, tabType);
-      }
+      
+      // Cargar los datos según la pestaña seleccionada
+      loadFactoringData(tabType);
     });
   });
+
+  // Activar la primera pestaña por defecto (Pendientes)
+  const defaultTab = document.querySelector('.tab[data-tab="pending"]');
+  if (defaultTab) {
+    defaultTab.click();
+  }
+}
+
+function loadFactoringData(tabType) {
+  if (!dataService || !tabType) return;
+  
+  const contracts = dataService.changeTab(tabType);
+  const factoringData = dataService.buildFactoringData();
+  
+  updateFactoringCard(contracts, factoringData, tabType);
 }
 
 function setupSearchListeners() {

@@ -515,9 +515,10 @@ DataService.prototype.changeTab = function(tabType) {
       return this.pendingContracts;
     case 'paid':
       return this.paidContracts;
+    case 'potential-earnings': // Manejar nuevo tipo de tab
     case 'all':
     default:
-      return this.factoring;
+      return this.factoring; // Devuelve todos los contratos para 'all' y 'potential-earnings'
   }
 };
 
@@ -533,7 +534,10 @@ DataService.prototype.buildFactoringData = function() {
       contratos: 0,
       contratosPagados: 0,
       contratosPendientes: 0,
-      gananciaUltimoMes: 0
+      gananciaUltimoMes: 0,
+      tasaReal: 0,
+      tasaEsperada: 0,
+      totalGananciaPotencialPENeq: 0 // Inicializar nuevo campo
     };
   }
 
@@ -541,21 +545,26 @@ DataService.prototype.buildFactoringData = function() {
   const fechaHaceUnMes = new Date();
   fechaHaceUnMes.setDate(hoy.getDate() - 30);
 
+  let totalGananciaPotencialPENeq = 0; // Variable para sumar ganancias potenciales
+
   const result = this.factoring.reduce((acc, contrato) => {
     if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined' || !contrato.fechaIngreso || (!contrato.fechaPagoReal && !contrato.fechaPagoEstimado)) {
       return acc;
     }
     const moneda = contrato.moneda ? contrato.moneda.toUpperCase() : "PEN";
     const principal = Number(contrato.monto) || 0;
-    const interest = Number(contrato.montoPagoNeto) || 0; 
-    
+    const interest = Number(contrato.montoPagoNeto) || 0;
+
     // Usar CONFIG directamente
     const tcPago = Number(contrato.tc) || CONFIG.TASAS.CAMBIO_USD_PEN;
     const principalPEN = moneda === 'USD' ? principal * tcPago : principal;
     const interestPEN = moneda === 'USD' ? interest * tcPago : interest;
 
+    // Sumar la ganancia (interés) en PEN a la ganancia potencial total
+    totalGananciaPotencialPENeq += interestPEN;
+
     acc.totalPrincipalConverted += principalPEN;
-    acc.totalInterestConverted += interestPEN; 
+    acc.totalInterestConverted += interestPEN; // Esto suma solo las ganancias ya consideradas (puede diferir de la potencial si hay lógica adicional)
     acc.numContratos++;
     if (contrato.isPaid) {
       acc.contratosPagados++;
@@ -567,30 +576,34 @@ DataService.prototype.buildFactoringData = function() {
     const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
     const fechaPago = dateUtils.parse(fechaPagoStr);
 
-    if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy) {
+    if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy && contrato.isPaid) { // Asegurarse que solo ganancias pagadas en el último mes
       acc.gananciaUltimoMes += interestPEN;
     }
 
-    if (isNaN(fechaIngreso.getTime()) || isNaN(fechaPago.getTime())) {
+    // ... resto del código de reduce ...
+    // ... (cálculo de weightedRateSum, etc.) ...
+     if (isNaN(fechaIngreso.getTime()) || isNaN(fechaPago.getTime())) {
+      // Revertir sumas si las fechas son inválidas
       acc.totalPrincipalConverted -= principalPEN;
       acc.totalInterestConverted -= interestPEN;
+      totalGananciaPotencialPENeq -= interestPEN; // Revertir suma potencial
       acc.numContratos--;
       if (contrato.isPaid) acc.contratosPagados--;
       else if (contrato.isPending) acc.contratosPendientes--;
       return acc;
     }
 
-    if (principalPEN > 0) { 
+    if (principalPEN > 0) {
       const flows = [
-        { date: fechaIngreso, amount: -principalPEN }, 
-        { date: fechaPago, amount: principalPEN + interestPEN } 
+        { date: fechaIngreso, amount: -principalPEN },
+        { date: fechaPago, amount: principalPEN + interestPEN }
       ];
 
       try {
         const contractTIR = financeUtils.calcularTasaAnualizada(flows);
         if (!isNaN(contractTIR) && isFinite(contractTIR) && contractTIR > -99 && contractTIR < 500) {
           acc.weightedRateSum += (contractTIR / 100) * principalPEN;
-          acc.totalPrincipalForRate += principalPEN; 
+          acc.totalPrincipalForRate += principalPEN;
         }
       } catch (e) {
         // Error silencioso
@@ -599,40 +612,42 @@ DataService.prototype.buildFactoringData = function() {
 
     return acc;
   }, {
-    totalPrincipalConverted: 0, 
-    weightedRateSum: 0,         
-    totalInterestConverted: 0,  
-    numContratos: 0,            
-    contratosPagados: 0,        
-    contratosPendientes: 0,     
-    totalPrincipalForRate: 0,   
+    totalPrincipalConverted: 0,
+    weightedRateSum: 0,
+    totalInterestConverted: 0, // Mantenemos la lógica original aquí para otras métricas
+    numContratos: 0,
+    contratosPagados: 0,
+    contratosPendientes: 0,
+    totalPrincipalForRate: 0,
     gananciaUltimoMes: 0
   });
 
   // === Tasas anualizadas ===
   const contractsPaid = this.paidContracts;
   const contractsAll = this.factoring.filter(c => c);
-  
+
   const flowsReal = financeUtils.buildCashFlowData(contractsPaid);
   const flowsEsper = financeUtils.buildCashFlowData(contractsAll);
-  
+
   const teaReal = financeUtils.calcularTasaAnualizada(flowsReal);
   const teaEsperada = financeUtils.calcularTasaAnualizada(flowsEsper);
-  
+
   const overallRate = isNaN(teaEsperada) ? 0 : teaEsperada;
 
-  const actualPagados = this.paidContracts.length; 
+  // Usamos los contadores reales de las listas filtradas
+  const actualPagados = this.paidContracts.length;
   const actualPendientes = this.pendingContracts.length;
   return {
-    totalInvertido: result.totalPrincipalConverted, 
-    totalRecibido: result.totalPrincipalConverted + result.totalInterestConverted, 
-    montoGanado: result.totalInterestConverted, 
-    tasa: isNaN(overallRate) ? 0 : overallRate, 
+    totalInvertido: result.totalPrincipalConverted,
+    totalRecibido: result.totalPrincipalConverted + result.totalInterestConverted, // Esto podría necesitar revisión si 'totalInterestConverted' no incluye todo
+    montoGanado: result.totalInterestConverted, // Ganancia realizada o basada en la lógica existente
+    tasa: isNaN(overallRate) ? 0 : overallRate,
     contratos: result.numContratos,
     contratosPagados: actualPagados,
     contratosPendientes: actualPendientes,
     gananciaUltimoMes: result.gananciaUltimoMes,
     tasaReal: isNaN(teaReal) ? 0 : teaReal,
-    tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada
+    tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada,
+    totalGananciaPotencialPENeq: Number(totalGananciaPotencialPENeq.toFixed(2)) // Añadir el nuevo campo calculado
   };
 };

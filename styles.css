@@ -355,6 +355,207 @@ body:not(.is-loading) {
   font-weight: 600;
 }
 
+/* Estilos para las pestañas incluyendo Ganancias Potenciales */
+.tabs-container {
+  display: flex;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--color-accent);
+}
+
+.tab.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Estilo específico para la pestaña de ganancias potenciales */
+.tab[data-tab="potential-earnings"] {
+  color: var(--color-text-secondary); /* Color normal como las otras pestañas */
+}
+
+.tab[data-tab="potential-earnings"]:hover {
+  color: var(--color-accent); /* Color hover como las otras pestañas */
+}
+
+.tab[data-tab="potential-earnings"].active {
+  color: var(--color-accent); /* Color activo como las otras pestañas */
+  border-bottom-color: var(--color-accent);
+}
+
+/* Estilos específicos para la tabla de ganancias potenciales */
+.earnings-summary-header td {
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+  padding-top: 1rem;
+}
+
+.earnings-title-cell {
+  padding: 1rem 1rem 0.5rem;
+}
+
+.earnings-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.earnings-main-row td {
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+  padding: 0.5rem 1rem 1.5rem;
+  text-align: center;
+}
+
+.earnings-amount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.earnings-percentage {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.earnings-details-header td {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  padding: 0.75rem 1rem;
+  background-color: rgba(var(--color-bg-alt-rgb), 0.5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.earnings-detail-row td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.earnings-detail-row:last-child td {
+  border-bottom: none;
+}
+
+.earnings-detail-row.alt-row td {
+  background-color: rgba(var(--color-bg-alt-rgb), 0.2);
+}
+
+.earnings-footer td {
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  text-align: center;
+  background-color: rgba(var(--color-accent-rgb), 0.02);
+  border-top: 1px solid var(--color-border);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Colores para valores positivos y negativos */
+.earnings-positive {
+  color: var(--color-success);
+}
+
+.earnings-negative {
+  color: var(--color-error);
+}
+
+/* Estilos para la tabla de ganancias potenciales */
+.earnings-summary-header td {
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+  padding-top: 1rem;
+}
+
+.earnings-title-cell {
+  padding: 1rem 1rem 0.5rem;
+}
+
+.earnings-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.earnings-main-row td {
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+  padding: 0.5rem 1rem 1.5rem;
+  text-align: center;
+}
+
+.earnings-amount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.earnings-percentage {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.description-text {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  padding: 1rem;
+}
+
+.earnings-details-header td {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  padding: 0.75rem 1rem;
+  background-color: rgba(var(--color-bg-alt-rgb), 0.5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.earnings-detail-row td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.earnings-detail-row:last-child td {
+  border-bottom: none;
+}
+
+.earnings-detail-row.alt-row td {
+  background-color: rgba(var(--color-bg-alt-rgb), 0.2);
+}
+
+.earnings-footer td {
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  text-align: center;
+  background-color: rgba(var(--color-accent-rgb), 0.02);
+  border-top: 1px solid var(--color-border);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
 /* Estilos para el contenedor de búsqueda */
 .search-container {
   display: flex;
@@ -1079,4 +1280,102 @@ html, body, * {
   .text-negative {
     color: red !important;
   }
+}
+
+/* Estilos para las pestañas */
+.tabs-container {
+  display: flex;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text-secondary, #6b7280);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: var(--color-accent, #4f46e5);
+}
+
+.tab.active {
+  color: var(--color-accent, #4f46e5);
+  border-bottom-color: var(--color-accent, #4f46e5);
+}
+
+/* Estilos para la vista de ganancias potenciales */
+.earnings-header-row td {
+  padding: 1rem 1rem 0.5rem;
+  background-color: rgba(79, 70, 229, 0.05);
+}
+
+.earnings-title {
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  font-size: 1.1rem;
+}
+
+.earnings-main-row td {
+  padding: 0.5rem 1rem 1.5rem;
+  text-align: center;
+  background-color: rgba(79, 70, 229, 0.05);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.earnings-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.text-positive {
+  color: var(--color-success, #10b981);
+}
+
+.text-negative {
+  color: var(--color-error, #ef4444);
+}
+
+.earnings-percentage {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.stats-header-row td {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #6b7280);
+  padding: 0.75rem 1rem;
+  background-color: rgba(243, 244, 246, 0.5);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.stats-row td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.description-cell {
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+}
+
+.earnings-footer td {
+  background-color: rgba(243, 244, 246, 0.3);
 }

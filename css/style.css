@@ -1,0 +1,291 @@
+/* ...existing code... */
+
+/* Estilos para la vista de ganancias potenciales */
+.card-content-summary {
+  padding: 2rem;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.highlight-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin: 1.5rem 0;
+  text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3);
+}
+
+.stat-description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.additional-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.stat-item {
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+}
+
+.stat-number {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Estilos mejorados para la vista de ganancias potenciales */
+.earnings-dashboard {
+  background: linear-gradient(145deg, rgba(32,41,64,0.8) 0%, rgba(42,57,89,0.9) 100%);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  margin: 1rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.earnings-dashboard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.earnings-dashboard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0.8;
+  animation: rotate 30s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.earnings-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.earnings-icon {
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+}
+
+.earnings-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(90deg, #f8f9fa, #e2e6ea);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.earnings-amount-container {
+  text-align: center;
+  padding: 2rem 0;
+  position: relative;
+}
+
+.earnings-amount {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #f8f9fa;
+  text-shadow: 0 0 20px rgba(255,255,255,0.4);
+  margin-bottom: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: -1px;
+}
+
+.earnings-percent {
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+.earnings-percent.positive {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #4cd964;
+}
+
+.earnings-percent.negative {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff3b30;
+}
+
+.earnings-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.earnings-metric {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1.2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.earnings-metric:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+}
+
+.metric-title {
+  color: #adb5bd;
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-icon {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.earnings-footer {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  text-align: center;
+  color: #adb5bd;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Estilos para la vista de ganancias potenciales - versión tabla */
+.earnings-summary-header {
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+}
+
+.earnings-title-cell {
+  padding: 1.25rem 1rem 0.5rem;
+  border-bottom: none;
+}
+
+.earnings-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
+.earnings-main-row {
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+}
+
+.earnings-amount-cell {
+  padding: 0.5rem 1rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(var(--color-border-rgb), 0.2);
+}
+
+.earnings-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.earnings-percentage {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.earnings-details-header td {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  padding: 0.75rem 1rem;
+  background-color: rgba(var(--color-bg-alt-rgb), 0.5);
+}
+
+.earnings-detail-row td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(var(--color-border-rgb), 0.1);
+}
+
+.earnings-detail-row.alt-row {
+  background-color: rgba(var(--color-bg-alt-rgb), 0.2);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.description-cell {
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.earnings-footer {
+  background-color: rgba(var(--color-accent-rgb), 0.02);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .earnings-details {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .earnings-amount {
+    font-size: 2.8rem;
+  }
+}
+
+/* ...existing code... */
