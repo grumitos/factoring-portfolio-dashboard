@@ -480,6 +480,8 @@ DataService.prototype.buildFactoringData = function() {
       contratosPagados: 0,
       contratosPendientes: 0,
       gananciaUltimoMes: 0,
+      gananciaUltimoMesPEN: 0,
+      gananciaUltimoMesUSD: 0, 
       tasaReal: 0,
       tasaEsperada: 0,
       totalGananciaPotencialPENeq: 0 
@@ -558,7 +560,9 @@ DataService.prototype.buildFactoringData = function() {
     contratosPagados: 0,
     contratosPendientes: 0,
     totalPrincipalForRate: 0,
-    gananciaUltimoMes: 0
+    gananciaUltimoMes: 0, 
+    gananciaUltimoMesPEN: 0, 
+    gananciaUltimoMesUSD: 0  
   });
 
   const contractsPaid = this.paidContracts;
@@ -583,6 +587,8 @@ DataService.prototype.buildFactoringData = function() {
     contratosPagados: actualPagados,
     contratosPendientes: actualPendientes,
     gananciaUltimoMes: result.gananciaUltimoMes,
+    gananciaUltimoMesPEN: result.gananciaUltimoMesPEN, 
+    gananciaUltimoMesUSD: result.gananciaUltimoMesUSD, 
     tasaReal: isNaN(teaReal) ? 0 : teaReal,
     tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada,
     totalGananciaPotencialPENeq: Number(totalGananciaPotencialPENeq.toFixed(2)) 

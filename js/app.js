@@ -138,7 +138,7 @@ async function updateDashboardSummary(factoringData) {
     updateSummarySection('total-soles',   0, 0, 'PEN');
     updateSummarySection('ganancia-soles',0, 0, 'PEN');
     updateSummarySection('total-dolares', 0, 0, 'USD');
-    updateSummarySection('ganancia-dolares',0,0, 'USD');
+    updateSummarySection('ganancia-dolares',0, 0, 'USD');
     setTextContent("tasa-promedio", formatUtils.percentage(0));
     setTextContent("tasa-trend", "N/A");
     setTextContent("meta-tiempo", "N/A");
@@ -199,9 +199,9 @@ async function updateDashboardSummary(factoringData) {
   }
 
   updateSummarySection('total-soles',   res.totalInvertidoPEN + res.totalGanadoPEN, res.totalGanadoPEN, 'PEN');
-  updateSummarySection('ganancia-soles',0, 0, 'PEN'); // si ya lo cubrió total-soles
+  updateSummarySection('ganancia-soles', 0, factoringData.gananciaUltimoMesPEN || 0, 'PEN');
   updateSummarySection('total-dolares', res.totalInvertidoUSD + res.totalGanadoUSD, res.totalGanadoUSD, 'USD');
-  updateSummarySection('ganancia-dolares',0, 0, 'USD');
+  updateSummarySection('ganancia-dolares', 0, factoringData.gananciaUltimoMesUSD || 0, 'USD');
 }
 
 function _createYearHeaderRow(year) {
