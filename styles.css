@@ -370,10 +370,6 @@ body:not(.is-loading) {
   transition: all 0.2s ease;
 }
 
-.tab:hover {
-  color: var(--color-accent);
-}
-
 .tab[data-tab="potential-earnings"] {
   color: var(--color-text-secondary);
 }
@@ -1259,7 +1255,8 @@ html, body, * {
 }
 
 .tab:hover {
-  color: var(--color-accent, #4f46e5);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
 }
 
 .earnings-header-row td {
