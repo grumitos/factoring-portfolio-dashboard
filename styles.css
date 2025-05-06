@@ -221,6 +221,8 @@ body:not(.is-loading) {
 }
 
 .chart-container {
+  contain-intrinsic-size: 26.25rem; /* misma altura que tu variable --chart-container-height */
+  content-visibility: auto;
   background-color: var(--color-bg-card);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--box-shadow-sm);
@@ -233,7 +235,6 @@ body:not(.is-loading) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  content-visibility: visible;
   contain: none;
 }
 
