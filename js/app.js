@@ -369,14 +369,14 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
         <td class="text-right">Ganancia (PENeq)</td>
       </tr>
       <tr class="even-row">
-        <td>Total Contratos Pendientes</td>
+        <td>Contratos Pendientes</td>
         <td class="text-center">${data.contratosPendientes || 0}</td>
         <td class="text-right ${ (data.gananciaEstimadaPendientesPENeq || 0) >= 0 ? 'text-positive' : 'text-negative'}">
           ${formatUtils.currency(data.gananciaEstimadaPendientesPENeq || 0)}
         </td>
       </tr>
       <tr class="alt-row">
-        <td>Total Contratos Pagados</td>
+        <td>Contratos Pagados</td>
         <td class="text-center">${data.contratosPagados || 0}</td>
         <td class="text-right ${ (data.gananciaRealPagadosPENeq || 0) >= 0 ? 'text-positive' : 'text-negative'}">
           ${formatUtils.currency(data.gananciaRealPagadosPENeq || 0)}

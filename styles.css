@@ -38,7 +38,7 @@
   --box-shadow-md: none;
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
-  --render-critical: contents;
+  --render-critical: auto;    /* antes: contents */
   --render-offscreen: auto;
   --layout-contain: paint;
   --summary-card-min-height: 7.5rem;
