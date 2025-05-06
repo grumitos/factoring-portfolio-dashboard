@@ -318,7 +318,15 @@ function _filterContractsBySearchTerm(contracts, term) {
 function updateFactoringCard(contracts, factoringData, tabType = null) {
   const contractsCountElement = document.getElementById("factoring-contracts-count");
   const detailsList = document.getElementById("factoring-details");
-  const data = factoringData || currentFactoringData || { contratos: 0, contratosPendientes: 0, contratosPagados: 0, totalGananciaPotencialPENeq: 0 };
+  const data = factoringData || currentFactoringData || { 
+    contratos: 0, 
+    contratosPendientes: 0, 
+    contratosPagados: 0, 
+    totalGananciaPotencialPENeq: 0, 
+    totalInvertido: 0,
+    gananciaEstimadaPendientesPENeq: 0, // Asegurar default
+    gananciaRealPagadosPENeq: 0        // Asegurar default
+  };
 
   if (!detailsList) {
     console.error("Element with ID 'factoring-details' not found.");
@@ -346,9 +354,6 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
     const esPositivo = data.totalGananciaPotencialPENeq >= 0;
     const colorClase = esPositivo ? 'text-positive' : 'text-negative';
 
-    const avgGainPending = data.contratosPendientes > 0 ? (data.totalGananciaPotencialPENeq * (data.contratosPendientes / data.contratos)) / data.contratosPendientes : 0;
-    const avgGainPaid = data.contratosPagados > 0 ? (data.totalGananciaPotencialPENeq * (data.contratosPagados / data.contratos)) / data.contratosPagados : 0;
-
     detailsList.innerHTML = `
       <tr class="year-header-row">
       </tr>
@@ -359,23 +364,27 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
         </td>
       </tr>
       <tr class="year-header-row">
-        <td>Categoría</td>
+        <td>Descripción</td>
         <td class="text-center">Cantidad</td>
-        <td class="text-right">Ganancia Potencial Promedio</td>
+        <td class="text-right">Ganancia (PENeq)</td>
       </tr>
       <tr class="even-row">
-        <td>Contratos Pendientes</td>
+        <td>Total Contratos Pendientes</td>
         <td class="text-center">${data.contratosPendientes || 0}</td>
-        <td class="text-right ${avgGainPending >= 0 ? 'text-positive' : 'text-negative'}">${formatUtils.currency(avgGainPending)}</td>
+        <td class="text-right ${ (data.gananciaEstimadaPendientesPENeq || 0) >= 0 ? 'text-positive' : 'text-negative'}">
+          ${formatUtils.currency(data.gananciaEstimadaPendientesPENeq || 0)}
+        </td>
       </tr>
       <tr class="alt-row">
-        <td>Contratos Pagados</td>
+        <td>Total Contratos Pagados</td>
         <td class="text-center">${data.contratosPagados || 0}</td>
-        <td class="text-right ${avgGainPaid >= 0 ? 'text-positive' : 'text-negative'}">${formatUtils.currency(avgGainPaid)}</td>
+        <td class="text-right ${ (data.gananciaRealPagadosPENeq || 0) >= 0 ? 'text-positive' : 'text-negative'}">
+          ${formatUtils.currency(data.gananciaRealPagadosPENeq || 0)}
+        </td>
       </tr>
       <tr class="year-header-row description-row">
         <td colspan="3" class="text-center description-text">
-          La ganancia potencial representa la suma de ganancias estimadas (pendientes) y reales (pagadas).
+          Tipo de cambio utilizado (USD a PEN): S/ ${CONFIG?.TASAS?.CAMBIO_USD_PEN || 'N/A'}
         </td>
       </tr>
     `;

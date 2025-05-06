@@ -484,7 +484,9 @@ DataService.prototype.buildFactoringData = function() {
       gananciaUltimoMesUSD: 0, 
       tasaReal: 0,
       tasaEsperada: 0,
-      totalGananciaPotencialPENeq: 0 
+      totalGananciaPotencialPENeq: 0,
+      gananciaEstimadaPendientesPENeq: 0, // Nueva propiedad
+      gananciaRealPagadosPENeq: 0       // Nueva propiedad
     };
   }
 
@@ -511,10 +513,13 @@ DataService.prototype.buildFactoringData = function() {
     acc.totalPrincipalConverted += principalPEN;
     acc.totalInterestConverted += interestPEN; 
     acc.numContratos++;
+
     if (contrato.isPaid) {
       acc.contratosPagados++;
-    } else if (contrato.isPending) {
+      acc.gananciaRealPagadosPENeq += interestPEN; // Acumular ganancia de pagados
+    } else if (contrato.isPending) { // Asumimos que isPending es verdadero si no está pagado y es relevante
       acc.contratosPendientes++;
+      acc.gananciaEstimadaPendientesPENeq += interestPEN; // Acumular ganancia de pendientes
     }
 
     const fechaIngreso = dateUtils.parse(contrato.fechaIngreso);
@@ -561,15 +566,17 @@ DataService.prototype.buildFactoringData = function() {
     weightedRateSum: 0,
     totalInterestConverted: 0, 
     numContratos: 0,
-    contratosPagados: 0,
-    contratosPendientes: 0,
+    contratosPagados: 0, // Este conteo se basa en la propiedad isPaid del contrato
+    contratosPendientes: 0, // Este conteo se basa en la propiedad isPending del contrato
     totalPrincipalForRate: 0,
     gananciaUltimoMes: 0, 
     gananciaUltimoMesPEN: 0, 
-    gananciaUltimoMesUSD: 0  
+    gananciaUltimoMesUSD: 0,
+    gananciaEstimadaPendientesPENeq: 0, // Inicializar nueva propiedad
+    gananciaRealPagadosPENeq: 0       // Inicializar nueva propiedad
   });
 
-  const contractsPaid = this.paidContracts;
+  const contractsPaid = this.paidContracts; // Estos son arrays filtrados
   const contractsAll = this.factoring.filter(c => c);
 
   const flowsReal = financeUtils.buildCashFlowData(contractsPaid);
@@ -580,21 +587,27 @@ DataService.prototype.buildFactoringData = function() {
 
   const overallRate = isNaN(teaEsperada) ? 0 : teaEsperada;
 
+  // Usar las longitudes de los arrays filtrados para los conteos finales de contratosPagados y contratosPendientes
+  // ya que el reduce anterior podría no ser la fuente definitiva si la lógica de isPaid/isPending es compleja.
+  // Sin embargo, para las sumas de ganancias, el reduce es donde se calculan.
   const actualPagados = this.paidContracts.length;
   const actualPendientes = this.pendingContracts.length;
+
   return {
     totalInvertido: result.totalPrincipalConverted,
     totalRecibido: result.totalPrincipalConverted + result.totalInterestConverted, 
     montoGanado: result.totalInterestConverted, 
     tasa: isNaN(overallRate) ? 0 : overallRate,
-    contratos: result.numContratos,
-    contratosPagados: actualPagados,
-    contratosPendientes: actualPendientes,
+    contratos: result.numContratos, // Total de contratos procesados en el reduce
+    contratosPagados: actualPagados, // Conteo de la lista filtrada this.paidContracts
+    contratosPendientes: actualPendientes, // Conteo de la lista filtrada this.pendingContracts
     gananciaUltimoMes: result.gananciaUltimoMes,
     gananciaUltimoMesPEN: result.gananciaUltimoMesPEN, 
     gananciaUltimoMesUSD: result.gananciaUltimoMesUSD, 
     tasaReal: isNaN(teaReal) ? 0 : teaReal,
     tasaEsperada: isNaN(teaEsperada) ? 0 : teaEsperada,
-    totalGananciaPotencialPENeq: Number(totalGananciaPotencialPENeq.toFixed(2)) 
+    totalGananciaPotencialPENeq: Number(totalGananciaPotencialPENeq.toFixed(2)),
+    gananciaEstimadaPendientesPENeq: Number(result.gananciaEstimadaPendientesPENeq.toFixed(2)), // Retornar nuevo valor
+    gananciaRealPagadosPENeq: Number(result.gananciaRealPagadosPENeq.toFixed(2))        // Retornar nuevo valor
   };
 };
