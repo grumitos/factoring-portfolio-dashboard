@@ -221,16 +221,16 @@ body:not(.is-loading) {
   vertical-align: middle;
 }
 
-.summary-trend.positive .svg-icon {
-  color: var(--color-positive);
+.summary-trend.positive .svg-icon use {
+  fill: var(--color-positive);
 }
 
-.summary-trend.negative .svg-icon {
-  color: var(--color-negative);
+.summary-trend.negative .svg-icon use {
+  fill: var(--color-negative);
 }
 
-.summary-trend.neutral .svg-icon {
-  color: var(--color-neutral);
+.summary-trend.neutral .svg-icon use {
+  fill: var(--color-neutral);
 }
 
 .chart-container {
@@ -822,11 +822,12 @@ html, body, * {
   padding: 40px 20px;
 }
 
-.waiting-message .svg-icon,
+/* Hide SVG icons by default and let JS show them if needed or use CSS for specific cases */
+/* .waiting-message .svg-icon,
 .empty-state .svg-icon,
 .summary-trend .svg-icon {
-  display: none;
-}
+  display: none; 
+} */
 
 .popup-overlay {
   position: fixed;

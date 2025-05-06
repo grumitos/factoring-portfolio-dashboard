@@ -1,3 +1,6 @@
+import { formatUtils } from '../utils/formatUtils.js';
+import { CONFIG } from '../config/appConfig.js';
+
 const chartConfig = {
   colors: {
     primary: {
@@ -81,7 +84,7 @@ function getBaseChartOptions() {
   };
 }
 
-function createProjectionChart(canvas, data) {
+export function createProjectionChart(canvas, data) {
   const ctx = canvas.getContext('2d');
   const options = getBaseChartOptions();
 
@@ -143,65 +146,21 @@ function createProjectionChart(canvas, data) {
     options
   });
 
-  const initialValue = chartData.datasets[0].data[0];
-  const finalValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1];
+  const initialValue = chartData.datasets[0].data[0] || 0;
+  const finalValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1] || initialValue;
 
   const totalRange = finalValue + initialValue;
 
   chart.options.scales.y.min = 0;
-  chart.options.scales.y.max = totalRange;
+  chart.options.scales.y.max = Math.max(totalRange, initialValue * 2); // Ensure some room if finalValue is small
 
   chart.update();
-
-  createContributionToggle(chart, initialValue);
 
   return chart;
 }
 
-function createContributionToggle(chart, initialValue) {
-  const legendContainer = document.querySelector('.chart-legend-container');
-  if (!legendContainer) return;
-
-  const toggleHTML = `
-    <label class="toggle-switch" for="contribution-toggle">
-      <input type="checkbox" id="contribution-toggle">
-      <span class="toggle-slider"></span>
-      <span class="toggle-label">Incluir aportes</span>
-    </label>
-  `;
-  legendContainer.innerHTML = toggleHTML;
-
-  const toggleInput = legendContainer.querySelector('#contribution-toggle');
-  const datasetIndex = 1;
-
-  chart.setDatasetVisibility(datasetIndex, false);
-  chart.update();
-
-  toggleInput.addEventListener('change', function() {
-    const isVisible = this.checked;
-    chart.setDatasetVisibility(datasetIndex, isVisible);
-
-    let maxValue;
-
-    if (isVisible) {
-      const data1 = chart.data.datasets[0].data;
-      const data2 = chart.data.datasets[1].data;
-      maxValue = Math.max(Math.max(...data1), Math.max(...data2));
-    } else {
-      const data1 = chart.data.datasets[0].data;
-      maxValue = Math.max(...data1);
-    }
-
-    const totalRange = maxValue + initialValue;
-    chart.options.scales.y.min = 0;
-    chart.options.scales.y.max = totalRange;
-
-    chart.update({ duration: chartConfig.animation.duration, easing: chartConfig.animation.easing });
-  });
-}
-
-function prepareProjectionData(capital, tasaAnual, years = 6) {
-  const labels = Array.from({length: years + 1}, (_, i) => i);
+export function prepareProjectionData(capital, tasaAnual, years = 6) {
+  const labels = Array.from({ length: years + 1 }, (_, i) => i);
 
   const standardValues = labels.map(year =>
     Number((capital * Math.pow(1 + tasaAnual / 100, year)).toFixed(2))

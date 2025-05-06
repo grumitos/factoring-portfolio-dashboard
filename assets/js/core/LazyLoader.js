@@ -1,4 +1,4 @@
-const LazyLoader = {
+export const LazyLoader = {
   _loadedLibraries: {},
 
   _loadScript: function(url, globalVar) {
@@ -51,22 +51,14 @@ const LazyLoader = {
   },
 
   loadChartJS: function(chartTypes = []) {
-    if (chartTypes.length === 0 || chartTypes.length > 3) {
-      return this._loadScript('https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js', 'Chart')
-        .catch(error => {
-          delete this._loadedLibraries['https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'];
-          return this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', 'Chart');
-        });
-    }
-    
-    const baseUrl = 'https://cdn.jsdelivr.net/combine/';
-    const essentials = 'npm/chart.js@3.9.1/dist/chunks/helpers.segment.min.js,npm/chart.js@3.9.1/dist/chunks/index.min.js';
-    
-    const typeModules = chartTypes.map(type => `npm/chart.js@3.9.1/dist/chunks/controllers.${type}.min.js`).join(',');
-    
-    const customUrl = `${baseUrl}${essentials},${typeModules}`;
-    
-    return this._loadScript(customUrl, 'Chart');
+    // Always load the full Chart.js bundle for simplicity in this refactor.
+    // The combined URL approach can be complex to debug if CDN structure changes.
+    return this._loadScript('https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js', 'Chart')
+      .catch(error => {
+        console.warn('CDNJS (jsdelivr) failed for Chart.js, trying Cloudflare.');
+        delete this._loadedLibraries['https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'];
+        return this._loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', 'Chart');
+      });
   },
 
   preload: function(libraries = []) {
@@ -94,7 +86,7 @@ const LazyLoader = {
   clearCache: function(library = null) {
     if (library) {
       const keys = Object.keys(this._loadedLibraries).filter(
-        key => key.includes(library.toLowerCase())
+        key => key.toLowerCase().includes(library.toLowerCase())
       );
       
       keys.forEach(key => {
@@ -104,7 +96,11 @@ const LazyLoader = {
     } else {
       this._loadedLibraries = {};
     }
+  },
+
+  loadDeferredResources: function() {
+    // Placeholder for any truly deferred resources.
+    // For now, most critical JS is loaded via modules or Chart.js via LazyLoader on demand.
+    // This could be used for non-critical images, fonts, or less important scripts.
   }
 };
-
-window.LazyLoader = LazyLoader;
