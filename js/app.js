@@ -60,7 +60,7 @@ function showFactoringWaitingState(primaryMessage = "Selecciona una categoría",
   }
   const contractsCountElement = document.getElementById("factoring-contracts-count");
   if (contractsCountElement) {
-    contractsCountElement.textContent = "N/A";
+    contractsCountElement.textContent = "Selecciona una pestaña";
   }
   const tableHeaders = document.querySelector('.details-table thead');
   if (tableHeaders) {
@@ -388,7 +388,7 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
 
   if (contractsCountElement) {
     let countText = `Total: ${data.contratos || 0}`;
-    if (tabType === 'pending') countText = `Por cobrar: ${data.contratosPendientes || 0}`;
+    if (tabType === 'pending') countText = `Pendientes: ${data.contratosPendientes || 0}`;
     else if (tabType === 'paid') countText = `Pagados: ${data.contratosPagados || 0}`;
     else if (tabType === 'all') countText = `Todos: ${data.contratos || 0}`;
 
