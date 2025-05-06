@@ -374,22 +374,12 @@ body:not(.is-loading) {
   color: var(--color-accent);
 }
 
-.tab.active {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
-}
-
 .tab[data-tab="potential-earnings"] {
   color: var(--color-text-secondary);
 }
 
 .tab[data-tab="potential-earnings"]:hover {
   color: var(--color-accent);
-}
-
-.tab[data-tab="potential-earnings"].active {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
 }
 
 .earnings-summary-header td {
@@ -1270,11 +1260,6 @@ html, body, * {
 
 .tab:hover {
   color: var(--color-accent, #4f46e5);
-}
-
-.tab.active {
-  color: var(--color-accent, #4f46e5);
-  border-bottom-color: var(--color-accent, #4f46e5);
 }
 
 .earnings-header-row td {
