@@ -73,7 +73,6 @@
     <main class="main-content">
       <div class="dashboard-content">
         <section class="summary-cards summary-cards-grid">
-          <!-- Mueve primero la fila de soles/dólares -->
           <div class="summary-card" style="grid-column: 1 / -1;">
             <div class="summary-info" style="display: flex; align-items: center; justify-content: center;">
               <div style="display: flex; align-items: center; justify-content: center; gap: 0; width: 100%;">
@@ -82,9 +81,8 @@
                   <p class="summary-value text-xl font-semibold" id="total-soles">S/ 0.00</p>
                   <p class="summary-trend positive" id="ganancia-soles">Ganancia: S/ 0.00</p>
                 </div>
-                <!-- Línea vertical perfectamente centrada -->
-                <div style="display: flex; align-items: center; height: 56px; margin: 0 32px;">
-                  <div style="width:1.5px; height: 80%; background:var(--color-border,#e5e7eb);"></div>
+                <div style="display: flex; align-items: center; height: 3.5rem; margin: 0 2rem;">
+                  <div style="width:0.09375rem; height: 80%; background:var(--color-border,#e5e7eb);"></div>
                 </div>
                 <div style="flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   <h3 class="text-sm font-medium text-secondary">Total en Dólares</h3>
@@ -94,7 +92,6 @@
               </div>
             </div>
           </div>
-          <!-- Después la fila de tasa/meta -->
           <div class="summary-card">
             <div class="summary-info">
               <h3 class="text-sm font-medium text-secondary">Tasa Promedio</h3>
@@ -142,14 +139,13 @@
                 <span>Contando...</span>
             </div>
           </div>
-          <div class="tabs-container">
-            <div class="tab" data-tab="pending">Pendientes</div>
-            <div class="tab" data-tab="paid">Pagados</div>
-            <div class="tab" data-tab="all">Todos</div>
-            <div class="tab" data-tab="potential-earnings">Ganancias Potenciales</div> <!-- Nueva pestaña -->
+          <div class="tabs-container" style="min-height: 2.5rem; display: flex; flex-wrap: wrap; overflow: visible;">
+            <div class="tab" data-tab="pending" style="padding: 0.75rem 1rem; white-space: nowrap;">Pendientes</div>
+            <div class="tab" data-tab="paid" style="padding: 0.75rem 1rem; white-space: nowrap;">Pagados</div>
+            <div class="tab" data-tab="all" style="padding: 0.75rem 1rem; white-space: nowrap;">Todos</div>
+            <div class="tab" data-tab="potential-earnings" style="padding: 0.75rem 1rem; white-space: nowrap; overflow-wrap: break-word; hyphens: auto;">Ganancias</div>
           </div>
           
-          <!-- Barra de búsqueda para contratos -->
           <div class="search-container">
             <input type="text" id="search-contracts" placeholder="Buscar contratos..." class="search-input">
             <button id="clear-search" class="clear-search-btn" title="Limpiar búsqueda">&times;</button>

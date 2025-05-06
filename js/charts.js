@@ -147,10 +147,10 @@ function createProjectionChart(canvas, data) {
   const finalValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1];
 
   const totalRange = finalValue + initialValue;
-  
+
   chart.options.scales.y.min = 0;
   chart.options.scales.y.max = totalRange;
-  
+
   chart.update();
 
   createContributionToggle(chart, initialValue);
@@ -182,7 +182,7 @@ function createContributionToggle(chart, initialValue) {
     chart.setDatasetVisibility(datasetIndex, isVisible);
 
     let maxValue;
-    
+
     if (isVisible) {
       const data1 = chart.data.datasets[0].data;
       const data2 = chart.data.datasets[1].data;
@@ -202,12 +202,11 @@ function createContributionToggle(chart, initialValue) {
 
 function prepareProjectionData(capital, tasaAnual, years = 6) {
   const labels = Array.from({length: years + 1}, (_, i) => i);
-  
+
   const standardValues = labels.map(year =>
     Number((capital * Math.pow(1 + tasaAnual / 100, year)).toFixed(2))
   );
 
-  // Usar CONFIG directamente
   const aporteMensual = CONFIG.METAS.APORTE_MENSUAL;
   const extraValues = [capital];
   let valorConAportes = capital;

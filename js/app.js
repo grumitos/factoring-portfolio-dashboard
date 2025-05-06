@@ -1,24 +1,27 @@
 let dataService = null;
 let projectionChart = null;
 let totalDepositosCalculado = 0;
-let currentSearchTerm = ''; // Variable para almacenar el término de búsqueda actual
+let currentSearchTerm = '';
+let currentFactoringData = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   dataService = new DataService();
   initializeApp();
   setupTabListeners();
-  setupSearchListeners(); // Añadimos los listeners para la búsqueda
+  setupSearchListeners();
 });
 
 async function initializeApp() {
   try {
     const data = await loadDataWithTimeout();
     totalDepositosCalculado = data.totalDepositos || 0;
+    currentFactoringData = data.factoringData;
     updateUI(data);
     calculateAndLogRentabilidad();
     await createProjectionChartIfNeeded(data);
-    updateFactoringCard([], data.factoringData, null);
+    updateFactoringCard([], currentFactoringData, null);
     document.querySelectorAll('.tabs-container .tab').forEach(tab => tab.classList.remove('active'));
+    showFactoringWaitingState("Selecciona una categoría");
   } catch (error) {
     handleInitError(error);
   } finally {
@@ -35,20 +38,22 @@ async function loadDataWithTimeout() {
 }
 
 function updateUI(data) {
-  updateDashboardSummary(data.factoringData);
-  showFactoringWaitingState("Cargando contratos...");
+  updateDashboardSummary(data.factoringData || currentFactoringData);
   updateCapitalTotal(data.capitalTotal);
 }
 
-function showFactoringWaitingState(message = "Selecciona una categoría") {
+function showFactoringWaitingState(primaryMessage = "Selecciona una categoría", secondaryMessage = "Haz clic en una de las pestañas superiores para ver los contratos") {
   const detailsList = document.getElementById("factoring-details");
   if (detailsList) {
     detailsList.innerHTML = `
       <tr class="waiting-state-row">
         <td colspan="3">
           <div class="empty-state waiting-message">
-            <p class="primary-text">${message}</p>
-            <p class="secondary-text">Haz clic en una de las pestañas superiores para ver los contratos</p>
+            <span class="svg-icon">
+              <svg><use xlink:href="#icon-touch"></use></svg>
+            </span>
+            <p class="primary-text">${primaryMessage}</p>
+            ${secondaryMessage ? `<p class="secondary-text">${secondaryMessage}</p>` : ''}
           </div>
         </td>
       </tr>
@@ -56,7 +61,11 @@ function showFactoringWaitingState(message = "Selecciona una categoría") {
   }
   const contractsCountElement = document.getElementById("factoring-contracts-count");
   if (contractsCountElement) {
-    contractsCountElement.textContent = "Selecciona pestaña";
+    contractsCountElement.textContent = "N/A";
+  }
+  const tableHeaders = document.querySelector('.details-table thead');
+  if (tableHeaders) {
+    tableHeaders.style.display = 'none';
   }
 }
 
@@ -121,30 +130,44 @@ function setTextContent(elementId, text) {
 }
 
 async function updateDashboardSummary(factoringData) {
-  const dataService = new DataService();
-  // res ahora contiene totalInvertidoPEN/USD (depósitos) y totalGanadoPEN/USD (ganancias)
-  const [res, tasaAnualizada] = await Promise.all([
-    dataService.calcularInteresManual(),
-    (async () => {
-      await dataService.loadAllData();
-      return dataService.calcularRentabilidadConFlujos();
-    })()
-  ]);
+  if (!factoringData) {
+    setTextContent("total-soles", formatUtils.currency(0, 'PEN'));
+    setTextContent("ganancia-soles", `Ganancia: ${formatUtils.currency(0, 'PEN')}`);
+    setTextContent("total-dolares", formatUtils.currency(0, 'USD'));
+    setTextContent("ganancia-dolares", `Ganancia: ${formatUtils.currency(0, 'USD')}`);
+    setTextContent("tasa-promedio", formatUtils.percentage(0));
+    setTextContent("tasa-trend", "N/A");
+    setTextContent("meta-tiempo", "N/A");
+    setTextContent("meta-descripcion", "");
+    return;
+  }
+
+  let res = { totalInvertidoPEN: 0, totalGanadoPEN: 0, totalInvertidoUSD: 0, totalGanadoUSD: 0, totalInvertidoPENeq: 0 };
+  let tasaAnualizada = factoringData.tasaEsperada || 0;
+
+  try {
+    res = await dataService.calcularInteresManual();
+    tasaAnualizada = dataService.calcularRentabilidadConFlujos();
+  } catch (e) {
+    console.warn("Error calculando resumen del dashboard:", e);
+    tasaAnualizada = factoringData.tasaEsperada || 0;
+    res.totalInvertidoPENeq = factoringData.totalInvertido || 0;
+  }
 
   const metaTiempoElement = document.getElementById("meta-tiempo");
   const metaDescripcionElement = document.getElementById("meta-descripcion");
   const tasaPromedioElement = document.getElementById("tasa-promedio");
   const tasaTrendElement = document.getElementById("tasa-trend");
+
   if (metaTiempoElement && metaDescripcionElement && tasaPromedioElement && tasaTrendElement) {
     let tiempoHastaMeta = { años: Infinity, meses: Infinity, fechaEstimada: null };
-    // Usar el capital total depositado equivalente para el cálculo de la meta
     const capitalInicialMeta = typeof res.totalInvertidoPENeq === 'number' && !isNaN(res.totalInvertidoPENeq) && res.totalInvertidoPENeq > 0 ? res.totalInvertidoPENeq : 0;
     const tasaValidaParaCalculo = typeof tasaAnualizada === 'number' && !isNaN(tasaAnualizada) ? tasaAnualizada : 0;
-    
-    // Usar CONFIG directamente para APORTE_MENSUAL
+
     if (CONFIG.METAS.APORTE_MENSUAL > 0 || tasaValidaParaCalculo > 0) {
       tiempoHastaMeta = financeUtils.calcularTiempoHastaMeta(capitalInicialMeta, tasaValidaParaCalculo);
     }
+
     if (!isFinite(tiempoHastaMeta.años)) {
       metaTiempoElement.textContent = "Meta Inalcanzable";
       metaDescripcionElement.innerHTML = `Tasa o aportes insuficientes`;
@@ -157,7 +180,7 @@ async function updateDashboardSummary(factoringData) {
         metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Logrado ~' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : 'Ya alcanzada'}`;
         metaDescripcionElement.className = "summary-trend positive";
       } else {
-        tiempoTexto = `${tiempoHastaMeta.años} años, ${tiempoHastaMeta.meses} meses`;
+        tiempoTexto = `${tiempoHastaMeta.años} año${tiempoHastaMeta.años !== 1 ? 's' : ''}, ${tiempoHastaMeta.meses} mes${tiempoHastaMeta.meses !== 1 ? 'es' : ''}`;
         metaDescripcionElement.innerHTML = `${fechaEstimadaValida ? 'Est. ' + formatUtils.dateForMeta(tiempoHastaMeta.fechaEstimada) : ''}`;
         metaDescripcionElement.className = "summary-trend positive";
       }
@@ -165,66 +188,175 @@ async function updateDashboardSummary(factoringData) {
     }
     tasaPromedioElement.textContent = formatUtils.percentage(tasaAnualizada);
     let trendClassTasa = 'neutral';
-    if (tasaAnualizada > 0.1) trendClassTasa = 'positive';
-    else if (tasaAnualizada < -0.1) trendClassTasa = 'negative';
+    if (tasaAnualizada > 15) trendClassTasa = 'positive';
+    else if (tasaAnualizada < 5) trendClassTasa = 'negative';
     tasaTrendElement.className = `summary-trend ${trendClassTasa}`;
-    tasaTrendElement.innerHTML = `Anualizada`;
+    tasaTrendElement.innerHTML = `Anualizada (XIRR)`;
   }
 
   const totalSolesElement = document.getElementById("total-soles");
   const gananciaSolesElement = document.getElementById("ganancia-soles");
   if (totalSolesElement && gananciaSolesElement) {
-    // Mostrar Depósitos + Ganancias como total
     totalSolesElement.textContent = formatUtils.currency(res.totalInvertidoPEN + res.totalGanadoPEN, 'PEN');
-    // Mostrar solo Ganancias
     gananciaSolesElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoPEN, 'PEN')}`;
   }
 
   const totalDolaresElement = document.getElementById("total-dolares");
   const gananciaDolaresElement = document.getElementById("ganancia-dolares");
   if (totalDolaresElement && gananciaDolaresElement) {
-    // Mostrar Depósitos + Ganancias como total
     totalDolaresElement.textContent = formatUtils.currency(res.totalInvertidoUSD + res.totalGanadoUSD, 'USD');
-    // Mostrar solo Ganancias
     gananciaDolaresElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoUSD, 'USD')}`;
   }
+}
+
+function _createYearHeaderRow(year) {
+  const yearRow = document.createElement("tr");
+  yearRow.classList.add('year-header-row');
+  const yearCell = document.createElement("td");
+  yearCell.colSpan = 3;
+  yearCell.classList.add('year-header-cell');
+  yearCell.textContent = `Año ${year}`;
+  yearRow.appendChild(yearCell);
+  return yearRow;
+}
+
+function _createContractRow(contrato, index, tabType) {
+  const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
+  const fechaPagoDisplay = fechaPagoStr ? formatUtils.dateShort(fechaPagoStr) : 'Fecha Desc.';
+
+  const row = document.createElement("tr");
+  row.classList.add(index % 2 === 0 ? 'even-row' : 'alt-row');
+  if (tabType === 'pending') row.classList.add('pending-contract-tab');
+  else if (tabType === 'paid') row.classList.add('paid-contract-tab');
+  row.classList.add(contrato.isPaid ? 'paid-contract' : 'pending-contract');
+  row.dataset.contractId = contrato.codigoSubasta || 'N/A';
+
+  const clientCell = document.createElement("td");
+  clientCell.classList.add('client-cell');
+  const clientInfoDiv = document.createElement('div');
+  clientInfoDiv.classList.add('client-info');
+  const clientName = contrato.nombre || "Cliente Desconocido";
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "client-name";
+  nameSpan.textContent = clientName;
+  clientInfoDiv.appendChild(nameSpan);
+  const investedDiv = document.createElement("div");
+  investedDiv.className = "invested-amount";
+  investedDiv.textContent = formatUtils.currency(contrato.monto, contrato.moneda);
+  clientInfoDiv.appendChild(investedDiv);
+  clientCell.appendChild(clientInfoDiv);
+
+  const dateCell = document.createElement("td");
+  dateCell.classList.add('date-cell');
+  const dateSpan = document.createElement("span");
+  dateSpan.className = "detail-date";
+  dateSpan.textContent = fechaPagoDisplay;
+  dateCell.appendChild(dateSpan);
+
+  const gainCell = document.createElement("td");
+  gainCell.classList.add('gain-cell');
+  const gainSpan = document.createElement("span");
+  const ganancia = contrato.montoPagoNeto || 0;
+  gainSpan.className = `detail-gain ${ganancia >= 0 ? 'text-positive' : 'text-negative'}`;
+  gainSpan.textContent = formatUtils.currency(ganancia, contrato.moneda);
+  gainCell.appendChild(gainSpan);
+
+  row.appendChild(clientCell);
+  row.appendChild(dateCell);
+  row.appendChild(gainCell);
+
+  row.style.cursor = "pointer";
+  row.onclick = () => showContractDetailsPopup(contrato);
+
+  return row;
+}
+
+function _renderEmptyState(detailsList, tabType, searchTerm) {
+  let emptyMessage = "No hay contratos disponibles.";
+  if (searchTerm) {
+    emptyMessage = "No se encontraron contratos que coincidan con la búsqueda.";
+  } else if (tabType === 'pending') {
+    emptyMessage = "No hay contratos pendientes por cobrar.";
+  } else if (tabType === 'paid') {
+    emptyMessage = "No se encontraron contratos pagados.";
+  } else if (tabType === 'all') {
+    emptyMessage = "No se encontraron contratos.";
+  }
+
+  detailsList.innerHTML = `
+    <tr class="empty-state-row">
+      <td colspan="3">
+        <div class="empty-state">
+          <span class="svg-icon">
+            <svg><use xlink:href="#icon-empty-box"></use></svg>
+          </span>
+          <p class="primary-text">${emptyMessage}</p>
+        </div>
+      </td>
+    </tr>
+  `;
+  const tableHeaders = document.querySelector('.details-table thead');
+  if (tableHeaders) {
+    tableHeaders.style.display = 'none';
+  }
+}
+
+function _filterContractsBySearchTerm(contracts, term) {
+  if (!term) return contracts;
+  const lowerCaseTerm = term.toLowerCase();
+  return contracts.filter(contrato => {
+    if (!contrato) return false;
+    const clienteName = (contrato.nombre || '').toLowerCase();
+    const codigo = (contrato.codigoSubasta || '').toLowerCase();
+    const fechaPago = (contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado || '').toLowerCase();
+    const montoInv = (contrato.monto?.toString() || '').toLowerCase();
+    const montoGan = (contrato.montoPagoNeto?.toString() || '').toLowerCase();
+
+    return clienteName.includes(lowerCaseTerm) ||
+           codigo.includes(lowerCaseTerm) ||
+           fechaPago.includes(lowerCaseTerm) ||
+           montoInv.includes(lowerCaseTerm) ||
+           montoGan.includes(lowerCaseTerm);
+  });
 }
 
 function updateFactoringCard(contracts, factoringData, tabType = null) {
   const contractsCountElement = document.getElementById("factoring-contracts-count");
   const detailsList = document.getElementById("factoring-details");
-  const data = factoringData || { contratos: 0, contratosPendientes: 0, contratosPagados: 0, totalGananciaPotencialPENeq: 0 }; // Incluir valor por defecto
+  const data = factoringData || currentFactoringData || { contratos: 0, contratosPendientes: 0, contratosPagados: 0, totalGananciaPotencialPENeq: 0 };
 
   if (!detailsList) {
     console.error("Element with ID 'factoring-details' not found.");
     return;
   }
-  detailsList.innerHTML = ""; // Limpiar siempre al inicio
+  detailsList.innerHTML = "";
+
+  const tableHeaders = document.querySelector('.details-table thead');
+  if (tableHeaders) {
+    tableHeaders.style.display = (tabType === 'potential-earnings' || tabType === null) ? 'none' : '';
+  }
 
   if (tabType === null) {
     showFactoringWaitingState("Selecciona una categoría");
     return;
   }
 
-  // Manejar la pestaña de Ganancias Potenciales
   if (tabType === 'potential-earnings') {
     if (contractsCountElement) {
-      contractsCountElement.textContent = `Total: ${data.contratos || 0}`;
+      contractsCountElement.textContent = `Total Contratos: ${data.contratos || 0}`;
     }
-    
-    // Calcular porcentaje y otros valores
+
     const porcentajeGanancia = data.totalInvertido > 0 ?
       (data.totalGananciaPotencialPENeq / data.totalInvertido) * 100 : 0;
-    
-    const esPositivo = porcentajeGanancia >= 0;
+    const esPositivo = data.totalGananciaPotencialPENeq >= 0;
     const colorClase = esPositivo ? 'text-positive' : 'text-negative';
-    
-    // Mostrar la información en formato de tabla usando las mismas clases que las otras pestañas
+
+    const avgGainPending = data.contratosPendientes > 0 ? (data.totalGananciaPotencialPENeq * (data.contratosPendientes / data.contratos)) / data.contratosPendientes : 0;
+    const avgGainPaid = data.contratosPagados > 0 ? (data.totalGananciaPotencialPENeq * (data.contratosPagados / data.contratos)) / data.contratosPagados : 0;
+
     detailsList.innerHTML = `
       <tr class="year-header-row">
-        <td colspan="3" class="year-header-cell">
-          Resumen de Ganancias Totales
-        </td>
+        <td colspan="3" class="year-header-cell">Resumen de Ganancias Totales</td>
       </tr>
       <tr class="even-row">
         <td colspan="3" class="text-center">
@@ -234,176 +366,77 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
       </tr>
       <tr class="year-header-row">
         <td>Categoría</td>
-        <td>Cantidad</td>
-        <td>Valor</td>
+        <td class="text-center">Cantidad</td>
+        <td class="text-right">Ganancia Potencial Promedio</td>
       </tr>
       <tr class="even-row">
         <td>Contratos Pendientes</td>
         <td class="text-center">${data.contratosPendientes || 0}</td>
-        <td class="text-right ${colorClase}">${formatUtils.currency(data.contratosPendientes * (data.totalGananciaPotencialPENeq / data.contratos) || 0)}</td>
+        <td class="text-right ${avgGainPending >= 0 ? 'text-positive' : 'text-negative'}">${formatUtils.currency(avgGainPending)}</td>
       </tr>
       <tr class="alt-row">
         <td>Contratos Pagados</td>
         <td class="text-center">${data.contratosPagados || 0}</td>
-        <td class="text-right ${colorClase}">${formatUtils.currency(data.contratosPagados * (data.totalGananciaPotencialPENeq / data.contratos) || 0)}</td>
+        <td class="text-right ${avgGainPaid >= 0 ? 'text-positive' : 'text-negative'}">${formatUtils.currency(avgGainPaid)}</td>
       </tr>
-      <tr class="year-header-row">
+      <tr class="year-header-row description-row">
         <td colspan="3" class="text-center description-text">
-          Esta cifra representa la suma total de ganancias de todos los contratos (pagados y pendientes).
+          La ganancia potencial representa la suma de ganancias estimadas (pendientes) y reales (pagadas).
         </td>
       </tr>
     `;
-    // Asegurar que no se procese la lista de contratos para esta pestaña
     return;
   }
 
-  // Lógica existente para otras pestañas (all, pending, paid)
-  let validContracts = Array.isArray(contracts) ? contracts : [];
+  let validContracts = Array.isArray(contracts) ? contracts.filter(c => c) : [];
 
-  // Filtrar por término de búsqueda si existe (solo para pestañas que muestran lista)
-  if (currentSearchTerm) {
-    validContracts = validContracts.filter(contrato => {
-      // ... (lógica de filtrado existente) ...
-       if (!contrato) return false;
-
-      // Buscar en los campos más relevantes
-      const clienteName = (contrato.nombre || '').toLowerCase();
-      const codigo = (contrato.codigoSubasta || '').toLowerCase();
-      const fechaPago = (contrato.fechaPagoReal || contrato.fechaPagoEstimado || '').toLowerCase();
-      const montoInv = (contrato.monto?.toString() || '').toLowerCase();
-      const montoGan = (contrato.montoPagoNeto?.toString() || '').toLowerCase();
-
-
-      return clienteName.includes(currentSearchTerm) ||
-             codigo.includes(currentSearchTerm) ||
-             fechaPago.includes(currentSearchTerm) ||
-             montoInv.includes(currentSearchTerm) ||
-             montoGan.includes(currentSearchTerm);
-    });
-  }
+  validContracts = _filterContractsBySearchTerm(validContracts, currentSearchTerm);
 
   if (contractsCountElement) {
     let countText = `Total: ${data.contratos || 0}`;
     if (tabType === 'pending') countText = `Por cobrar: ${data.contratosPendientes || 0}`;
     else if (tabType === 'paid') countText = `Pagados: ${data.contratosPagados || 0}`;
-    // Añadir información sobre los resultados de búsqueda si hay un filtro activo
+    else if (tabType === 'all') countText = `Todos: ${data.contratos || 0}`;
+
     if (currentSearchTerm) {
       countText += ` (${validContracts.length} resultado${validContracts.length !== 1 ? 's' : ''})`;
     }
     contractsCountElement.textContent = countText;
   }
 
-  // --- Renderizado de la lista de contratos (para all, pending, paid) ---
-  let currentYear = null;
   if (validContracts.length > 0) {
-    // Ordenar contratos por fecha de pago (más reciente primero)
     validContracts.sort((a, b) => {
-        const dateA = dateUtils.parse(a.isPaid && a.fechaPagoReal ? a.fechaPagoReal : a.fechaPagoEstimado);
-        const dateB = dateUtils.parse(b.isPaid && b.fechaPagoReal ? b.fechaPagoReal : b.fechaPagoEstimado);
-        // Manejar fechas inválidas o nulas poniéndolas al final
-        if (!dateA && !dateB) return 0;
-        if (!dateA) return 1;
-        if (!dateB) return -1;
-        return dateB - dateA; // Descendente
+      const dateA = dateUtils.parse(a.isPaid && a.fechaPagoReal ? a.fechaPagoReal : a.fechaPagoEstimado);
+      const dateB = dateUtils.parse(b.isPaid && b.fechaPagoReal ? b.fechaPagoReal : b.fechaPagoEstimado);
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      return dateB - dateA;
     });
 
+    let currentYear = null;
     validContracts.forEach((contrato, index) => {
-      // ... (validación de contrato existente) ...
-       if (!contrato || typeof contrato.monto === 'undefined' || typeof contrato.montoPagoNeto === 'undefined') {
-        console.warn("Skipping rendering of invalid contract:", contrato);
+      if (!contrato || typeof contrato.monto === 'undefined') {
+        console.warn("Skipping rendering of invalid contract data:", contrato);
         return;
       }
+
       const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
       const fechaPagoDate = fechaPagoStr ? dateUtils.parse(fechaPagoStr) : null;
       const contractYear = fechaPagoDate ? fechaPagoDate.getFullYear() : null;
 
-      // Agrupar por año si aplica
-      if (contractYear !== null && contractYear !== currentYear && (tabType === 'all' || tabType === 'paid')) { // Mostrar año solo en 'all' y 'paid'
+      if (contractYear !== null && contractYear !== currentYear && (tabType === 'all' || tabType === 'paid')) {
         currentYear = contractYear;
-        const yearRow = document.createElement("tr");
-        yearRow.classList.add('year-header-row');
-        const yearCell = document.createElement("td");
-        yearCell.colSpan = 3;
-        yearCell.classList.add('year-header-cell');
-        yearCell.textContent = `Año ${currentYear}`;
-        yearRow.appendChild(yearCell);
-        detailsList.appendChild(yearRow);
+        detailsList.appendChild(_createYearHeaderRow(currentYear));
       }
 
-      const fechaPagoDisplay = fechaPagoStr ? formatUtils.dateShort(fechaPagoStr) : 'Fecha Desc.';
-      const row = document.createElement("tr");
-      // ... (asignación de clases y data-contract-id existente) ...
-      row.classList.add(index % 2 === 0 ? 'even-row' : 'alt-row');
-      // Aplicar clase específica de pestaña si es necesario (ej. resaltar pendientes)
-      if (tabType === 'pending') row.classList.add('pending-contract-tab');
-      else if (tabType === 'paid') row.classList.add('paid-contract-tab');
-
-      row.classList.add(contrato.isPaid ? 'paid-contract' : 'pending-contract');
-      row.dataset.contractId = contrato.codigoSubasta || 'N/A';
-
-
-      const clientCell = document.createElement("td");
-      // ... (creación de clientCell existente) ...
-      clientCell.classList.add('client-cell');
-      const clientInfoDiv = document.createElement('div');
-      clientInfoDiv.classList.add('client-info');
-      const clientName = contrato.nombre || "Cliente Desconocido";
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "client-name";
-      nameSpan.textContent = clientName;
-      clientInfoDiv.appendChild(nameSpan);
-      const investedDiv = document.createElement("div");
-      investedDiv.className = "invested-amount";
-      investedDiv.textContent = formatUtils.currency(contrato.monto, contrato.moneda);
-      clientInfoDiv.appendChild(investedDiv);
-      clientCell.appendChild(clientInfoDiv);
-
-
-      const dateCell = document.createElement("td");
-      // ... (creación de dateCell existente) ...
-      dateCell.classList.add('date-cell');
-      const dateSpan = document.createElement("span");
-      dateSpan.className = "detail-date";
-      dateSpan.textContent = fechaPagoDisplay;
-      dateCell.appendChild(dateSpan);
-
-
-      const gainCell = document.createElement("td");
-      // ... (creación de gainCell existente) ...
-      gainCell.classList.add('gain-cell');
-      const gainSpan = document.createElement("span");
-      gainSpan.className = `detail-gain ${contrato.montoPagoNeto >= 0 ? 'text-positive' : 'text-negative'}`;
-      gainSpan.textContent = formatUtils.currency(contrato.montoPagoNeto, contrato.moneda);
-      gainCell.appendChild(gainSpan);
-
-
-      row.appendChild(clientCell);
-      row.appendChild(dateCell);
-      row.appendChild(gainCell);
-      detailsList.appendChild(row);
-
-      row.style.cursor = "pointer";
-      row.onclick = () => showContractDetailsPopup(contrato);
+      detailsList.appendChild(_createContractRow(contrato, index, tabType));
     });
-  } else { // Mensaje de estado vacío para pestañas de lista
-    let emptyMessage = "No hay contratos disponibles.";
-    if (currentSearchTerm) emptyMessage = "No se encontraron contratos que coincidan con la búsqueda.";
-    else if (tabType === 'pending') emptyMessage = "No hay contratos pendientes por cobrar.";
-    else if (tabType === 'paid') emptyMessage = "No se encontraron contratos pagados.";
-    else if (tabType === 'all') emptyMessage = "No se encontraron contratos.";
-
-    detailsList.innerHTML = `
-      <tr class="empty-state-row">
-        <td colspan="3">
-          <div class="empty-state">
-            <p>${emptyMessage}</p>
-          </div>
-        </td>
-      </tr>
-    `;
+  } else {
+    _renderEmptyState(detailsList, tabType, currentSearchTerm);
   }
-  // ... (scroll reset existente) ...
-   const tableContainer = detailsList.closest('.card-details');
+
+  const tableContainer = detailsList.closest('.card-details');
   if (tableContainer) {
     tableContainer.scrollTop = 0;
     tableContainer.scrollLeft = 0;
@@ -446,21 +479,23 @@ function showErrorState(message) {
 function setupTabListeners() {
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const tabType = tab.getAttribute('data-tab');
-      
-      // Remover clase 'active' de todas las pestañas
+    tab.addEventListener('click', function() {
       tabs.forEach(t => t.classList.remove('active'));
-      
-      // Añadir clase 'active' a la pestaña seleccionada
-      tab.classList.add('active');
-      
-      // Cargar los datos según la pestaña seleccionada
+      this.classList.add('active');
+
+      const tabType = this.getAttribute('data-tab');
       loadFactoringData(tabType);
+
+      if (tabType !== 'potential-earnings') {
+        const searchInput = document.getElementById('search-contracts');
+        if (searchInput && searchInput.value) {
+          searchInput.value = '';
+          currentSearchTerm = '';
+        }
+      }
     });
   });
 
-  // Activar la primera pestaña por defecto (Pendientes)
   const defaultTab = document.querySelector('.tab[data-tab="pending"]');
   if (defaultTab) {
     defaultTab.click();
@@ -468,18 +503,34 @@ function setupTabListeners() {
 }
 
 function loadFactoringData(tabType) {
-  if (!dataService || !tabType) return;
-  
-  const contracts = dataService.changeTab(tabType);
-  const factoringData = dataService.buildFactoringData();
-  
-  updateFactoringCard(contracts, factoringData, tabType);
+  if (!dataService) return;
+
+  const searchContainer = document.querySelector('.search-container');
+  if (searchContainer) {
+    searchContainer.style.display = tabType === 'potential-earnings' ? 'none' : 'flex';
+    if (tabType === 'potential-earnings' && currentSearchTerm) {
+      const searchInput = document.getElementById('search-input');
+      const clearButton = document.getElementById('clear-search');
+      if (searchInput) searchInput.value = '';
+      if (clearButton) clearButton.style.display = 'none';
+      currentSearchTerm = '';
+    }
+  }
+
+  try {
+    const contracts = dataService.changeTab(tabType);
+    currentFactoringData = dataService.buildFactoringData();
+    updateFactoringCard(contracts, currentFactoringData, tabType);
+  } catch (error) {
+    console.error("Error al cargar los datos de factoring para la pestaña:", error);
+    showErrorState(`Error al cargar datos para ${tabType}.`);
+  }
 }
 
 function setupSearchListeners() {
   const searchInput = document.getElementById('search-contracts');
   const clearButton = document.getElementById('clear-search');
-  
+
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       currentSearchTerm = e.target.value.trim().toLowerCase();
@@ -489,7 +540,7 @@ function setupSearchListeners() {
       }
     });
   }
-  
+
   if (clearButton) {
     clearButton.addEventListener('click', () => {
       if (searchInput) {
@@ -637,7 +688,7 @@ function showContractDetailsPopup(contract) {
 
     if (typeof value === "boolean") {
       const statusClass = value ? "status-positive" : "status-negative";
-      displayValue = `<span class="status-value ${statusClass}">                        
+      displayValue = `<span class="status-value ${statusClass}">
                         ${value ? "Sí" : "No"}
                       </span>`;
       if (groupKey === 'other') categoryClass = 'status-field';
@@ -702,7 +753,7 @@ function showContractDetailsPopup(contract) {
   let fechaPagoRealHtml = "";
   if (fechaPagoReal) {
     fechaPagoRealHtml = `
-      <div style="margin-top: 4px; font-size: 0.95em; color: var(--color-text-secondary);">        
+      <div style="margin-top: 4px; font-size: 0.95em; color: var(--color-text-secondary);">
         Pago real: <b>${formatUtils.dateShort(fechaPagoReal)}</b>
       </div>
     `;
@@ -715,15 +766,15 @@ function showContractDetailsPopup(contract) {
   popup.innerHTML = `
     <div class="popup-modal">
       <div class="popup-header"
-           style="padding: 8px; border-bottom: 1px solid var(--color-border); background-color: var(--color-bg-card); 
+           style="padding: 8px; border-bottom: 1px solid var(--color-border); background-color: var(--color-bg-card);
                   border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 1;">
-        <button class="popup-close" id="close-contract-popup" title="Cerrar" 
-                style="position: absolute; right: 12px; top: 12px; background: none; border: none; font-size: 24px; 
-                       cursor: pointer; color: var(--color-text-secondary); width: 30px; height: 30px; 
+        <button class="popup-close" id="close-contract-popup" title="Cerrar"
+                style="position: absolute; right: 12px; top: 12px; background: none; border: none; font-size: 24px;
+                       cursor: pointer; color: var(--color-text-secondary); width: 30px; height: 30px;
                        display: flex; align-items: center; justify-content: center; border-radius: 50%;">&times;</button>
         <div>
           <h3 style="margin: 0 0 4px 0; color: var(--color-text-primary);">${clientName}</h3>
-          <div style="display: flex; align-items: center; gap: 8px;">            
+          <div style="display: flex; align-items: center; gap: 8px;">
             <span style="color: ${estadoColor}; font-weight: 600; font-size: 1em;">${estadoTexto}</span>
             <span style="color: var(--color-text-tertiary); font-size: 0.95em; margin-left: 8px;">
               ${contractCode ? `Código: <b>${contractCode}</b>` : ""}
@@ -745,19 +796,18 @@ function showContractDetailsPopup(contract) {
   document.body.appendChild(popup);
 
   document.getElementById('close-contract-popup').onclick = () => {
-    popup.classList.add('hidden'); // Asumiendo que tienes una clase .hidden { display: none; }
-    setTimeout(() => remove(popup), 150); // Usar remove helper
+    popup.classList.add('hidden');
+    setTimeout(() => remove(popup), 150);
   };
 
   popup.onclick = (e) => {
     if (e.target === popup) {
       popup.classList.add('hidden');
-      setTimeout(() => remove(popup), 150); // Usar remove helper
+      setTimeout(() => remove(popup), 150);
     }
   };
 }
 
-// Añadir esta función helper para manejar la eliminación de elementos DOM
 function remove(element) {
   if (element && element.parentNode) {
     element.parentNode.removeChild(element);
