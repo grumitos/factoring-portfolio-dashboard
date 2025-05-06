@@ -521,8 +521,12 @@ DataService.prototype.buildFactoringData = function() {
     const fechaPagoStr = contrato.isPaid && contrato.fechaPagoReal ? contrato.fechaPagoReal : contrato.fechaPagoEstimado;
     const fechaPago = dateUtils.parse(fechaPagoStr);
 
-    if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy && contrato.isPaid) { 
-      acc.gananciaUltimoMes += interestPEN;
+    if (fechaPago >= fechaHaceUnMes && fechaPago <= hoy) {
+      // acumular ganancia del último mes por moneda
+      if (moneda === 'USD') acc.gananciaUltimoMesUSD += interest;
+      else               acc.gananciaUltimoMesPEN += interest;
+      // equivalente en PEN
+      acc.gananciaUltimoMes    += interestPEN;
     }
 
      if (isNaN(fechaIngreso.getTime()) || isNaN(fechaPago.getTime())) {
