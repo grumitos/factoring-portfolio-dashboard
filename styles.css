@@ -303,6 +303,7 @@ body:not(.is-loading) {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  margin-bottom: 0;
 }
 
 .tabs-container::-webkit-scrollbar {
@@ -1048,9 +1049,6 @@ html, body, * {
   color: var(--color-positive);
 }
 
-.date-field .popup-value {
-}
-
 .status-value {
   display: inline-block;
 }
@@ -1072,12 +1070,6 @@ html, body, * {
   opacity: 0.5;
   border-top: 6px solid transparent;
   border-bottom: 6px solid transparent;
-}
-
-.popup-details-table tr:nth-child(even):not(.group-separator) {
-}
-
-.popup-details-table tr:not(.group-separator):hover {
 }
 
 @media (max-width: 600px) {
@@ -1257,7 +1249,7 @@ html, body, * {
 .tabs-container {
   display: flex;
   border-bottom: 1px solid var(--color-border, #e5e7eb);
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .tab {

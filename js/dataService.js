@@ -331,24 +331,14 @@ class DataService {
     return Number((totalNeto + totalGananciasRecientes).toFixed(2));
   }
 
-  async calcularTotalManualSoles() {
-    const penData = this._penData || await this.loadJsonFile('assets/pen.json');
-    const gananciaPEN = this._gananciaPENData || await this.loadJsonFile('assets/gananciaPEN.json');
+  async calcularTotalManual(moneda) {
+    const isPEN = moneda === 'PEN';
+    const data      = isPEN ? this._penData      || await this.loadJsonFile('assets/pen.json')      : this._usdData      || await this.loadJsonFile('assets/usd.json');
+    const ganancia  = isPEN ? this._gananciaPENData|| await this.loadJsonFile('assets/gananciaPEN.json') : this._gananciaUSDData|| await this.loadJsonFile('assets/gananciaUSD.json');
+    const depsKeys  = isPEN ? ['deposito','inversion','dolares a soles'] : ['deposito','inversion','soles a dolares'];
+    const wdrKeys   = isPEN ? ['retiro','soles a dolares']             : ['retiro','dolares a soles'];
 
-    const depositosKeys = ['deposito', 'inversion', 'dolares a soles'];
-    const retirosKeys = ['retiro', 'soles a dolares'];
-
-    return this._calcularTotalManualPorMoneda(penData, gananciaPEN, depositosKeys, retirosKeys);
-  }
-
-  async calcularTotalManualUSD() {
-    const usdData = this._usdData || await this.loadJsonFile('assets/usd.json');
-    const gananciaUSD = this._gananciaUSDData || await this.loadJsonFile('assets/gananciaUSD.json');
-
-    const depositosKeys = ['deposito', 'inversion', 'soles a dolares'];
-    const retirosKeys = ['retiro', 'dolares a soles'];
-
-    return this._calcularTotalManualPorMoneda(usdData, gananciaUSD, depositosKeys, retirosKeys);
+    return this._calcularTotalManualPorMoneda(data, ganancia, depsKeys, wdrKeys);
   }
 
   async calcularInteresManual() {

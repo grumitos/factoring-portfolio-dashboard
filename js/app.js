@@ -129,12 +129,30 @@ function setTextContent(elementId, text) {
   }
 }
 
+/**
+ * Actualiza los elementos de resumen: total y ganancia.
+ * @param {string} prefix - prefijo del id: "total-soles", "ganancia-soles", etc.
+ * @param {number} total 
+ * @param {number} gain 
+ * @param {'PEN'|'USD'} currency 
+ */
+function updateSummarySection(prefix, total, gain, currency) {
+  const totalEl = document.getElementById(prefix);
+  if (totalEl) {
+    // si es ganancia, prefix vendrá con "ganancia-..."
+    const text = prefix.startsWith('ganancia-')
+      ? `Ganancia: ${formatUtils.currency(gain, currency)}`
+      : formatUtils.currency(total, currency);
+    totalEl.textContent = text;
+  }
+}
+
 async function updateDashboardSummary(factoringData) {
   if (!factoringData) {
-    setTextContent("total-soles", formatUtils.currency(0, 'PEN'));
-    setTextContent("ganancia-soles", `Ganancia: ${formatUtils.currency(0, 'PEN')}`);
-    setTextContent("total-dolares", formatUtils.currency(0, 'USD'));
-    setTextContent("ganancia-dolares", `Ganancia: ${formatUtils.currency(0, 'USD')}`);
+    updateSummarySection('total-soles',   0, 0, 'PEN');
+    updateSummarySection('ganancia-soles',0, 0, 'PEN');
+    updateSummarySection('total-dolares', 0, 0, 'USD');
+    updateSummarySection('ganancia-dolares',0,0, 'USD');
     setTextContent("tasa-promedio", formatUtils.percentage(0));
     setTextContent("tasa-trend", "N/A");
     setTextContent("meta-tiempo", "N/A");
@@ -194,19 +212,10 @@ async function updateDashboardSummary(factoringData) {
     tasaTrendElement.innerHTML = `Anualizada (XIRR)`;
   }
 
-  const totalSolesElement = document.getElementById("total-soles");
-  const gananciaSolesElement = document.getElementById("ganancia-soles");
-  if (totalSolesElement && gananciaSolesElement) {
-    totalSolesElement.textContent = formatUtils.currency(res.totalInvertidoPEN + res.totalGanadoPEN, 'PEN');
-    gananciaSolesElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoPEN, 'PEN')}`;
-  }
-
-  const totalDolaresElement = document.getElementById("total-dolares");
-  const gananciaDolaresElement = document.getElementById("ganancia-dolares");
-  if (totalDolaresElement && gananciaDolaresElement) {
-    totalDolaresElement.textContent = formatUtils.currency(res.totalInvertidoUSD + res.totalGanadoUSD, 'USD');
-    gananciaDolaresElement.textContent = `Ganancia: ${formatUtils.currency(res.totalGanadoUSD, 'USD')}`;
-  }
+  updateSummarySection('total-soles',   res.totalInvertidoPEN + res.totalGanadoPEN, res.totalGanadoPEN, 'PEN');
+  updateSummarySection('ganancia-soles',0, 0, 'PEN'); // si ya lo cubrió total-soles
+  updateSummarySection('total-dolares', res.totalInvertidoUSD + res.totalGanadoUSD, res.totalGanadoUSD, 'USD');
+  updateSummarySection('ganancia-dolares',0, 0, 'USD');
 }
 
 function _createYearHeaderRow(year) {
@@ -356,7 +365,6 @@ function updateFactoringCard(contracts, factoringData, tabType = null) {
 
     detailsList.innerHTML = `
       <tr class="year-header-row">
-        <td colspan="3" class="year-header-cell">Resumen de Ganancias Totales</td>
       </tr>
       <tr class="even-row">
         <td colspan="3" class="text-center">
