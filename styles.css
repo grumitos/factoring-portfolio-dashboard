@@ -233,8 +233,8 @@ body:not(.is-loading) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  content-visibility: var(--render-offscreen);
-  contain: layout style paint;
+  content-visibility: visible;
+  contain: none;
 }
 
 .chart-container canvas {
@@ -1086,7 +1086,7 @@ html, body, * {
 @media screen and (max-width: 48rem) {
   :root {
     --render-critical: auto;
-    --render-offscreen: auto;
+    --render-offscreen: visible;
     --spacing-md: 0.75rem;
   }
 
