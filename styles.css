@@ -1183,6 +1183,11 @@ html, body, * {
   .details-table th {
     top: 0;
   }
+
+  /* reducir padding de tabs en móvil */
+  .tabs-container .tab {
+    padding: 0.5rem 0.75rem;
+  }
 }
 
 @media screen and (min-width: 75rem) {
