@@ -17,7 +17,6 @@ async function initializeApp() {
     totalDepositosCalculado = data.totalDepositos || 0;
     currentFactoringData = data.factoringData;
     updateUI(data);
-    calculateAndLogRentabilidad();
     await createProjectionChartIfNeeded(data);
     updateFactoringCard([], currentFactoringData, null);
     document.querySelectorAll('.tabs-container .tab').forEach(tab => tab.classList.remove('active'));
@@ -73,19 +72,6 @@ function updateCapitalTotal(capitalTotal) {
   const capitalElement = document.getElementById("capital-total");
   if (capitalElement) {
     capitalElement.textContent = formatUtils.currency(capitalTotal || 0);
-  }
-}
-
-function calculateAndLogRentabilidad() {
-  try {
-    const rentabilidad = dataService.calcularRentabilidadConFlujos();
-    if (!isNaN(rentabilidad) && isFinite(rentabilidad)) {
-      console.log("Rentabilidad (XIRR) considerando flujos adicionales:", formatUtils.percentage(rentabilidad));
-    } else {
-      console.warn("Rentabilidad calculada no es válida:", rentabilidad);
-    }
-  } catch (e) {
-    console.warn("No se pudo calcular la rentabilidad:", e);
   }
 }
 

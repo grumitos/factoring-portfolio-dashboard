@@ -338,14 +338,20 @@ body:not(.is-loading) {
   pointer-events: none;
 }
 
+/* Hover en pestañas: texto blanco */
 .tab:hover {
+  /* antes: color: var(--color-accent); */
   color: var(--color-text-primary);
   background-color: var(--color-bg-hover);
 }
 
-.tab.active {
+/* Estado activo: texto y subrayado blancos */
+.tab.active,
+.tab[data-tab="potential-earnings"].active {
+  /* antes: color: var(--color-accent); */
   color: var(--color-text-primary);
-  border-bottom: 2px solid var(--color-accent-primary);
+  /* antes: border-bottom-color: var(--color-accent); */
+  border-bottom: 2px solid #fff;
   font-weight: 600;
 }
 
