@@ -141,7 +141,7 @@ body:not(.is-loading) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-md);
-  content-visibility: var(--render-critical);
+  content-visibility: visible;   /* forzar render completo para evitar “crecer” el scroll */
 }
 
 .summary-card {
