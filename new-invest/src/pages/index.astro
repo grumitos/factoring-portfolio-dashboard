@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SvgSprite from '../components/SvgSprite.astro';
+import SummaryCard from '../components/SummaryCard.astro';
+import ChartContainer from '../components/ChartContainer.astro';
+import FactoringCard from '../components/FactoringCard.astro';
+---
+
+<Layout title="Proyección de Inversiones">
+  <main class="main-content mx-auto mt-8 w-full px-4 md:px-8">
+    <div class="dashboard-content">
+      <section class="summary-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <SummaryCard 
+          title="Total en Soles"
+          value="S/ 0.00"
+          trend="Ganancia: S/ 0.00"
+          fullWidth={true}
+        />
+        <SummaryCard 
+          title="Tasa Promedio"
+          value="0.00%"
+          trend="Anualizada"
+        />
+        <SummaryCard 
+          title="Meta: 2 millones"
+          value="Calculando..."
+          trend=""
+        />
+      </section>
+
+      <ChartContainer />
+      <FactoringCard />
+    </div>
+  </main>
+  <SvgSprite />
+</Layout>
+
+<style>
+  .main-content {
+    max-width: 1200px;
+  }
+
+  .summary-cards-grid {
+    margin-bottom: 1.5rem;
+  }
+</style>
+
+<script>
+  // Basic initialization code - real functionality to be implemented later
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('Investment projection app initialized!');
+  });
+</script>
