@@ -9,13 +9,20 @@ import FactoringCard from '../components/FactoringCard.astro';
 <Layout title="Proyección de Inversiones">
   <main class="main-content mx-auto mt-8 w-full px-4 md:px-8">
     <div class="dashboard-content">
-      <section class="summary-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="grid grid-cols-2 gap-4 mb-8">
+        <!-- First row -->
         <SummaryCard 
           title="Total en Soles"
           value="S/ 0.00"
           trend="Ganancia: S/ 0.00"
-          fullWidth={true}
         />
+        <SummaryCard 
+          title="Total en Dólares"
+          value="$ 0.00"
+          trend="Ganancia: $ 0.00"
+        />
+
+        <!-- Second row -->
         <SummaryCard 
           title="Tasa Promedio"
           value="0.00%"
@@ -26,7 +33,7 @@ import FactoringCard from '../components/FactoringCard.astro';
           value="Calculando..."
           trend=""
         />
-      </section>
+      </div>
 
       <ChartContainer />
       <FactoringCard />
@@ -40,7 +47,7 @@ import FactoringCard from '../components/FactoringCard.astro';
     max-width: 1200px;
   }
 
-  .summary-cards-grid {
+  .grid {
     margin-bottom: 1.5rem;
   }
 </style>
