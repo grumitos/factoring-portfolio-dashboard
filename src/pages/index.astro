@@ -4,7 +4,7 @@ import SvgSprite from '../components/SvgSprite.astro';
 import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
-import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService.ts';
+import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
 
 const goalPen = 400_000;
 const { report, progressPct } = getReportMetrics(goalPen);
