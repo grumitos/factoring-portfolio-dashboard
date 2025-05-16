@@ -87,7 +87,7 @@ export const getAnnualizedRate = (defaultFxRate: number): number => {
 /**
  * Obtiene el reporte completo del portafolio incluyendo neto y tasa.
  */
-export const getPortfolioReport = (defaultFxRate = 3.8) => {
+export const getPortfolioReport = (defaultFxRate = 3.7) => {
   const { netPEN, netUSD } = getNetInvestedByCurrency();
   const annualRatePct = getAnnualizedRate(defaultFxRate);
   return { netPen: netPEN, netUsd: netUSD, annualRatePct };
