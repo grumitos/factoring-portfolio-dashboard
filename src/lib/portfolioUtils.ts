@@ -1,8 +1,9 @@
+/* portfolioUtils.ts */
 import { parseISO, differenceInMilliseconds } from 'date-fns';
 
 export interface InvestmentDetail {
   codigo: string;
-  fechaIngreso: string;   
+  fechaIngreso: string;
   fechaPago: string;
   inversion: number;
   moneda: 'PEN' | 'USD';
@@ -16,6 +17,7 @@ export interface Earning {
   monto: number;
   fecha: string;
   moneda: 'PEN' | 'USD';
+  fxRate?: number;
 }
 
 const DAYS_PER_MONTH = 30.4375;
@@ -23,13 +25,13 @@ const DAYS_PER_MONTH = 30.4375;
 /** Convierte un monto en USD a PEN usando fxRate */
 export const toPen = (amount: number, fxRate: number): number => amount * fxRate;
 
-/** Calcula meses aproximados entre dos fechas */
+/** Calcula meses exactos entre dos fechas incluyendo horas */
 export const monthsBetween = (start: Date, end: Date): number => {
   const ms = differenceInMilliseconds(end, start);
   return ms / (1000 * 60 * 60 * 24) / DAYS_PER_MONTH;
 };
 
-/** Calcula tasa anualizada de un contrato dado principal y ganancia */
+/** Calcula tasa anualizada de un contrato */
 export const annualRateForContract = (
   principal: number,
   gain: number,
@@ -44,20 +46,18 @@ export const annualRateForContract = (
 };
 
 /**
- * Calcula la tasa anual promedio ponderada de un portafolio de inversiones.
- * - Convierte flujos a PEN usando fxRate histórico o default.
- * - Usa ganancias reales si existen, sino retorno mensual esperado.
+ * Calcula tasa anual promedio ponderada de contratos pendientes
  */
 export const calculateAnnualizedPortfolioRate = (
   investments: InvestmentDetail[],
   earnings: Earning[],
   defaultFxRate: number
 ): number => {
-  // Crear mapa de ganancias reales por código
   const earningMap = new Map<string, { amountPen: number; date: Date }>();
   earnings.forEach(e => {
     const date = parseISO(e.fecha);
-    const amountPen = e.moneda === 'USD' ? toPen(e.monto, defaultFxRate) : e.monto;
+    const fx = e.moneda === 'USD' ? (e.fxRate ?? defaultFxRate) : 1;
+    const amountPen = toPen(e.monto, fx);
     earningMap.set(e.codigo, { amountPen, date });
   });
 
@@ -65,7 +65,8 @@ export const calculateAnnualizedPortfolioRate = (
   let totalPrincipalPen = 0;
 
   investments.forEach(inv => {
-    if (inv.estado.toLowerCase() === 'rechazado') return;
+    const est = inv.estado.toLowerCase();
+    if (est === 'rechazado' || est === 'cobrado') return;
 
     const start = parseISO(inv.fechaIngreso);
     const planned = parseISO(inv.fechaPago);
