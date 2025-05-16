@@ -4,6 +4,9 @@ import SvgSprite from '../components/SvgSprite.astro';
 import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
+import { DataService } from '../lib/DataService';
+import { formatUtils } from '../lib/formatUtils';
+import { CONFIG } from '../lib/config';
 ---
 
 <Layout title="Proyección de Inversiones">
@@ -12,11 +15,13 @@ import FactoringCard from '../components/FactoringCard.astro';
       <div class="grid grid-cols-2 gap-4 mb-8">
         <!-- First row -->
         <SummaryCard 
+          class="summary-soles-card"
           title="Total en Soles"
           value="S/ 0.00"
           trend="Ganancia: S/ 0.00"
         />
         <SummaryCard 
+          class="summary-dolares-card"
           title="Total en Dólares"
           value="$ 0.00"
           trend="Ganancia: $ 0.00"
@@ -24,12 +29,14 @@ import FactoringCard from '../components/FactoringCard.astro';
 
         <!-- Second row -->
         <SummaryCard 
+          class="summary-tasa-card"
           title="Tasa Promedio"
           value="0.00%"
           trend="Anualizada"
         />
         <SummaryCard 
-          title="Meta: 2 millones"
+          class="summary-meta-card"
+          title={`Meta: ${formatUtils.compactNumber(CONFIG.METAS.MILLONES)}`}
           value="Calculando..."
           trend=""
         />
@@ -53,8 +60,59 @@ import FactoringCard from '../components/FactoringCard.astro';
 </style>
 
 <script>
-  // Basic initialization code - real functionality to be implemented later
-  document.addEventListener('DOMContentLoaded', () => {
+  import { DataService } from '../lib/DataService';
+  import { formatUtils } from '../lib/formatUtils';
+
+  document.addEventListener('DOMContentLoaded', async () => {
     console.log('Investment projection app initialized!');
+    const dataService = new DataService();
+    try {
+      const data = await dataService.loadAll();
+      console.log('Data loaded:', data);
+
+      // Update Summary Cards
+      const summarySoles = document.querySelector('.summary-soles-card');
+      if (summarySoles && data.uiTotals) {
+        const valueEl = summarySoles.querySelector('.summary-value');
+        if (valueEl) valueEl.textContent = formatUtils.currency(data.uiTotals.totalPEN, 'PEN');
+        const trendEl = summarySoles.querySelector('.summary-trend');
+        if (trendEl) trendEl.textContent = `Ganancia: ${formatUtils.currency(data.uiTotals.gananciaUltimoMesPEN, 'PEN')}`;
+      }
+
+      const summaryDolares = document.querySelector('.summary-dolares-card');
+      if (summaryDolares && data.uiTotals) {
+        const valueEl = summaryDolares.querySelector('.summary-value');
+        if (valueEl) valueEl.textContent = formatUtils.currency(data.uiTotals.totalUSD, 'USD');
+        const trendEl = summaryDolares.querySelector('.summary-trend');
+        if (trendEl) trendEl.textContent = `Ganancia: ${formatUtils.currency(data.uiTotals.gananciaUltimoMesUSD, 'USD')}`;
+      }
+      
+      const summaryTasa = document.querySelector('.summary-tasa-card');
+      if (summaryTasa && data.factoringData) {
+         const valueEl = summaryTasa.querySelector('.summary-value');
+         if (valueEl) valueEl.textContent = formatUtils.percentage(data.factoringData.tasa);
+      }
+
+      const summaryMeta = document.querySelector('.summary-meta-card');
+      if (summaryMeta && data.meta) {
+        const valueEl = summaryMeta.querySelector('.summary-value');
+        const trendEl = summaryMeta.querySelector('.summary-trend');
+
+        if (data.meta.años === Infinity) {
+          if (valueEl) valueEl.textContent = 'Inalcanzable';
+          if (trendEl) trendEl.textContent = 'Revisar aportes/tasa';
+        } else {
+          if (valueEl) valueEl.textContent = `${data.meta.años}a ${data.meta.meses}m`;
+          if (trendEl && data.meta.fechaEstimada) {
+            trendEl.textContent = `Estimado: ${formatUtils.dateForMeta(data.meta.fechaEstimada)}`;
+          }
+        }
+      }
+
+      // TODO: Pass data to ChartContainer and FactoringCard
+
+    } catch (error) {
+      console.error('Error loading or processing data:', error);
+    }
   });
 </script>

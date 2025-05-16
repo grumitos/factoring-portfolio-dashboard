@@ -5,12 +5,13 @@ interface Props {
   trend?: string;
   trendClass?: string;
   fullWidth?: boolean;
+  class?: string; // Allow passing a class for specific styling or selection
 }
 
-const { title, value, trend = '', trendClass = 'positive', fullWidth = false } = Astro.props;
+const { title, value, trend = '', trendClass = 'positive', fullWidth = false, class: customClassFromProp } = Astro.props;
 ---
 
-<div class={`summary-card ${fullWidth ? 'full-width' : ''}`}>
+<div class:list={["summary-card", customClassFromProp, { "full-width": fullWidth }]}>
   <div class="summary-info">
     <h3 class="text-sm font-medium text-text-300">{title}</h3>
     <p class="summary-value text-xl font-semibold">{value}</p>
