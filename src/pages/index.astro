@@ -1,0 +1,47 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import SvgSprite from '../components/SvgSprite.astro';
+import SummaryCard from '../components/SummaryCard.astro';
+import ChartContainer from '../components/ChartContainer.astro';
+import FactoringCard from '../components/FactoringCard.astro';
+
+import { getPortfolioReport } from '../lib/DataService';
+
+const report = await getPortfolioReport();
+---
+
+<Layout title="Proyección de Inversiones">
+  <main class="main-content mx-auto mt-8 w-full px-4 md:px-8">
+    <div class="dashboard-content">
+      <div class="grid grid-cols-2 gap-4 mb-8">
+        <SummaryCard
+          class="summary-soles-card"
+          title="Total en Soles"
+          value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
+        />
+        <SummaryCard
+          class="summary-dolares-card"
+          title="Total en Dólares"
+          value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'USD' }).format(report.netUsd)}
+        />
+        <SummaryCard
+          class="summary-tasa-card"
+          title="Tasa Promedio"
+          value={`${report.annualRatePct.toFixed(2)}%`}
+          trend="Anualizada"
+        />
+        <!-- Aquí puedes volver a insertar Meta o Aporte si lo deseas -->
+      </div>
+
+      <ChartContainer report={report} />
+      <FactoringCard report={report} />
+    </div>
+  </main>
+  <SvgSprite />
+</Layout>
+
+<style>
+  .main-content { max-width: 1200px; }
+  .grid { margin-bottom: 1.5rem; }
+</style>
