@@ -4,10 +4,16 @@ import SvgSprite from '../components/SvgSprite.astro';
 import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
+import { getPortfolioReport, getTimeToGoalWithInjection } from '../lib/dataService';
 
-import { getPortfolioReport } from '../lib/DataService';
-
-const report = await getPortfolioReport();
+const report = getPortfolioReport();
+const goalPen = 400_000;
+const progressPct = (report.netPen / goalPen) * 100;
+const { months } = getTimeToGoalWithInjection(report, goalPen, 6000);
+// Calculate projected date based on estimated months to goal
+const projectedDateInjection = new Date();
+projectedDateInjection.setMonth(projectedDateInjection.getMonth() + Math.round(months));
+const trendLabelInjection = new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric' }).format(projectedDateInjection);
 ---
 
 <Layout title="Proyección de Inversiones">
@@ -18,13 +24,13 @@ const report = await getPortfolioReport();
           class="summary-soles-card"
           title="Total en Soles"
           value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
-          trend="Ganancia: S/ 0.00"
+          trend={`Ganancia: S/ ${report.gainRealPen.toFixed(2)}`}
         />
         <SummaryCard
           class="summary-dolares-card"
           title="Total en Dólares"
           value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'USD' }).format(report.netUsd)}
-          trend="Ganancia: S/ 0.00"
+          trend={`Ganancia: S/ ${report.gainExpectedPen.toFixed(2)}`}
         />
         <SummaryCard
           class="summary-tasa-card"
@@ -32,10 +38,11 @@ const report = await getPortfolioReport();
           value={`${report.annualRatePct.toFixed(2)}%`}
           trend="Anualizada"
         />
-       <SummaryCard 
-          title="Meta: 2 millones"
-          value="Calculando..."
-          trend=""
+        <SummaryCard
+          class="summary-goal-card"
+          title="Meta: S/ 400 000"
+          value={`${progressPct.toFixed(2)}% / 100%`}
+          trend={`Estimado: ${trendLabelInjection}`}
         />
       </div>
 

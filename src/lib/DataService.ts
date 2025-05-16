@@ -1,4 +1,3 @@
-/* DataService.ts */
 import { parseISO } from 'date-fns';
 import investmentsJson from '../data/investmentDetails.json';
 import earningsPenJson from '../data/earningsPEN.json';
@@ -6,24 +5,25 @@ import earningsUsdJson from '../data/earningsUSD.json';
 import movementsPenJson from '../data/movementsPEN.json';
 import movementsUsdJson from '../data/movementsUSD.json';
 import type { InvestmentDetail, Earning } from './portfolioUtils';
-import {
-  calculateAnnualizedPortfolioRate,
-  toPen,
-  monthsBetween
-} from './portfolioUtils';
+import { calculateAnnualizedPortfolioRate, toPen, monthsBetween } from './portfolioUtils';
 
+/**
+ * Movimiento de capital
+ */
 interface Movement {
   Movimiento: 'inversion' | 'pago capital' | string;
   Monto: number;
   fxRate?: number;
 }
 
-// Neto invertido por divisa
+/**
+ * Retorna el neto invertido en PEN y USD
+ */
 export const getNetInvestedByCurrency = () => {
   const calc = (movs: Movement[]) =>
     movs.filter(m => m.Movimiento === 'inversion')
-      .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0) -
-    movs.filter(m => m.Movimiento === 'pago capital')
+      .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0)
+    - movs.filter(m => m.Movimiento === 'pago capital')
       .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0);
 
   const netPen = calc(movementsPenJson as Movement[]);
@@ -31,7 +31,9 @@ export const getNetInvestedByCurrency = () => {
   return { netPen, netUsd };
 };
 
-// Construye array tipado de ganancias
+/**
+ * Construye un array tipado de ganancias reales
+ */
 const buildEarningsArray = (): Earning[] => [
   ...earningsPenJson.map((e: any) => ({
     codigo: e['Código de subasta'],
@@ -48,7 +50,9 @@ const buildEarningsArray = (): Earning[] => [
   }))
 ];
 
-// Construye array tipado de inversiones
+/**
+ * Construye un array tipado de inversiones
+ */
 const buildInvestmentsArray = (): InvestmentDetail[] =>
   (investmentsJson as any[]).map((e: any) => ({
     codigo: e['Codigo de subasta'],
@@ -61,7 +65,9 @@ const buildInvestmentsArray = (): InvestmentDetail[] =>
     fxRate: e['Moneda'] === 'USD' ? (e as any).fxRate : undefined
   }));
 
-// Obtiene ganancias reales + esperadas
+/**
+ * Obtiene ganancias reales y proyectadas
+ */
 export const getGains = (defaultFxRate = 3.7) => {
   const investments = buildInvestmentsArray();
   const earnings = buildEarningsArray();
@@ -96,7 +102,9 @@ export const getGains = (defaultFxRate = 3.7) => {
   return { real, expected, total: real + expected };
 };
 
-// Reporte completo de portafolio
+/**
+ * Tipo de reporte de portafolio
+ */
 export type PortfolioReport = {
   netPen: number;
   netUsd: number;
@@ -106,6 +114,9 @@ export type PortfolioReport = {
   gainTotalPen: number;
 };
 
+/**
+ * Genera el reporte completo de portafolio
+ */
 export const getPortfolioReport = (
   defaultFxRate = 3.7
 ): PortfolioReport => {
@@ -127,4 +138,53 @@ export const getPortfolioReport = (
     gainExpectedPen: expected,
     gainTotalPen: total
   };
+};
+
+/**
+ * Calcula el tiempo estimado (meses y años) para alcanzar una meta
+ * con aportes periódicos de S/6 000 a mitad de cada mes.
+ */
+export const getTimeToGoalWithInjection = (
+  report: PortfolioReport,
+  goalPen: number,
+  injection: number = 6000
+): { months: number; years: number } => {
+  // derivar tasa mensual efectiva
+  const rMonth = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
+  // factor de crecimiento en medio mes
+  const halfFactor = Math.pow(1 + rMonth, 0.5);
+
+  let balance = report.netPen;
+  let k = 0; // contador de medio meses
+
+  while (balance < goalPen && k < 5000) {
+    k++;
+    // aplicar crecimiento de medio mes
+    balance *= halfFactor;
+    // inyección de S/6 000 en cada medio mes impar
+    if (k % 2 === 1) balance += injection;
+  }
+
+  const months = k * 0.5;
+  const years  = months / 12;
+  return { months, years };
+};
+
+/**
+ * Calcula porcentaje de avance y fecha estimada sin inyección
+ */
+export const getGoalProjection = (
+  report: PortfolioReport,
+  goalPen: number
+): { progressPct: number; trendLabel: string } => {
+  const progressPct = (report.netPen / goalPen) * 100;
+  const rAnnual = report.annualRatePct / 100;
+  const yearsToGoal = Math.log(goalPen / report.netPen) / Math.log(1 + rAnnual);
+  const projected = new Date();
+  projected.setMonth(projected.getMonth() + Math.round(yearsToGoal * 12));
+  const trendLabel = new Intl.DateTimeFormat('es-PE', {
+    month: 'long',
+    year: 'numeric',
+  }).format(projected);
+  return { progressPct, trendLabel };
 };
