@@ -188,3 +188,21 @@ export const getGoalProjection = (
   }).format(projected);
   return { progressPct, trendLabel };
 };
+
+/**
+ * Obtiene el reporte de portafolio y calcula el % de avance (sin considerar inyección)
+ */
+export const getReportMetrics = (goalPen: number, defaultFxRate = 3.7) => {
+	const report = getPortfolioReport(defaultFxRate);
+	const progressPct = (report.netPen / goalPen) * 100;
+	return { report, progressPct };
+};
+
+/**
+ * Calcula la etiqueta de fecha proyectada para la meta con inyección
+ */
+export const getInjectionTrendLabel = (months: number) => {
+	const projectedDateInjection = new Date();
+	projectedDateInjection.setMonth(projectedDateInjection.getMonth() + Math.round(months));
+	return new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric' }).format(projectedDateInjection);
+};

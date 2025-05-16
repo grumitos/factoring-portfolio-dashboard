@@ -4,56 +4,52 @@ import SvgSprite from '../components/SvgSprite.astro';
 import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
-import { getPortfolioReport, getTimeToGoalWithInjection } from '../lib/dataService';
+import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
 
-const report = getPortfolioReport();
 const goalPen = 400_000;
-const progressPct = (report.netPen / goalPen) * 100;
+const { report, progressPct } = getReportMetrics(goalPen);
 const { months } = getTimeToGoalWithInjection(report, goalPen, 6000);
-// Calculate projected date based on estimated months to goal
-const projectedDateInjection = new Date();
-projectedDateInjection.setMonth(projectedDateInjection.getMonth() + Math.round(months));
-const trendLabelInjection = new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric' }).format(projectedDateInjection);
+const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
 <Layout title="Proyección de Inversiones">
-  <main class="main-content mx-auto mt-8 w-full px-4 md:px-8">
-    <div class="dashboard-content">
-      <div class="grid grid-cols-2 gap-4 mb-8">
-        <SummaryCard
-          class="summary-soles-card"
-          title="Total en Soles"
-          value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
-          trend={`Ganancia: S/ ${report.gainRealPen.toFixed(2)}`}
-        />
-        <SummaryCard
-          class="summary-dolares-card"
-          title="Total en Dólares"
-          value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'USD' }).format(report.netUsd)}
-          trend={`Ganancia: S/ ${report.gainExpectedPen.toFixed(2)}`}
-        />
-        <SummaryCard
-          class="summary-tasa-card"
-          title="Tasa Promedio"
-          value={`${report.annualRatePct.toFixed(2)}%`}
-          trend="Anualizada"
-        />
-        <SummaryCard
-          class="summary-goal-card"
-          title="Meta: S/ 400 000"
-          value={`${progressPct.toFixed(2)}% / 100%`}
-          trend={`Estimado: ${trendLabelInjection}`}
-        />
-      </div>
+	<main class="main-content mx-auto mt-8 w-full px-4 md:px-8">
+		<div class="dashboard-content">
+			<div class="grid grid-cols-2 gap-4 mb-8">
+				<SummaryCard
+					class="summary-soles-card"
+					title="Total en Soles"
+					value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
+					trend={`Ganancia: S/ ${report.gainRealPen.toFixed(2)}`}
+				/>
+				<SummaryCard
+					class="summary-dolares-card"
+					title="Total en Dólares"
+					value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'USD' }).format(report.netUsd)}
+					trend={`Ganancia: S/ ${report.gainExpectedPen.toFixed(2)}`}
+				/>
+				<SummaryCard
+					class="summary-tasa-card"
+					title="Tasa Promedio"
+					value={`${report.annualRatePct.toFixed(2)}%`}
+					trend="Anualizada"
+				/>
+				<SummaryCard
+					class="summary-goal-card"
+					title="Meta: S/ 400 000"
+					value={`${progressPct.toFixed(2)}% / 100%`}
+					trend={`Estimado: ${trendLabelInjection}`}
+				/>
+			</div>
 
-      <ChartContainer report={report} />
-      <FactoringCard report={report} />
-    </div>
-  </main>
-  <SvgSprite />
+			<ChartContainer report={report} />
+			<FactoringCard report={report} />
+		</div>
+	</main>
+	<SvgSprite />
 </Layout>
 
 <style>
-  .main-content { max-width: 1200px; }
-  .grid { margin-bottom: 1.5rem; }
+	.main-content { max-width: 1200px; }
+	.grid { margin-bottom: 1.5rem; }
 </style>
