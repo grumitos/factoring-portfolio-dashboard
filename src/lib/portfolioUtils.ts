@@ -2,8 +2,8 @@ import { parseISO, differenceInMilliseconds } from 'date-fns';
 
 export interface InvestmentDetail {
   codigo: string;
-  fechaIngreso: string; // ISO
-  fechaPago: string;    // ISO
+  fechaIngreso: string;   
+  fechaPago: string;
   inversion: number;
   moneda: 'PEN' | 'USD';
   retornoMensualPct: number;
@@ -14,7 +14,7 @@ export interface InvestmentDetail {
 export interface Earning {
   codigo: string;
   monto: number;
-  fecha: string;        // ISO
+  fecha: string;
   moneda: 'PEN' | 'USD';
 }
 

@@ -19,11 +19,13 @@ const report = await getPortfolioReport();
           class="summary-soles-card"
           title="Total en Soles"
           value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
+          trend="Ganancia: S/ 0.00"
         />
         <SummaryCard
           class="summary-dolares-card"
           title="Total en Dólares"
           value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'USD' }).format(report.netUsd)}
+          trend="Ganancia: S/ 0.00"
         />
         <SummaryCard
           class="summary-tasa-card"
@@ -31,7 +33,11 @@ const report = await getPortfolioReport();
           value={`${report.annualRatePct.toFixed(2)}%`}
           trend="Anualizada"
         />
-        <!-- Aquí puedes volver a insertar Meta o Aporte si lo deseas -->
+       <SummaryCard 
+          title="Meta: 2 millones"
+          value="Calculando..."
+          trend=""
+        />
       </div>
 
       <ChartContainer report={report} />
