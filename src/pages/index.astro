@@ -25,7 +25,7 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 					class="summary-dolares-card"
 					title="Total en Dólares"
 					value={`$ ${report.netUsd.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-					trend={`Ganancia del mes: $${report.gainExpectedLastMonthUsd.toFixed(2)}`}
+					trend={`Ganancia del mes: $ ${report.gainExpectedLastMonthUsd.toFixed(2)}`}
 				/>
 				<SummaryCard
 					class="summary-tasa-card"
