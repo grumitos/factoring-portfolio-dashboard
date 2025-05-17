@@ -147,14 +147,16 @@ export const getPortfolioReport = (
 export const getTimeToGoalWithInjection = (
   report: PortfolioReport,
   goalPen: number,
-  injection: number = 6000
+  injection: number = 6000,
+  defaultFxRate: number = 3.7
 ): { months: number; years: number } => {
   // derivar tasa mensual efectiva
   const rMonth = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
   // factor de crecimiento en medio mes
   const halfFactor = Math.pow(1 + rMonth, 0.5);
 
-  let balance = report.netPen;
+  // incluir capital en USD convertido a PEN
+  let balance = report.netPen + report.netUsd * defaultFxRate;
   let k = 0; // contador de medio meses
 
   while (balance < goalPen && k < 5000) {
@@ -193,9 +195,11 @@ export const getGoalProjection = (
  * Obtiene el reporte de portafolio y calcula el % de avance (sin considerar inyección)
  */
 export const getReportMetrics = (goalPen: number, defaultFxRate = 3.7) => {
-	const report = getPortfolioReport(defaultFxRate);
-	const progressPct = (report.netPen / goalPen) * 100;
-	return { report, progressPct };
+  const report = getPortfolioReport(defaultFxRate);
+  // incluir inversiones en USD convertidas a PEN al calcular avance
+  const totalInvestedPen = report.netPen + report.netUsd * defaultFxRate;
+  const progressPct = (totalInvestedPen / goalPen) * 100;
+  return { report, progressPct };
 };
 
 /**

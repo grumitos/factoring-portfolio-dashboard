@@ -6,7 +6,7 @@ import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
 
-const goalPen = 400_000;
+const goalPen = 200_000;
 const { report, progressPct } = getReportMetrics(goalPen);
 const { months } = getTimeToGoalWithInjection(report, goalPen, 6000);
 const trendLabelInjection = getInjectionTrendLabel(months);
@@ -35,7 +35,7 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 				/>
 				<SummaryCard
 					class="summary-goal-card"
-					title="Meta: S/ 400k"
+					title="Meta: S/ 200k"
 					value={`${progressPct.toFixed(2)}%`}
 					trend={`${trendLabelInjection}`}
 				/>
