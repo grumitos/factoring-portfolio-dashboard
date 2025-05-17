@@ -103,6 +103,46 @@ export const getGains = (defaultFxRate = 3.7) => {
 };
 
 /**
+ * Calcula ganancias (reales y esperadas) del último mes
+ */
+export const getMonthlyGains = (defaultFxRate = 3.7) => {
+  const investments = buildInvestmentsArray();
+  const earnings = buildEarningsArray();
+  const now = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(now.getMonth() - 1);
+  let realMonthlyPen = 0;
+  let realMonthlyUsd = 0;
+  let expectedMonthlyPen = 0;
+  let expectedMonthlyUsd = 0;
+  // sumar ingresos realizados en último mes por moneda
+  earnings.forEach(e => {
+    const date = parseISO(e.fecha);
+    if (date >= oneMonthAgo && date <= now) {
+      if (e.moneda === 'USD') {
+        realMonthlyUsd += e.monto;
+        realMonthlyPen += e.monto * (e.fxRate ?? defaultFxRate);
+      } else {
+        realMonthlyPen += e.monto;
+      }
+    }
+  });
+  // calcular ganancia esperada de un mes para contratos pendientes por moneda
+  investments.forEach(inv => {
+    const est = inv.estado.toLowerCase();
+    if (est !== 'rechazado' && est !== 'cobrado') {
+      if (inv.moneda === 'USD') {
+        expectedMonthlyUsd += inv.inversion * (inv.retornoMensualPct / 100);
+        expectedMonthlyPen += inv.inversion * (inv.fxRate ?? defaultFxRate) * (inv.retornoMensualPct / 100);
+      } else {
+        expectedMonthlyPen += inv.inversion * (inv.retornoMensualPct / 100);
+      }
+    }
+  });
+  return { realMonthlyPen, expectedMonthlyPen, realMonthlyUsd, expectedMonthlyUsd };
+};
+
+/**
  * Tipo de reporte de portafolio
  */
 export type PortfolioReport = {
@@ -112,6 +152,12 @@ export type PortfolioReport = {
   gainRealPen: number;
   gainExpectedPen: number;
   gainTotalPen: number;
+  // ganancias del último mes en PEN
+  gainRealLastMonth: number;
+  gainExpectedLastMonth: number;
+  // ganancias del último mes en USD
+  gainRealLastMonthUsd: number;
+  gainExpectedLastMonthUsd: number;
 };
 
 /**
@@ -129,6 +175,12 @@ export const getPortfolioReport = (
     defaultFxRate
   );
   const { real, expected, total } = getGains(defaultFxRate);
+  const {
+    realMonthlyPen,
+    expectedMonthlyPen,
+    realMonthlyUsd,
+    expectedMonthlyUsd
+  } = getMonthlyGains(defaultFxRate);
 
   return {
     netPen,
@@ -136,7 +188,11 @@ export const getPortfolioReport = (
     annualRatePct,
     gainRealPen: real,
     gainExpectedPen: expected,
-    gainTotalPen: total
+    gainTotalPen: total,
+    gainRealLastMonth: realMonthlyPen,
+    gainExpectedLastMonth: expectedMonthlyPen,
+    gainRealLastMonthUsd: realMonthlyUsd,
+    gainExpectedLastMonthUsd: expectedMonthlyUsd
   };
 };
 
