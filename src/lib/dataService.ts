@@ -6,6 +6,7 @@ import movementsPenJson from '../data/movementsPEN.json';
 import movementsUsdJson from '../data/movementsUSD.json';
 import type { InvestmentDetail, Earning } from './portfolioUtils';
 import { calculateAnnualizedPortfolioRate, toPen, monthsBetween } from './portfolioUtils';
+import { fetchLatestRate } from './fxService';
 
 /**
  * Movimiento de capital
@@ -163,9 +164,15 @@ export type PortfolioReport = {
 /**
  * Genera el reporte completo de portafolio
  */
-export const getPortfolioReport = (
+export const getPortfolioReport = async (
   defaultFxRate = 3.7
-): PortfolioReport => {
+): Promise<PortfolioReport> => {
+  // obtener tasa real de USD→PEN
+  try {
+    defaultFxRate = await fetchLatestRate();
+  } catch {
+    // fallback a tasa estática
+  }
   const { netPen, netUsd } = getNetInvestedByCurrency();
   const earnings = buildEarningsArray();
   const investments = buildInvestmentsArray();
@@ -250,8 +257,11 @@ export const getGoalProjection = (
 /**
  * Obtiene el reporte de portafolio y calcula el % de avance (sin considerar inyección)
  */
-export const getReportMetrics = (goalPen: number, defaultFxRate = 3.7) => {
-  const report = getPortfolioReport(defaultFxRate);
+export const getReportMetrics = async (
+  goalPen: number,
+  defaultFxRate = 3.7
+): Promise<{ report: PortfolioReport; progressPct: number }> => {
+  const report = await getPortfolioReport(defaultFxRate);
   // incluir inversiones en USD convertidas a PEN al calcular avance
   const totalInvestedPen = report.netPen + report.netUsd * defaultFxRate;
   const progressPct = (totalInvestedPen / goalPen) * 100;
