@@ -13,9 +13,8 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
 <Layout title="Proyección de Inversiones">
-	<main class="main-content mx-auto w-full">
-		<div class="dashboard-content">
-			<div class="grid grid-cols-2 gap-6 mb-6">
+	<main class="main-content mx-auto w-full">		<div class="dashboard-content">
+			<div class="grid grid-cols-2 gap-standard mb-standard">
 				<SummaryCard
 					class="summary-soles-card"
 					title="Total en Soles"
@@ -51,4 +50,8 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 
 <style>	.main-content { max-width: 1200px; }
 	.dashboard-content { padding: 0; }
+	/* Removing the bottom margin for the last component to avoid extra space */
+	.dashboard-content > :last-child {
+		margin-bottom: 0;
+	}
 </style>

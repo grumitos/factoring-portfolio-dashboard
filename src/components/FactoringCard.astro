@@ -59,7 +59,7 @@ import IconSVG from './IconSVG.astro';
     overflow: hidden;
   }
     .card-header {
-    padding: 1.5rem;
+    padding: theme('spacing.standard');
     border-bottom: 0.5px solid theme('colors.border.300');
   }
   
@@ -103,8 +103,8 @@ import IconSVG from './IconSVG.astro';
     color: theme('colors.text.100');
     background-color: theme('colors.bg.300');
   }
-    .search-container {
-    padding: 1.5rem;
+  .search-container {
+    padding: theme('spacing.standard');
     display: flex;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
@@ -193,9 +193,13 @@ import IconSVG from './IconSVG.astro';
     margin-bottom: 0.5rem;
     color: theme('colors.text.200');
   }
-  
-  .secondary-text {
+    .secondary-text {
     font-size: 0.875rem;
     color: theme('colors.text.300');
+  }
+  
+  /* Override the margin-bottom from the base card class to eliminate the extra space */
+  .investment-card.card {
+    margin-bottom: 0;
   }
 </style>

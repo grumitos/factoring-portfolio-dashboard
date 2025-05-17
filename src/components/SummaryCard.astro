@@ -5,7 +5,7 @@ interface Props {
   trend?: string;
   trendClass?: string;
   fullWidth?: boolean;
-  class?: string; // Allow passing a class for specific styling or selection
+  class?: string;
 }
 
 const { title, value, trend = '', trendClass = 'positive', fullWidth = false, class: customClassFromProp } = Astro.props;
@@ -25,7 +25,7 @@ const { title, value, trend = '', trendClass = 'positive', fullWidth = false, cl
     background-color: theme('colors.bg.000');
     border: 0.5px solid theme('colors.border.300');
     border-radius: 1rem;
-    padding: 1.5rem;
+    padding: theme('spacing.standard'); /* Usando la variable centralizada */
     transition: all 0.2s ease;
     box-shadow: 0 0.25rem 1.25rem rgb(0 0 0 / 7%);
   }

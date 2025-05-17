@@ -1,13 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-  theme: {
+  content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],  theme: {
     extend: {
       fontFamily: {
         'merriweather': ['Merriweather', 'serif'],
       },
       borderWidth: {
         '0.5': '0.5px',
+      },
+      spacing: {
+        'standard': '1.2rem',    // Padding estándar para componentes (20% menos que el original de 1.5rem)
+        'compact': '1rem',       // Para espacios más pequeños
+        'wide': '1.5rem',        // Para espacios más amplios
       },
       colors: {
         // Backgrounds (del más oscuro al más claro)
@@ -49,4 +53,3 @@ export default {
   },
   plugins: [],
 }
-
