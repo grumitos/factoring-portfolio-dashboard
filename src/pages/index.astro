@@ -13,9 +13,9 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
 <Layout title="Proyección de Inversiones">
-	<main class="main-content mx-auto mt-8 w-full px-4 md:px-8">
+	<main class="main-content mx-auto w-full">
 		<div class="dashboard-content">
-			<div class="grid grid-cols-2 gap-4 mb-8">
+			<div class="grid grid-cols-2 gap-6 mb-6">
 				<SummaryCard
 					class="summary-soles-card"
 					title="Total en Soles"
@@ -49,7 +49,6 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 	<SvgSprite />
 </Layout>
 
-<style>
-	.main-content { max-width: 1200px; }
-	.grid { margin-bottom: 1.5rem; }
+<style>	.main-content { max-width: 1200px; }
+	.dashboard-content { padding: 0; }
 </style>
