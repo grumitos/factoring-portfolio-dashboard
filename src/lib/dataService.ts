@@ -12,7 +12,7 @@ import { fetchLatestRate } from './fxService';
  * Movimiento de capital
  */
 interface Movement {
-  Movimiento: 'inversion' | 'pago capital' | 'deposito' | 'retiro' | string;
+  Movimiento: 'inversion' | 'pago capital' | string;
   Monto: number;
   fxRate?: number;
 }
@@ -21,17 +21,11 @@ interface Movement {
  * Retorna el neto invertido en PEN y USD
  */
 export const getNetInvestedByCurrency = () => {
-  const calc = (movs: Movement[]) => {
-    // Sumamos inversiones y depósitos
-    const added = movs
-      .filter(m => ['inversion', 'deposito'].includes(m.Movimiento))
+  const calc = (movs: Movement[]) =>
+    movs.filter(m => m.Movimiento === 'inversion')
+      .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0)
+    - movs.filter(m => m.Movimiento === 'pago capital')
       .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0);
-    // Restamos pagos de capital y retiros
-    const subtracted = movs
-      .filter(m => ['pago capital', 'retiro'].includes(m.Movimiento))
-      .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0);
-    return added - subtracted;
-  };
 
   const netPen = calc(movementsPenJson as Movement[]);
   const netUsd = calc(movementsUsdJson as Movement[]);
