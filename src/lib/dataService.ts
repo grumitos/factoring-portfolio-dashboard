@@ -21,15 +21,42 @@ interface Movement {
  * Retorna el neto invertido en PEN y USD
  */
 export const getNetInvestedByCurrency = () => {
-  const calc = (movs: Movement[]) =>
+  const invested = (movs: Movement[]) =>
     movs.filter(m => m.Movimiento === 'inversion')
-      .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0)
-    - movs.filter(m => m.Movimiento === 'pago capital')
-      .reduce((sum, m) => sum + m.Monto * (m.fxRate ?? 1), 0);
+        .reduce((s, m) => s + m.Monto * (m.fxRate ?? 1), 0) -
+    movs.filter(m => m.Movimiento === 'pago capital')
+        .reduce((s, m) => s + m.Monto * (m.fxRate ?? 1), 0);
 
-  const netPen = calc(movementsPenJson as Movement[]);
-  const netUsd = calc(movementsUsdJson as Movement[]);
-  return { netPen, netUsd };
+  const free = (movs: Movement[], currency: 'PEN' | 'USD') => {
+    const adds = currency === 'PEN'
+      ? ['deposito', 'pago capital', 'interes ganado', 'dolares a soles']
+      : ['deposito', 'pago capital', 'interes ganado', 'soles a dolares'];
+    const subs = currency === 'PEN'
+      ? ['inversion', 'retiro', 'soles a dolares']
+      : ['inversion', 'retiro', 'dolares a soles'];
+    return movs.reduce((acc, m) => {
+      if (adds.includes(m.Movimiento)) return acc + m.Monto * (m.fxRate ?? 1);
+      if (subs.includes(m.Movimiento)) return acc - m.Monto * (m.fxRate ?? 1);
+      return acc;
+    }, 0);
+  };
+
+  const penMovs = movementsPenJson as Movement[];
+  const usdMovs = movementsUsdJson as Movement[];
+
+  const investedPen = invested(penMovs);
+  const investedUsd = invested(usdMovs);
+  const freePen     = free(penMovs, 'PEN');
+  const freeUsd     = free(usdMovs, 'USD');
+
+  return {
+    netPen: investedPen + freePen,
+    netUsd: investedUsd + freeUsd,
+    investedPen,
+    investedUsd,
+    freePen,
+    freeUsd
+  };
 };
 
 /**
