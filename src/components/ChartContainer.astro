@@ -53,7 +53,7 @@ const { report } = Astro.props as Props;
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-<script define:vars={{ report }} client:load>
+<script define:vars={{ report }} defer>
   const ctx = document.getElementById('proyeccion-chart').getContext('2d');
 
   const computeData = (goal) => {
@@ -162,10 +162,14 @@ const { report } = Astro.props as Props;
   .goal-slider input[type='range'] {
     flex: 1;
   }
-    .chart-wrapper {
+  .chart-wrapper {
     padding: 1.5rem;
     height: 300px;
     position: relative;
+  }
+  .chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
   
   h4 {
