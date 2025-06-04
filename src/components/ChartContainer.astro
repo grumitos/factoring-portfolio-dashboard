@@ -16,13 +16,22 @@ const { report } = Astro.props as Props;
         <IconSVG name="chart" />
       </span>
       <h4 class="text-text-100">Proyección</h4>
-    </div>
-    <div class="header-right chart-legend-container">
-      <!-- Legend will be populated by JavaScript -->
+    </div>    <div class="header-right chart-legend-container">
+      <div class="chart-legend">        <div class="legend-item">
+          <div class="legend-dot" style="background-color: #C2C0B6;"></div>
+          <span class="legend-label">Sin Aportes</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background-color: #C96442;"></div>
+          <span class="legend-label">Con Aportes</span>
+        </div></div>
     </div>
   </div>
+  <div class="chart-wrapper">
+    <canvas id="proyeccion-chart"></canvas>
+  </div>
   <div class="goal-slider">
-    <label for="goalRange" class="text-sm text-text-300">Meta:</label>
+    <label for="goalRange" class="text-sm text-text-200">Meta:</label>
     <input
       id="goalRange"
       type="range"
@@ -47,89 +56,168 @@ const { report } = Astro.props as Props;
     </datalist>
     <span id="goalValue" class="text-sm text-text-100">S/ 200,000</span>
   </div>
-  <div class="chart-wrapper">
-    <canvas id="proyeccion-chart"></canvas>
-  </div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-<script define:vars={{ report }} defer>
-  const ctx = document.getElementById('proyeccion-chart').getContext('2d');
-
-  const computeData = (goal) => {
-    const rMonthly = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
-    const injection = 6000;
-    let withoutInj = report.netPen + report.netUsd * 3.7;
-    let withInj = withoutInj;
-    const labels = [];
-    const seriesA = [];
-    const seriesB = [];
-    let month = 0;
-    const startYear = new Date().getFullYear();
-    while ((withInj < goal || month % 12 !== 0) && month < 600) {
-      if (month % 12 === 0) {
-        labels.push(String((startYear + month / 12)).slice(-2));
-        seriesA.push(Math.round(withoutInj));
-        seriesB.push(Math.round(withInj));
-      }
-      withoutInj *= 1 + rMonthly;
-      withInj = withInj * (1 + rMonthly) + injection;
-      month++;
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script define:vars={{ report }}>
+  // Esperar a que Chart.js se cargue
+  function initChart() {
+    if (typeof Chart === 'undefined') {
+      setTimeout(initChart, 100);
+      return;
     }
-    // push last point
-    labels.push(String((startYear + month / 12)).slice(-2));
-    seriesA.push(Math.round(withoutInj));
-    seriesB.push(Math.round(withInj));
-    return { labels, seriesA, seriesB };
-  };
 
-  let { labels, seriesA, seriesB } = computeData(200000);
+    const ctx = document.getElementById('proyeccion-chart');
+    if (!ctx) {
+      console.error('Canvas element not found');
+      return;
+    }    console.log('Report data:', report); // Debug
 
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Sin Inyección',
-          data: seriesA,
-          borderColor: '#3b82f6',
-          backgroundColor: 'transparent'
-        },
-        {
-          label: 'Con Inyección',
-          data: seriesB,
-          borderColor: '#16a34a',
-          backgroundColor: 'transparent'
+    // Obtener los colores del tema CSS
+    const styles = getComputedStyle(document.documentElement);
+    const textColor200 = '#C2C0B6'; // text-200
+    const accentMain000 = '#C96442'; // accent-main-000
+    const accentMain100 = '#D97757'; // accent-main-100
+    const bgColor000 = '#30302E'; // bg-000
+
+    const computeData = (goal) => {
+      const rMonthly = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
+      const injection = 6000;
+      let withoutInj = report.netPen + report.netUsd * 3.7;
+      let withInj = withoutInj;
+      const labels = [];
+      const seriesA = [];
+      const seriesB = [];
+      let month = 0;
+      const startYear = new Date().getFullYear();
+      
+      while ((withInj < goal || month % 12 !== 0) && month < 600) {
+        if (month % 12 === 0) {
+          labels.push(String((startYear + month / 12)).slice(-2));
+          seriesA.push(Math.round(withoutInj));
+          seriesB.push(Math.round(withInj));
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          ticks: {
-            callback: (value) => Number(value).toLocaleString('es-PE', { maximumFractionDigits: 0 })
+        withoutInj *= 1 + rMonthly;
+        withInj = withInj * (1 + rMonthly) + injection;
+        month++;
+      }
+      // push last point
+      labels.push(String((startYear + month / 12)).slice(-2));
+      seriesA.push(Math.round(withoutInj));
+      seriesB.push(Math.round(withInj));
+      
+      console.log('Chart data computed:', { labels, seriesA, seriesB }); // Debug
+      return { labels, seriesA, seriesB };
+    };
+
+    let { labels, seriesA, seriesB } = computeData(200000);    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,        datasets: [          {
+            label: 'Sin Aportes',
+            data: seriesA,
+            borderColor: textColor200,
+            backgroundColor: `${textColor200}1A`, // 10% opacity
+            tension: 0.3,
+            borderWidth: 2,
+            pointBackgroundColor: textColor200,
+            pointBorderColor: bgColor000,
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },          {
+            label: 'Con Aportes',
+            data: seriesB,
+            borderColor: accentMain000,
+            backgroundColor: `${accentMain000}1A`, // 10% opacity
+            tension: 0.3,
+            borderWidth: 3,
+            pointBackgroundColor: accentMain000,
+            pointBorderColor: bgColor000,
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {          x: {
+            ticks: {
+              color: textColor200,
+              font: {
+                family: 'Merriweather',
+                size: 12
+              }
+            },
+            grid: {
+              color: `${textColor200}1A`, // 10% opacity
+              borderColor: textColor200
+            }
+          },          y: {
+            ticks: {
+              color: textColor200,
+              font: {
+                family: 'Merriweather',
+                size: 12
+              },
+              callback: (value) => {
+                const num = Number(value);
+                if (num >= 1000000) {
+                  return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + 'M';
+                } else if (num >= 1000) {
+                  return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + 'K';
+                }
+                return num.toLocaleString('es-PE', { maximumFractionDigits: 0 });
+              }
+            },
+            grid: {
+              color: `${textColor200}1A`, // 10% opacity
+              borderColor: textColor200
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },        elements: {
+          point: {
+            hoverBackgroundColor: accentMain100
           }
         }
       }
+    });
+
+    const range = document.getElementById('goalRange');
+    const label = document.getElementById('goalValue');
+    
+    if (range && label) {
+      label.textContent = `S/ ${Number(range.value).toLocaleString('es-PE')}`;
+
+      range.addEventListener('input', () => {
+        const goal = parseInt(range.value, 10);
+        label.textContent = `S/ ${goal.toLocaleString('es-PE')}`;
+        const d = computeData(goal);
+        chart.data.labels = d.labels;
+        chart.data.datasets[0].data = d.seriesA;
+        chart.data.datasets[1].data = d.seriesB;
+        chart.update();
+      });
     }
-  });
+  }
 
-  const range = document.getElementById('goalRange');
-  const label = document.getElementById('goalValue');
-  label.textContent = `S/ ${Number(range.value).toLocaleString('es-PE')}`;
-
-  range.addEventListener('input', () => {
-    const goal = parseInt(range.value, 10);
-    label.textContent = `S/ ${goal.toLocaleString('es-PE')}`;
-    const d = computeData(goal);
-    chart.data.labels = d.labels;
-    chart.data.datasets[0].data = d.seriesA;
-    chart.data.datasets[1].data = d.seriesB;
-    chart.update();
-  });
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChart);
+  } else {
+    initChart();
+  }
 </script>
 
 <style>
@@ -145,25 +233,62 @@ const { report } = Astro.props as Props;
   .header-left {
     gap: 0.75rem;
   }
-  
-  .svg-icon {
+    .svg-icon {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 1.5rem;
     width: 1.5rem;
   }
-  .goal-slider {
-    padding: 0.75rem 1.5rem;
+  
+  .chart-legend {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid theme('colors.bg.000');
+  }
+  
+  .legend-label {
+    font-size: 0.875rem;
+    color: theme('colors.text.200');
+    font-weight: 500;
+  }
+  
+  @media (max-width: 640px) {
+    .chart-legend {
+      gap: 0.75rem;
+    }
+    
+    .legend-label {
+      font-size: 0.75rem;
+    }
+    
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+    }
+  }  .goal-slider {
+    padding: theme('spacing.standard');
     display: flex;
     align-items: center;
     gap: 0.75rem;
-  }
-  .goal-slider input[type='range'] {
+  }  .goal-slider input[type='range'] {
     flex: 1;
   }
   .chart-wrapper {
-    padding: 1.5rem;
+    padding: theme('spacing.standard') theme('spacing.standard') 0 theme('spacing.standard');
     height: 300px;
     position: relative;
   }
