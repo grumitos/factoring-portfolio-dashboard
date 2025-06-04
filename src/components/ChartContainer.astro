@@ -28,19 +28,32 @@ const { report } = Astro.props as Props;
       type="range"
       min="200000"
       max="2000000"
-      step="10000"
+      step="200000"
       value="200000"
+      list="goalTicks"
       class="flex-1"
     />
-    <span id="goalValue" class="text-sm text-text-100">200000</span>
+    <datalist id="goalTicks">
+      <option value="200000"></option>
+      <option value="400000"></option>
+      <option value="600000"></option>
+      <option value="800000"></option>
+      <option value="1000000"></option>
+      <option value="1200000"></option>
+      <option value="1400000"></option>
+      <option value="1600000"></option>
+      <option value="1800000"></option>
+      <option value="2000000"></option>
+    </datalist>
+    <span id="goalValue" class="text-sm text-text-100">S/ 200,000</span>
   </div>
   <div class="chart-wrapper">
     <canvas id="proyeccion-chart"></canvas>
   </div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script define:vars={{ report }}>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script define:vars={{ report }} client:load>
   const ctx = document.getElementById('proyeccion-chart').getContext('2d');
 
   const computeData = (goal) => {
@@ -106,11 +119,11 @@ const { report } = Astro.props as Props;
 
   const range = document.getElementById('goalRange');
   const label = document.getElementById('goalValue');
-  label.textContent = Number(range.value).toLocaleString('es-PE');
+  label.textContent = `S/ ${Number(range.value).toLocaleString('es-PE')}`;
 
   range.addEventListener('input', () => {
     const goal = parseInt(range.value, 10);
-    label.textContent = goal.toLocaleString('es-PE');
+    label.textContent = `S/ ${goal.toLocaleString('es-PE')}`;
     const d = computeData(goal);
     chart.data.labels = d.labels;
     chart.data.datasets[0].data = d.seriesA;
