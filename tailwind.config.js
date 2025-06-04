@@ -41,6 +41,7 @@ export default {
           '000': '#C96442', // Acento primario
           '100': '#D97757', // Acento hover
           '200': '#D97757', // Acento activo
+          '300': '#D97757', // Acento foco
         },
         'always-black': '#000000',
         'always-white': '#FFFFFF',

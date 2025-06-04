@@ -16,20 +16,24 @@ const { report } = Astro.props as Props;
         <IconSVG name="chart" />
       </span>
       <h4 class="text-text-100">Proyección</h4>
-    </div>    <div class="header-right chart-legend-container">
-      <div class="chart-legend">        <div class="legend-item">
+    </div>
+    <div class="header-right chart-legend-container">
+      <div class="chart-legend">
+        <div class="legend-item">
           <div class="legend-dot" style="background-color: #C2C0B6;"></div>
           <span class="legend-label">Sin Aportes</span>
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background-color: #C96442;"></div>
           <span class="legend-label">Con Aportes</span>
-        </div></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="chart-wrapper">
     <canvas id="proyeccion-chart"></canvas>
-  </div>  <div class="goal-slider">
+  </div>
+  <div class="goal-slider">
     <label for="goalRange" class="text-sm text-text-300">Meta:</label>
     <input
       id="goalRange"
@@ -68,9 +72,10 @@ const { report } = Astro.props as Props;
 
     const ctx = document.getElementById('proyeccion-chart');
     if (!ctx) {
-      console.error('Canvas element not found');
-      return;
-    }    console.log('Report data:', report); // Debug
+      console.error('Canvas element not found');      return;
+    }
+
+    console.log('Report data:', report); // Debug
 
     // Obtener los colores del tema CSS
     const styles = getComputedStyle(document.documentElement);
@@ -89,9 +94,9 @@ const { report } = Astro.props as Props;
       const labels = [];
       const seriesA = [];
       const seriesB = [];
-      let month = 0;
-      const startYear = new Date().getFullYear();
-        while ((withInj < goal || month % 12 !== 0) && month < 600) {
+      let month = 0;      const startYear = new Date().getFullYear();
+      
+      while ((withInj < goal || month % 12 !== 0) && month < 600) {
         if (month % 12 === 0) {
           labels.push(String(startYear + month / 12));
           seriesA.push(Math.round(withoutInj));
@@ -110,7 +115,9 @@ const { report } = Astro.props as Props;
       return { labels, seriesA, seriesB };
     };
 
-    let { labels, seriesA, seriesB } = computeData(200000);    const chart = new Chart(ctx, {
+    let { labels, seriesA, seriesB } = computeData(200000);
+
+    const chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels,        datasets: [          {
@@ -273,82 +280,84 @@ const { report } = Astro.props as Props;
 <style>
   .chart-container {
     width: 100%;
-    margin-bottom: 1.5rem;
+    margin-bottom: theme('spacing.standard');
   }
   .card-header {
     padding: theme('spacing.standard');
     border-bottom: 0.5px solid theme('colors.border.300');
   }
-  
   .header-left {
-    gap: 0.75rem;
+    gap: theme('spacing.compact');
   }
-    .svg-icon {
+  .svg-icon {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 1.5rem;
     width: 1.5rem;
   }
-  
   .chart-legend {
     display: flex;
-    gap: 1rem;
+    gap: theme('spacing.standard');
     align-items: center;
   }
-  
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: theme('spacing.compact');
   }
-  
   .legend-dot {
-    width: 12px;
-    height: 12px;
+    width: 0.75rem;
+    height: 0.75rem;
     border-radius: 50%;
     border: 1px solid theme('colors.bg.000');
   }
-  
   .legend-label {
     font-size: 0.875rem;
     color: theme('colors.text.200');
     font-weight: 500;
   }
-  
   @media (max-width: 640px) {
     .chart-legend {
-      gap: 0.75rem;
+      gap: theme('spacing.compact');
     }
-    
     .legend-label {
       font-size: 0.75rem;
     }
-    
     .legend-dot {
-      width: 10px;
-      height: 10px;
+      width: 0.625rem;
+      height: 0.625rem;
     }
-  }  .goal-slider {
+  }
+  .goal-slider {
     padding: 0.6rem theme('spacing.standard') theme('spacing.standard') theme('spacing.standard');
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-  }  .goal-slider input[type='range'] {
+    gap: theme('spacing.compact');
+  }
+  .goal-slider input[type='range'] {
     flex: 1;
     accent-color: theme('colors.border.300');
   }
-
+  .goal-slider #goalValue {
+    display: inline-block;
+    text-align: right;
+    width: 3.4rem;
+    flex-shrink: 0;
+  }
+  .goal-slider label {
+    width: 3.4rem;
+    flex-shrink: 0;
+  }
   .chart-wrapper {
     padding: theme('spacing.standard') theme('spacing.standard') 0 theme('spacing.standard');
-    height: 300px;
+    height: 18.75rem;
     position: relative;
   }
   .chart-wrapper canvas {
     width: 100% !important;
     height: 100% !important;
   }
-  
   h4 {
     font-weight: 600;
   }
