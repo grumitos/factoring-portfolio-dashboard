@@ -13,11 +13,10 @@
   --color-text-300: #9C9A92;
   --color-accent-main-000: #C96442;
   --color-accent-main-100: #D97757;
-  
-  /* Sistema de espaciado estandarizado */
-  --spacing-standard: 1.2rem;  /* Espaciado estándar para componentes */
-  --spacing-compact: 1rem;     /* Para espacios más pequeños */
-  --spacing-wide: 1.5rem;      /* Para espacios más amplios */
+    /* Sistema de espaciado estandarizado */
+  --spacing-standard: 0.9rem;  /* Espaciado estándar para componentes */
+  --spacing-compact: 0.75rem;  /* Para espacios más pequeños */
+  --spacing-wide: 1.125rem;    /* Para espacios más amplios */
 }
 
 @layer base {

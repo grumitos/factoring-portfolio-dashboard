@@ -7,11 +7,10 @@ export default {
       },
       borderWidth: {
         '0.5': '0.5px',
-      },
-      spacing: {
-        'standard': '1.2rem',    // Padding estándar para componentes (20% menos que el original de 1.5rem)
-        'compact': '1rem',       // Para espacios más pequeños
-        'wide': '1.5rem',        // Para espacios más amplios
+      },      spacing: {
+        'standard': '1rem',    // Padding estándar para componentes (reducido 25%)
+        'compact': '0.8rem',    // Para espacios más pequeños (reducido 25%)
+        'wide': '1.2rem',      // Para espacios más amplios (reducido 25%)
       },
       colors: {
         // Backgrounds (del más oscuro al más claro)

@@ -29,9 +29,8 @@ const { report } = Astro.props as Props;
   </div>
   <div class="chart-wrapper">
     <canvas id="proyeccion-chart"></canvas>
-  </div>
-  <div class="goal-slider">
-    <label for="goalRange" class="text-sm text-text-200">Meta:</label>
+  </div>  <div class="goal-slider">
+    <label for="goalRange" class="text-sm text-text-300">Meta:</label>
     <input
       id="goalRange"
       type="range"
@@ -337,7 +336,9 @@ const { report } = Astro.props as Props;
     gap: 0.75rem;
   }  .goal-slider input[type='range'] {
     flex: 1;
+    accent-color: theme('colors.border.300');
   }
+
   .chart-wrapper {
     padding: theme('spacing.standard') theme('spacing.standard') 0 theme('spacing.standard');
     height: 300px;
