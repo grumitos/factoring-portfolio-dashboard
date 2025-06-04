@@ -1,5 +1,12 @@
 ---
 import IconSVG from './IconSVG.astro';
+import type { PortfolioReport } from '../lib/dataService';
+
+interface Props {
+  report: PortfolioReport;
+}
+
+const { report } = Astro.props as Props;
 ---
 
 <section class="chart-container card">
@@ -14,10 +21,116 @@ import IconSVG from './IconSVG.astro';
       <!-- Legend will be populated by JavaScript -->
     </div>
   </div>
+  <div class="goal-slider">
+    <label for="goalRange" class="text-sm text-text-300">Meta:</label>
+    <input
+      id="goalRange"
+      type="range"
+      min="200000"
+      max="2000000"
+      step="200000"
+      value="200000"
+      list="goalTicks"
+      class="flex-1"
+    />
+    <datalist id="goalTicks">
+      <option value="200000"></option>
+      <option value="400000"></option>
+      <option value="600000"></option>
+      <option value="800000"></option>
+      <option value="1000000"></option>
+      <option value="1200000"></option>
+      <option value="1400000"></option>
+      <option value="1600000"></option>
+      <option value="1800000"></option>
+      <option value="2000000"></option>
+    </datalist>
+    <span id="goalValue" class="text-sm text-text-100">S/ 200,000</span>
+  </div>
   <div class="chart-wrapper">
     <canvas id="proyeccion-chart"></canvas>
   </div>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script define:vars={{ report }} defer>
+  const ctx = document.getElementById('proyeccion-chart').getContext('2d');
+
+  const computeData = (goal) => {
+    const rMonthly = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
+    const injection = 6000;
+    let withoutInj = report.netPen + report.netUsd * 3.7;
+    let withInj = withoutInj;
+    const labels = [];
+    const seriesA = [];
+    const seriesB = [];
+    let month = 0;
+    const startYear = new Date().getFullYear();
+    while ((withInj < goal || month % 12 !== 0) && month < 600) {
+      if (month % 12 === 0) {
+        labels.push(String((startYear + month / 12)).slice(-2));
+        seriesA.push(Math.round(withoutInj));
+        seriesB.push(Math.round(withInj));
+      }
+      withoutInj *= 1 + rMonthly;
+      withInj = withInj * (1 + rMonthly) + injection;
+      month++;
+    }
+    // push last point
+    labels.push(String((startYear + month / 12)).slice(-2));
+    seriesA.push(Math.round(withoutInj));
+    seriesB.push(Math.round(withInj));
+    return { labels, seriesA, seriesB };
+  };
+
+  let { labels, seriesA, seriesB } = computeData(200000);
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Sin Inyección',
+          data: seriesA,
+          borderColor: '#3b82f6',
+          backgroundColor: 'transparent'
+        },
+        {
+          label: 'Con Inyección',
+          data: seriesB,
+          borderColor: '#16a34a',
+          backgroundColor: 'transparent'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          ticks: {
+            callback: (value) => Number(value).toLocaleString('es-PE', { maximumFractionDigits: 0 })
+          }
+        }
+      }
+    }
+  });
+
+  const range = document.getElementById('goalRange');
+  const label = document.getElementById('goalValue');
+  label.textContent = `S/ ${Number(range.value).toLocaleString('es-PE')}`;
+
+  range.addEventListener('input', () => {
+    const goal = parseInt(range.value, 10);
+    label.textContent = `S/ ${goal.toLocaleString('es-PE')}`;
+    const d = computeData(goal);
+    chart.data.labels = d.labels;
+    chart.data.datasets[0].data = d.seriesA;
+    chart.data.datasets[1].data = d.seriesB;
+    chart.update();
+  });
+</script>
 
 <style>
   .chart-container {
@@ -40,10 +153,23 @@ import IconSVG from './IconSVG.astro';
     height: 1.5rem;
     width: 1.5rem;
   }
-    .chart-wrapper {
+  .goal-slider {
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .goal-slider input[type='range'] {
+    flex: 1;
+  }
+  .chart-wrapper {
     padding: 1.5rem;
     height: 300px;
     position: relative;
+  }
+  .chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
   
   h4 {
