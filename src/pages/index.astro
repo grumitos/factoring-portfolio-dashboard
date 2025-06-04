@@ -20,13 +20,13 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 					class="summary-soles-card"
 					title="Total en Soles"
 					value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
-					trend={`Ganancia del mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
+					trend={`En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
 				/>
 				<SummaryCard
 					class="summary-dolares-card"
 					title="Total en Dólares"
 					value={`$ ${report.netUsd.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-					trend={`Ganancia del mes: $ ${report.gainExpectedLastMonthUsd.toFixed(2)}`}
+					trend={`En el mes: $ ${report.gainExpectedLastMonthUsd.toFixed(2)}`}
 				/>
 				<SummaryCard
 					class="summary-tasa-card"
