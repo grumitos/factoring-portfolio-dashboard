@@ -6,6 +6,14 @@
   --always-black: 0 0 0; /* rgb(0, 0, 0) */
   --always-white: 255 255 255; /* rgb(255, 255, 255) */
   
+  /* Colores de tema */
+  --color-bg-000: #30302E;
+  --color-text-100: #DEDCD1;
+  --color-text-200: #C2C0B6;
+  --color-text-300: #9C9A92;
+  --color-accent-main-000: #C96442;
+  --color-accent-main-100: #D97757;
+  
   /* Sistema de espaciado estandarizado */
   --spacing-standard: 1.2rem;  /* Espaciado estándar para componentes */
   --spacing-compact: 1rem;     /* Para espacios más pequeños */

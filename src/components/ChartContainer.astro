@@ -75,10 +75,12 @@ const { report } = Astro.props as Props;
 
     // Obtener los colores del tema CSS
     const styles = getComputedStyle(document.documentElement);
-    const textColor200 = '#C2C0B6'; // text-200
-    const accentMain000 = '#C96442'; // accent-main-000
-    const accentMain100 = '#D97757'; // accent-main-100
-    const bgColor000 = '#30302E'; // bg-000
+    const textColor100 = styles.getPropertyValue('--color-text-100').trim();
+    const textColor200 = styles.getPropertyValue('--color-text-200').trim();
+    const textColor300 = styles.getPropertyValue('--color-text-300').trim();
+    const accentMain000 = styles.getPropertyValue('--color-accent-main-000').trim();
+    const accentMain100 = styles.getPropertyValue('--color-accent-main-100').trim();
+    const bgColor000 = styles.getPropertyValue('--color-bg-000').trim();
 
     const computeData = (goal) => {
       const rMonthly = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
@@ -90,10 +92,9 @@ const { report } = Astro.props as Props;
       const seriesB = [];
       let month = 0;
       const startYear = new Date().getFullYear();
-      
-      while ((withInj < goal || month % 12 !== 0) && month < 600) {
+        while ((withInj < goal || month % 12 !== 0) && month < 600) {
         if (month % 12 === 0) {
-          labels.push(String((startYear + month / 12)).slice(-2));
+          labels.push(String(startYear + month / 12));
           seriesA.push(Math.round(withoutInj));
           seriesB.push(Math.round(withInj));
         }
@@ -102,7 +103,7 @@ const { report } = Astro.props as Props;
         month++;
       }
       // push last point
-      labels.push(String((startYear + month / 12)).slice(-2));
+      labels.push(String(startYear + month / 12));
       seriesA.push(Math.round(withoutInj));
       seriesB.push(Math.round(withInj));
       
@@ -142,25 +143,66 @@ const { report } = Astro.props as Props;
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
+        maintainAspectRatio: false,        plugins: {
           legend: {
             display: false
+          },
+          tooltip: {
+            backgroundColor: bgColor000,
+            titleColor: textColor100,
+            bodyColor: textColor200,
+            borderColor: textColor300,
+            borderWidth: 1,
+            cornerRadius: 8,
+            displayColors: true,
+            titleFont: {
+              family: 'Merriweather',
+              size: 14,
+              weight: '600'
+            },
+            bodyFont: {
+              family: 'Merriweather',
+              size: 12
+            },
+            footerFont: {
+              family: 'Merriweather',
+              size: 10
+            },
+            footerColor: textColor300,
+            callbacks: {
+              title: function(tooltipItems) {
+                return `${tooltipItems[0].label}`;
+              },
+              label: function(context) {
+                const value = context.parsed.y;
+                const formattedValue = new Intl.NumberFormat('es-PE', { 
+                  style: 'currency', 
+                  currency: 'PEN',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                }).format(value);
+                return `${context.dataset.label}: ${formattedValue}`;
+              }
+            }
           }
         },
         scales: {          x: {
-            ticks: {
-              color: textColor200,
-              font: {
-                family: 'Merriweather',
-                size: 12
-              }
-            },
-            grid: {
-              color: `${textColor200}1A`, // 10% opacity
-              borderColor: textColor200
-            }
-          },          y: {
+                ticks: {
+                  color: textColor200,
+                  font: {
+                    family: 'Merriweather',
+                    size: 12
+                  },
+                  callback: function(value, index, ticks) {
+                    const label = this.getLabelForValue(value);
+                    return label.slice(-2);
+                  }
+                },
+                grid: {
+                  color: `${textColor200}1A`, // 10% opacity
+                  borderColor: textColor200
+                }
+              },          y: {
             ticks: {
               color: textColor200,
               font: {
@@ -194,15 +236,24 @@ const { report } = Astro.props as Props;
       }
     });
 
+    // Formatear valores del slider (ej: 1M, 1.2K)
+    function formatSliderValue(num) {
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + 'M';
+      } else if (num >= 1000) {
+        return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + 'K';
+      }
+      return num.toLocaleString('es-PE', { maximumFractionDigits: 0 });
+    }
     const range = document.getElementById('goalRange');
     const label = document.getElementById('goalValue');
     
     if (range && label) {
-      label.textContent = `S/ ${Number(range.value).toLocaleString('es-PE')}`;
+      label.textContent = `S/ ${formatSliderValue(Number(range.value))}`;
 
       range.addEventListener('input', () => {
         const goal = parseInt(range.value, 10);
-        label.textContent = `S/ ${goal.toLocaleString('es-PE')}`;
+        label.textContent = `S/ ${formatSliderValue(goal)}`;
         const d = computeData(goal);
         chart.data.labels = d.labels;
         chart.data.datasets[0].data = d.seriesA;
@@ -280,7 +331,7 @@ const { report } = Astro.props as Props;
       height: 10px;
     }
   }  .goal-slider {
-    padding: theme('spacing.standard');
+    padding: 0.6rem theme('spacing.standard') theme('spacing.standard') theme('spacing.standard');
     display: flex;
     align-items: center;
     gap: 0.75rem;
