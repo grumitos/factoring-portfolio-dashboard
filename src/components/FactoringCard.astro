@@ -129,7 +129,11 @@ const { contracts } = getFactoringMetrics();
     const list = filterContracts(tab, searchInput.value || '');
     if (!tbody || !thead) return;
     updateHeader(tab, list);
-    updatePagination(list);
+    if (tab === 'potential-earnings') {
+      pagination?.classList.add('hidden');
+    } else {
+      updatePagination(list);
+    }
     tbody.innerHTML = '';
 
     if (tab === 'potential-earnings') {
