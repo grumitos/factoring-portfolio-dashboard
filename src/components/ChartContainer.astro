@@ -299,11 +299,10 @@ const { report } = Astro.props as Props;
     display: flex;
     gap: theme('spacing.standard');
     align-items: center;
-  }
-  .legend-item {
+  }  .legend-item {
     display: flex;
     align-items: center;
-    gap: theme('spacing.compact');
+    gap: 0.375rem;
   }
   .legend-dot {
     width: 0.75rem;
@@ -315,17 +314,71 @@ const { report } = Astro.props as Props;
     font-size: 0.875rem;
     color: theme('colors.text.200');
     font-weight: 500;
-  }
-  @media (max-width: 640px) {
+  }  @media (max-width: 640px) {
+    .card-header {
+      padding: theme('spacing.compact');
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .header-left {
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    
     .chart-legend {
       gap: theme('spacing.compact');
+      flex-shrink: 0;
     }
+    
+    .legend-item {
+      gap: 0.25rem;
+    }
+    
     .legend-label {
       font-size: 0.75rem;
+      white-space: nowrap;
     }
+    
     .legend-dot {
       width: 0.625rem;
       height: 0.625rem;
+      flex-shrink: 0;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .card-header {
+      padding: theme('spacing.compact');
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .header-left {
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+    
+    .chart-legend {
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+    
+    .legend-item {
+      gap: 0.2rem;
+    }
+    
+    .legend-label {
+      font-size: 0.65rem;
+      white-space: nowrap;
+    }
+    
+    .legend-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      flex-shrink: 0;
     }
   }
   .goal-slider {

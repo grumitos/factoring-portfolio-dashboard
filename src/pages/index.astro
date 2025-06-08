@@ -13,9 +13,8 @@ const { months } = getTimeToGoalWithInjection(report, goal, 6000);
 const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
-<Layout title="Proyección de Inversiones">
-	<main class="main-content mx-auto w-full">		<div class="dashboard-content">
-			<div class="grid grid-cols-2 gap-standard mb-standard">
+<Layout title="Proyección de Inversiones">	<main class="main-content mx-auto w-full">		<div class="dashboard-content">
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-standard mb-standard">
 				<SummaryCard
 					class="summary-soles-card"
 					title="Total en Soles"

@@ -469,18 +469,26 @@ const { contracts } = getFactoringMetrics();
     opacity: 0.5;
     cursor: default;
   }
-  
-  /* Responsive styles */
+    /* Responsive styles */
   @media (max-width: 640px) {
     .card-header {
       padding: theme('spacing.compact');
-      flex-direction: column;
-      align-items: flex-start;
+      flex-wrap: nowrap;
+      align-items: center;
       gap: 0.5rem;
     }
     
     .header-left {
       gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    
+    .header-right {
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
     
     .search-container {
@@ -556,7 +564,28 @@ const { contracts } = getFactoringMetrics();
       font-size: 0.875rem;
     }
   }
-    @media (max-width: 480px) {
+  @media (max-width: 480px) {
+    .card-header {
+      padding: theme('spacing.compact');
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .header-left {
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+    
+    .header-right {
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      font-size: 0.75rem;
+    }
+    
     .tab {
       padding: 0.5rem 0.2rem;
       font-size: 0.75rem;
