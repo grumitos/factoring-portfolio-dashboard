@@ -99,6 +99,19 @@ const { contracts } = getFactoringMetrics();
     });
   }
 
+  function sortContracts(list, tab) {
+    const byDate = (a, b) => new Date(a.fechaPago) - new Date(b.fechaPago);
+    if (tab === 'pending' || tab === 'paid') {
+      return [...list].sort(byDate);
+    }
+    if (tab === 'all') {
+      const pending = list.filter(c => c.estado.toLowerCase() !== 'cobrado').sort(byDate);
+      const paid = list.filter(c => c.estado.toLowerCase() === 'cobrado').sort(byDate);
+      return [...pending, ...paid];
+    }
+    return list;
+  }
+
   function updateHeader(tab, list) {
     if (!headerInfo) return;
     if (tab === 'pending') {
@@ -126,7 +139,8 @@ const { contracts } = getFactoringMetrics();
   function render(tab) {
     currentTab = tab;
     tabs.forEach(tb => tb.classList.toggle('active', tb.dataset.tab === tab));
-    const list = filterContracts(tab, searchInput.value || '');
+    const filtered = filterContracts(tab, searchInput.value || '');
+    const list = sortContracts(filtered, tab);
     if (!tbody || !thead) return;
     updateHeader(tab, list);
     if (tab === 'potential-earnings') {
