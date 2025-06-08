@@ -35,12 +35,13 @@ const { contracts } = getFactoringMetrics();
         <tr>
           <th>Cliente</th>
           <th>Fecha Pago</th>
+          <th>Estado</th>
           <th>Ganancia</th>
         </tr>
       </thead>
       <tbody id="factoring-details">
         <tr class="waiting-state-row">
-          <td colspan="3">
+          <td colspan="4">
             <div class="empty-state waiting-message">
               <span class="svg-icon">
                 <IconSVG name="touch" />
@@ -166,10 +167,10 @@ const { contracts } = getFactoringMetrics();
         tbody.appendChild(row);
       });
       return;
-    }    thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
+    }    thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th>Estado</th><th style="text-align: right;">Ganancia</th></tr>';
     if (list.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="3"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
+      row.innerHTML = `<td colspan="4"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
       tbody.appendChild(row);
       return;
     }
@@ -177,7 +178,9 @@ const { contracts } = getFactoringMetrics();
     const paginated = list.slice(start, start + ITEMS_PER_PAGE);
     paginated.forEach(c => {
       const row = document.createElement('tr');
-      row.innerHTML = `<td>${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
+      const status = c.estado.toLowerCase();
+      const cls = status === 'cobrado' ? 'paid' : (status === 'rechazado' ? 'rejected' : 'pending');
+      row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td><span class="status ${cls}">${c.estado}</span></td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
       tbody.appendChild(row);
     });
   }
@@ -323,24 +326,36 @@ const { contracts } = getFactoringMetrics();
     border-collapse: collapse;
     table-layout: fixed;
   }
-  
-  .details-table th:nth-child(1),
-  .details-table td:nth-child(1) {
-    width: 50%;
-    min-width: 120px;
+
+  .details-table tr:nth-child(even) {
+    background-color: theme('colors.bg.200');
   }
   
-  .details-table th:nth-child(2),
-  .details-table td:nth-child(2) {
-    width: 25%;
-    min-width: 100px;
-  }
-  
-  .details-table th:nth-child(3),
-  .details-table td:nth-child(3) {
-    width: 25%;
-    min-width: 100px;
-  }.details-table th {
+.details-table th:nth-child(1),
+.details-table td:nth-child(1) {
+  width: 40%;
+  min-width: 120px;
+}
+
+.details-table th:nth-child(2),
+.details-table td:nth-child(2) {
+  width: 20%;
+  min-width: 100px;
+}
+
+.details-table th:nth-child(3),
+.details-table td:nth-child(3) {
+  width: 20%;
+  min-width: 80px;
+}
+
+.details-table th:nth-child(4),
+.details-table td:nth-child(4) {
+  width: 20%;
+  min-width: 100px;
+}
+
+.details-table th {
     padding: 0.75rem theme('spacing.standard');
     text-align: left;
     color: theme('colors.text.300');
@@ -363,8 +378,34 @@ const { contracts } = getFactoringMetrics();
   }
   
   .details-table td:nth-child(2),
-  .details-table td:nth-child(3) {
+  .details-table td:nth-child(3),
+  .details-table td:nth-child(4) {
     text-align: right;
+  }
+
+  .client-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status.paid {
+    color: #d97706;
+  }
+
+  .status.pending {
+    color: #d97706;
+  }
+
+  .status.rejected {
+    color: #dc2626;
   }
   .waiting-state-row td {
     padding: 2rem 1rem;
@@ -462,15 +503,26 @@ const { contracts } = getFactoringMetrics();
     
     .details-table th:nth-child(1),
     .details-table td:nth-child(1) {
-      width: 45%;
-      min-width: 100px;
+      width: 40%;
+      min-width: 90px;
     }
-    
+
     .details-table th:nth-child(2),
-    .details-table td:nth-child(2),
+    .details-table td:nth-child(2) {
+      width: 20%;
+      min-width: 70px;
+    }
+
     .details-table th:nth-child(3),
     .details-table td:nth-child(3) {
-      width: 27.5%;
+      width: 20%;
+      min-width: 70px;
+      font-size: 0.8rem;
+    }
+
+    .details-table th:nth-child(4),
+    .details-table td:nth-child(4) {
+      width: 20%;
       min-width: 80px;
       font-size: 0.8rem;
     }
@@ -515,11 +567,13 @@ const { contracts } = getFactoringMetrics();
       padding: 0.4rem theme('spacing.compact');
       font-size: 0.8rem;
     }
-    
+
     .details-table th:nth-child(2),
     .details-table td:nth-child(2),
     .details-table th:nth-child(3),
-    .details-table td:nth-child(3) {
+    .details-table td:nth-child(3),
+    .details-table th:nth-child(4),
+    .details-table td:nth-child(4) {
       font-size: 0.75rem;
     }
   }
