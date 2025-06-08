@@ -121,6 +121,7 @@ const { contracts } = getFactoringMetrics();
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
     pagination.classList.toggle('hidden', totalPages <= 1);
+    pagination.style.display = totalPages <= 1 ? 'none' : '';
   }
 
   function render(tab) {
@@ -130,7 +131,10 @@ const { contracts } = getFactoringMetrics();
     if (!tbody || !thead) return;
     updateHeader(tab, list);
     if (tab === 'potential-earnings') {
-      pagination?.classList.add('hidden');
+      if (pagination) {
+        pagination.classList.add('hidden');
+        pagination.style.display = 'none';
+      }
     } else {
       updatePagination(list);
     }
