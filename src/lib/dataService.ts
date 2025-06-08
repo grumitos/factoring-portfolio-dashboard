@@ -84,6 +84,7 @@ const buildEarningsArray = (): Earning[] => [
 const buildInvestmentsArray = (): InvestmentDetail[] =>
   (investmentsJson as any[]).map((e: any) => ({
     codigo: e['Codigo de subasta'],
+    cliente: e['Cliente'],
     fechaIngreso: `${e['Fecha']}T${e['Hora']}`,
     fechaPago: e['Fecha de pago'],
     inversion: e['Inversion'],
@@ -297,6 +298,53 @@ export const getReportMetrics = async (
   const totalInvestedPen = report.netPen + report.netUsd * defaultFxRate;
   const progressPct = (totalInvestedPen / goalPen) * 100;
   return { report, progressPct };
+};
+
+export type FactoringContract = InvestmentDetail & { gainPen: number };
+
+export const getFactoringContracts = (
+  defaultFxRate = 3.7
+): FactoringContract[] => {
+  const investments = buildInvestmentsArray();
+  const earnings = buildEarningsArray();
+
+  const earnMap = new Map<string, { monto: number; fx: number }[]>();
+  earnings.forEach(e => {
+    const fx = e.moneda === 'USD' ? (e.fxRate ?? defaultFxRate) : 1;
+    earnMap.set(e.codigo, [
+      ...(earnMap.get(e.codigo) || []),
+      { monto: e.monto, fx }
+    ]);
+  });
+
+  return investments.map(inv => {
+    const fxInv = inv.moneda === 'USD' ? (inv.fxRate ?? defaultFxRate) : 1;
+    const principalPen = toPen(inv.inversion, fxInv);
+    const start = parseISO(inv.fechaIngreso);
+    const end = parseISO(inv.fechaPago);
+
+    let gainPen = 0;
+    const real = earnMap.get(inv.codigo);
+    if (real) {
+      real.forEach(r => {
+        gainPen += toPen(r.monto, r.fx);
+      });
+    } else {
+      const months = monthsBetween(start, end);
+      gainPen = principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1);
+    }
+
+    return { ...inv, gainPen };
+  });
+};
+
+export const getFactoringMetrics = (defaultFxRate = 3.7) => {
+  const contracts = getFactoringContracts(defaultFxRate);
+  const valid = contracts.filter(c => c.estado.toLowerCase() !== 'rechazado');
+  const pending = valid.filter(c => c.estado.toLowerCase() !== 'cobrado').length;
+  const paid = valid.filter(c => c.estado.toLowerCase() === 'cobrado').length;
+  const totalGain = valid.reduce((s, c) => s + c.gainPen, 0);
+  return { contracts, pending, paid, total: valid.length, totalGain };
 };
 
 /**

@@ -3,6 +3,7 @@ import { parseISO, differenceInMilliseconds } from 'date-fns';
 
 export interface InvestmentDetail {
   codigo: string;
+  cliente: string;
   fechaIngreso: string;
   fechaPago: string;
   inversion: number;
