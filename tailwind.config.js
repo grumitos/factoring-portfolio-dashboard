@@ -8,9 +8,9 @@ export default {
       borderWidth: {
         '0.5': '0.5px',
       },      spacing: {
-        'standard': '1rem',    // Padding estándar para componentes (reducido 25%)
-        'compact': '0.8rem',    // Para espacios más pequeños (reducido 25%)
-        'wide': '1.2rem',      // Para espacios más amplios (reducido 25%)
+        'standard': '1rem',    // Standard padding for components
+        'compact': '0.8rem',    // Tight spacing for compact areas
+        'wide': '1.2rem',      // Extra space for roomy layouts
       },
       colors: {
         // Backgrounds (del más oscuro al más claro)
