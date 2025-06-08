@@ -1,5 +1,8 @@
 ---
 import IconSVG from './IconSVG.astro';
+import { getFactoringMetrics, type FactoringContract } from '../lib/dataService';
+
+const { contracts, pending, paid, total, totalGain } = getFactoringMetrics();
 ---
 
 <section class="investment-card card">
@@ -11,7 +14,7 @@ import IconSVG from './IconSVG.astro';
       <h4 class="text-text-100">Factoring</h4>
     </div>
     <div class="header-right text-sm font-medium text-text-300" id="factoring-contracts-count">
-      <span>Contando...</span>
+      <span>Pendientes: {pending} &bull; Pagados: {paid} &bull; Total: {total} &bull; Ganancias: {new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(totalGain)}</span>
     </div>
   </div>
   
@@ -52,6 +55,69 @@ import IconSVG from './IconSVG.astro';
     </table>
   </div>
 </section>
+
+<script define:vars={{ contracts }}>
+  const data = contracts;
+  let currentTab = '';
+  const tbody = document.getElementById('factoring-details');
+  const searchInput = document.getElementById('search-contracts');
+  const clearBtn = document.getElementById('clear-search');
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+
+  function formatCurrency(v) {
+    return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+  }
+
+  function filterContracts(tab, term) {
+    const t = term.trim().toLowerCase();
+    return data.filter(c => {
+      if (tab === 'pending') {
+        if (c.estado.toLowerCase() === 'cobrado' || c.estado.toLowerCase() === 'rechazado') return false;
+      } else if (tab === 'paid') {
+        if (c.estado.toLowerCase() !== 'cobrado') return false;
+      } else if (tab === 'all') {
+        if (c.estado.toLowerCase() === 'rechazado') return false;
+      } else if (tab === 'potential-earnings') {
+        if (c.estado.toLowerCase() === 'rechazado') return false;
+      }
+      if (!t) return true;
+      return c.cliente.toLowerCase().includes(t) || c.codigo.toLowerCase().includes(t);
+    });
+  }
+
+  function render(tab) {
+    currentTab = tab;
+    tabs.forEach(tb => tb.classList.toggle('active', tb.dataset.tab === tab));
+    const list = filterContracts(tab, searchInput.value || '');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (list.length === 0) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td colspan="3"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
+      tbody.appendChild(row);
+      return;
+    }
+    list.forEach(c => {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${c.cliente}</td><td>${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td>${formatCurrency(c.gainPen)}</td>`;
+      tbody.appendChild(row);
+    });
+  }
+
+  tabs.forEach(tb => tb.addEventListener('click', () => render(tb.dataset.tab)));
+  searchInput?.addEventListener('input', () => render(currentTab));
+  clearBtn?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    render(currentTab);
+  });
+
+  // Mostrar inicialmente los contratos pendientes
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => render('pending'));
+  } else {
+    render('pending');
+  }
+</script>
 
 <style>
   .investment-card {
