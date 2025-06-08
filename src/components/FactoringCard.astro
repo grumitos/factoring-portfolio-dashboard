@@ -5,9 +5,8 @@ import { getFactoringMetrics, type FactoringContract } from '../lib/dataService'
 const { contracts } = getFactoringMetrics();
 ---
 
-<section class="investment-card card">
-  <div class="card-header flex-between">
-    <div class="header-left flex">
+<section class="investment-card card">  <div class="card-header flex-between">
+    <div class="header-left flex-center">
       <span class="svg-icon text-accent-main-000">
         <IconSVG name="document" />
       </span>
@@ -138,10 +137,8 @@ const { contracts } = getFactoringMetrics();
     } else {
       updatePagination(list);
     }
-    tbody.innerHTML = '';
-
-    if (tab === 'potential-earnings') {
-      thead.innerHTML = '<tr><th>Estado</th><th>Contratos</th><th>Ganancia</th></tr>';
+    tbody.innerHTML = '';    if (tab === 'potential-earnings') {
+      thead.innerHTML = '<tr><th>Estado</th><th style="text-align: right;">Contratos</th><th style="text-align: right;">Ganancia</th></tr>';
       const pending = list.filter(c => c.estado.toLowerCase() !== 'cobrado');
       const paid = list.filter(c => c.estado.toLowerCase() === 'cobrado');
       const rows = [
@@ -151,13 +148,11 @@ const { contracts } = getFactoringMetrics();
       ];
       rows.forEach(r => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td>${r.label}</td><td>${r.count}</td><td>${formatCurrency(r.gain)}</td>`;
+        row.innerHTML = `<td>${r.label}</td><td style="text-align: right;">${r.count}</td><td style="text-align: right;">${formatCurrency(r.gain)}</td>`;
         tbody.appendChild(row);
       });
       return;
-    }
-
-    thead.innerHTML = '<tr><th>Cliente</th><th>Fecha Pago</th><th>Ganancia</th></tr>';
+    }    thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
     if (list.length === 0) {
       const row = document.createElement('tr');
       row.innerHTML = `<td colspan="3"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
@@ -168,7 +163,7 @@ const { contracts } = getFactoringMetrics();
     const paginated = list.slice(start, start + ITEMS_PER_PAGE);
     paginated.forEach(c => {
       const row = document.createElement('tr');
-      row.innerHTML = `<td>${c.cliente}</td><td>${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td>${formatCurrency(c.gainPen)}</td>`;
+      row.innerHTML = `<td>${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
       tbody.appendChild(row);
     });
   }
@@ -207,14 +202,21 @@ const { contracts } = getFactoringMetrics();
   }
 </script>
 
-<style is:global>
-  .investment-card {
+<style is:global>  .investment-card {
     width: 100%;
+    max-width: 100%;
     overflow: hidden;
+    box-sizing: border-box;
   }
-    .card-header {
+  
+  .card-header {
     padding: theme('spacing.standard');
     border-bottom: 0.5px solid theme('colors.border.300');
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   
   .header-left {
@@ -228,16 +230,10 @@ const { contracts } = getFactoringMetrics();
     height: 1.5rem;
     width: 1.5rem;
   }
-  
   .tabs-container {
     min-height: 2.5rem;
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    justify-content: center;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
   
@@ -251,37 +247,40 @@ const { contracts } = getFactoringMetrics();
     cursor: pointer;
     color: theme('colors.text.300');
     transition: all 0.2s ease;
+    font-size: 0.875rem;
   }
   
   .tab:hover, .tab.active {
     color: theme('colors.text.100');
     background-color: theme('colors.bg.300');
-  }
-  .search-container {
-    padding: theme('spacing.standard');
+  }  .search-container {
+    padding: theme('spacing.compact');
     display: flex;
+    align-items: center;
+    gap: 0.5rem;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
   
   .search-input {
     flex: 1;
+    min-width: 0;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
     border: 0.5px solid theme('colors.border.300');
     background-color: theme('colors.bg.200');
     color: theme('colors.text.100');
     font-size: 0.875rem;
+    box-sizing: border-box;
   }
   
   .search-input:focus {
     outline: none;
     border-color: theme('colors.border.200');
   }
-  
-  .clear-search-btn {
-    margin-left: 0.5rem;
+    .clear-search-btn {
     width: 2rem;
     height: 2rem;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -298,18 +297,37 @@ const { contracts } = getFactoringMetrics();
     background-color: theme('colors.bg.400');
     color: theme('colors.text.100');
   }
-  
-  .card-details {
+    .card-details {
     padding: 0;
-    overflow-x: auto;
+    overflow: hidden;
+    width: 100%;
   }
   
   .details-table {
     width: 100%;
+    min-width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
   }
-  .details-table th {
-    padding: 1rem theme('spacing.standard');
+  
+  .details-table th:nth-child(1),
+  .details-table td:nth-child(1) {
+    width: 50%;
+    min-width: 120px;
+  }
+  
+  .details-table th:nth-child(2),
+  .details-table td:nth-child(2) {
+    width: 25%;
+    min-width: 100px;
+  }
+  
+  .details-table th:nth-child(3),
+  .details-table td:nth-child(3) {
+    width: 25%;
+    min-width: 100px;
+  }.details-table th {
+    padding: 0.75rem theme('spacing.standard');
     text-align: left;
     color: theme('colors.text.300');
     font-size: 0.875rem;
@@ -317,13 +335,25 @@ const { contracts } = getFactoringMetrics();
     border-bottom: 0.5px solid theme('colors.border.300');
   }
   
+  .details-table th:nth-child(2),
+  .details-table th:nth-child(3) {
+    text-align: right;
+  }
+  
   .details-table td {
-    padding: 1rem theme('spacing.standard');
+    padding: 0.75rem theme('spacing.standard');
     text-align: left;
     border-bottom: 0.5px solid theme('colors.border.300');
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
-    .waiting-state-row td {
-    padding: 3rem 1.5rem;
+  
+  .details-table td:nth-child(2),
+  .details-table td:nth-child(3) {
+    text-align: right;
+  }
+  .waiting-state-row td {
+    padding: 2rem 1rem;
   }
   
   .empty-state {
@@ -332,7 +362,8 @@ const { contracts } = getFactoringMetrics();
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2rem 0;
+    padding: 1.5rem 0;
+    min-height: 120px;
   }
   
   .empty-state .svg-icon {
@@ -379,9 +410,103 @@ const { contracts } = getFactoringMetrics();
   .page-btn:hover:not(:disabled) {
     background-color: theme('colors.bg.400');
   }
-
   .page-btn:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 640px) {
+    .card-header {
+      padding: theme('spacing.compact');
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    
+    .header-left {
+      gap: 0.5rem;
+    }
+    
+    .search-container {
+      padding: theme('spacing.compact');
+    }
+    
+    .search-input {
+      font-size: 1rem; /* Evita zoom en iOS */
+    }
+      .tab {
+      padding: 0.5rem 0.25rem;
+      font-size: 0.8rem;
+    }
+    
+    .details-table th,
+    .details-table td {
+      padding: 0.5rem theme('spacing.compact');
+      font-size: 0.875rem;
+    }
+    
+    .details-table th:nth-child(1),
+    .details-table td:nth-child(1) {
+      width: 45%;
+      min-width: 100px;
+    }
+    
+    .details-table th:nth-child(2),
+    .details-table td:nth-child(2),
+    .details-table th:nth-child(3),
+    .details-table td:nth-child(3) {
+      width: 27.5%;
+      min-width: 80px;
+      font-size: 0.8rem;
+    }
+    
+    .empty-state {
+      padding: 1rem 0;
+      min-height: 100px;
+    }
+    
+    .empty-state .svg-icon {
+      height: 2.5rem;
+      width: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .primary-text {
+      font-size: 0.9rem;
+    }
+    
+    .secondary-text {
+      font-size: 0.8rem;
+    }
+    
+    .pagination {
+      padding: theme('spacing.compact');
+      gap: 0.5rem;
+    }
+    
+    .page-btn {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+    }
+  }
+    @media (max-width: 480px) {
+    .tab {
+      padding: 0.5rem 0.2rem;
+      font-size: 0.75rem;
+    }
+    
+    .details-table th,
+    .details-table td {
+      padding: 0.4rem theme('spacing.compact');
+      font-size: 0.8rem;
+    }
+    
+    .details-table th:nth-child(2),
+    .details-table td:nth-child(2),
+    .details-table th:nth-child(3),
+    .details-table td:nth-child(3) {
+      font-size: 0.75rem;
+    }
   }
 </style>
