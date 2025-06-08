@@ -53,6 +53,11 @@ const { contracts } = getFactoringMetrics();
         </tr>
       </tbody>
     </table>
+    <div class="pagination hidden" id="pagination">
+      <button id="prev-page" class="page-btn">&lt;</button>
+      <span id="page-info"></span>
+      <button id="next-page" class="page-btn">&gt;</button>
+    </div>
   </div>
 </section>
 
@@ -65,6 +70,13 @@ const { contracts } = getFactoringMetrics();
   const searchInput = document.getElementById('search-contracts');
   const clearBtn = document.getElementById('clear-search');
   const tabs = Array.from(document.querySelectorAll('.tab'));
+  const pagination = document.getElementById('pagination');
+  const prevBtn = document.getElementById('prev-page');
+  const nextBtn = document.getElementById('next-page');
+  const pageInfo = document.getElementById('page-info');
+  const ITEMS_PER_PAGE = 10;
+  let currentPage = 1;
+  let totalPages = 1;
 
 
   function formatCurrency(v) {
@@ -102,12 +114,22 @@ const { contracts } = getFactoringMetrics();
     }
   }
 
+  function updatePagination(list) {
+    if (!pagination) return;
+    totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
+    pageInfo.textContent = `${currentPage} / ${totalPages}`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
+    pagination.classList.toggle('hidden', totalPages <= 1);
+  }
+
   function render(tab) {
     currentTab = tab;
     tabs.forEach(tb => tb.classList.toggle('active', tb.dataset.tab === tab));
     const list = filterContracts(tab, searchInput.value || '');
     if (!tbody || !thead) return;
     updateHeader(tab, list);
+    updatePagination(list);
     tbody.innerHTML = '';
 
     if (tab === 'potential-earnings') {
@@ -134,18 +156,39 @@ const { contracts } = getFactoringMetrics();
       tbody.appendChild(row);
       return;
     }
-    list.forEach(c => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginated = list.slice(start, start + ITEMS_PER_PAGE);
+    paginated.forEach(c => {
       const row = document.createElement('tr');
       row.innerHTML = `<td>${c.cliente}</td><td>${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td>${formatCurrency(c.gainPen)}</td>`;
       tbody.appendChild(row);
     });
   }
 
-  tabs.forEach(tb => tb.addEventListener('click', () => render(tb.dataset.tab)));
-  searchInput?.addEventListener('input', () => render(currentTab));
+  tabs.forEach(tb => tb.addEventListener('click', () => {
+    currentPage = 1;
+    render(tb.dataset.tab);
+  }));
+  searchInput?.addEventListener('input', () => {
+    currentPage = 1;
+    render(currentTab);
+  });
   clearBtn?.addEventListener('click', () => {
     if (searchInput) searchInput.value = '';
+    currentPage = 1;
     render(currentTab);
+  });
+  prevBtn?.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      render(currentTab);
+    }
+  });
+  nextBtn?.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      render(currentTab);
+    }
   });
 
   // Mostrar inicialmente los contratos pendientes
@@ -304,5 +347,33 @@ const { contracts } = getFactoringMetrics();
   /* Override the margin-bottom from the base card class to eliminate the extra space */
   .investment-card.card {
     margin-bottom: 0;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: theme('spacing.standard');
+    border-top: 0.5px solid theme('colors.border.300');
+  }
+
+  .page-btn {
+    padding: 0.25rem 0.5rem;
+    border: 0.5px solid theme('colors.border.300');
+    background-color: theme('colors.bg.300');
+    color: theme('colors.text.100');
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .page-btn:hover:not(:disabled) {
+    background-color: theme('colors.bg.400');
+  }
+
+  .page-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 </style>
