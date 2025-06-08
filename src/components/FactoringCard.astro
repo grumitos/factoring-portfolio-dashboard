@@ -2,7 +2,7 @@
 import IconSVG from './IconSVG.astro';
 import { getFactoringMetrics, type FactoringContract } from '../lib/dataService';
 
-const { contracts, pending, paid, total, totalGain } = getFactoringMetrics();
+const { contracts } = getFactoringMetrics();
 ---
 
 <section class="investment-card card">
