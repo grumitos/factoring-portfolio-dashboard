@@ -45,3 +45,15 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## Portfolio Calculation Utilities
+
+The library in `src/lib/portfolioUtils.ts` provides helpers for computing an
+annualized return across multiple investments.
+
+- `calculateAnnualizedPortfolioRate(investments, earnings, fxRate)` – ignores
+  contracts whose state (`estado`) is `cobrado` or `rechazado`.
+- `calculateAnnualizedPortfolioRateAll(investments, earnings, fxRate)` – similar
+  to the above but includes contracts marked as `cobrado`.
+
+Both functions return the weighted annualized rate as a percentage.

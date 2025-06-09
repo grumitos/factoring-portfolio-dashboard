@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { toPen, annualRateForContract, calculateAnnualizedPortfolioRate } from './portfolioUtils';
+import {
+  toPen,
+  annualRateForContract,
+  calculateAnnualizedPortfolioRate,
+  calculateAnnualizedPortfolioRateAll
+} from './portfolioUtils';
 import { getTimeToGoalWithInjection, getGoalProjection, getInjectionTrendLabel } from './dataService';
 import type { InvestmentDetail, Earning } from './portfolioUtils';
 import type { PortfolioReport } from './dataService';
@@ -59,6 +64,82 @@ describe('calculateAnnualizedPortfolioRate', () => {
     ];
 
     const rate = calculateAnnualizedPortfolioRate(investments, earnings, 1);
+    expect(rate).toBeCloseTo(19.98, 2);
+  });
+
+  it('ignores contracts marked as paid', () => {
+  const investments: InvestmentDetail[] = [
+    {
+      codigo: 'A1',
+      cliente: 'c',
+      fechaIngreso: '2024-01-01T00:00:00',
+      fechaPago: '2024-03-01',
+      inversion: 1000,
+      moneda: 'PEN',
+      retornoMensualPct: 2,
+      estado: 'cobrado'
+    },
+    {
+      codigo: 'A2',
+      cliente: 'c',
+      fechaIngreso: '2024-05-01T00:00:00',
+      fechaPago: '2024-08-01',
+      inversion: 2000,
+      moneda: 'PEN',
+      retornoMensualPct: 1,
+      estado: 'pendiente'
+    }
+  ];
+
+  const earnings: Earning[] = [
+    {
+      codigo: 'A1',
+      monto: 50,
+      fecha: '2024-03-01',
+      moneda: 'PEN'
+    }
+  ];
+
+  const rate = calculateAnnualizedPortfolioRate(investments, earnings, 1);
+  expect(rate).toBeCloseTo(12.68, 2);
+  });
+});
+
+describe('calculateAnnualizedPortfolioRateAll', () => {
+  it('includes paid contracts in the calculation', () => {
+    const investments: InvestmentDetail[] = [
+      {
+        codigo: 'A1',
+        cliente: 'c',
+        fechaIngreso: '2024-01-01T00:00:00',
+        fechaPago: '2024-03-01',
+        inversion: 1000,
+        moneda: 'PEN',
+        retornoMensualPct: 2,
+        estado: 'cobrado'
+      },
+      {
+        codigo: 'A2',
+        cliente: 'c',
+        fechaIngreso: '2024-05-01T00:00:00',
+        fechaPago: '2024-08-01',
+        inversion: 2000,
+        moneda: 'PEN',
+        retornoMensualPct: 1,
+        estado: 'pendiente'
+      }
+    ];
+
+    const earnings: Earning[] = [
+      {
+        codigo: 'A1',
+        monto: 50,
+        fecha: '2024-03-01',
+        moneda: 'PEN'
+      }
+    ];
+
+    const rate = calculateAnnualizedPortfolioRateAll(investments, earnings, 1);
     expect(rate).toBeCloseTo(19.98, 2);
   });
 });
