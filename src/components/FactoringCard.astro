@@ -80,7 +80,7 @@ const { contracts } = getFactoringMetrics();
 
 
   function formatCurrency(v) {
-    return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+    return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(v);
   }
 
   function filterContracts(tab, term) {
@@ -167,10 +167,17 @@ const { contracts } = getFactoringMetrics();
         tbody.appendChild(row);
       });
       return;
-    }    thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th>Estado</th><th style="text-align: right;">Ganancia</th></tr>';
+    }    // Show Estado column only for 'all' tab
+    if (tab === 'all') {
+      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th>Estado</th><th style="text-align: right;">Ganancia</th></tr>';
+    } else {
+      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
+    }
     if (list.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="4"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
+      // Adjust colspan based on Estado column
+      const colspan = tab === 'all' ? 4 : 3;
+      row.innerHTML = `<td colspan="${colspan}"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
       tbody.appendChild(row);
       return;
     }
@@ -178,9 +185,14 @@ const { contracts } = getFactoringMetrics();
     const paginated = list.slice(start, start + ITEMS_PER_PAGE);
     paginated.forEach(c => {
       const row = document.createElement('tr');
+      // Render row with or without Estado column
       const status = c.estado.toLowerCase();
       const cls = status === 'cobrado' ? 'paid' : (status === 'rechazado' ? 'rejected' : 'pending');
-      row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td><span class="status ${cls}">${c.estado}</span></td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
+      if (tab === 'all') {
+        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td><span class="status ${cls}">${c.estado}</span></td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
+      } else {
+        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
+      }
       tbody.appendChild(row);
     });
   }
