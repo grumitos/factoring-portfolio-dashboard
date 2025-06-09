@@ -49,10 +49,11 @@ export const annualRateForContract = (
 /**
  * Calcula tasa anual promedio ponderada de contratos pendientes
  */
-export const calculateAnnualizedPortfolioRate = (
+const calculateAnnualizedPortfolioRateInternal = (
   investments: InvestmentDetail[],
   earnings: Earning[],
-  defaultFxRate: number
+  defaultFxRate: number,
+  includePaid: boolean
 ): number => {
   const earningMap = new Map<string, { amountPen: number; date: Date }>();
   earnings.forEach(e => {
@@ -67,7 +68,8 @@ export const calculateAnnualizedPortfolioRate = (
 
   investments.forEach(inv => {
     const est = inv.estado.toLowerCase();
-    if (est === 'rechazado' || est === 'cobrado') return;
+    if (est === 'rechazado') return;
+    if (!includePaid && est === 'cobrado') return;
 
     const start = parseISO(inv.fechaIngreso);
     const planned = parseISO(inv.fechaPago);
@@ -94,3 +96,17 @@ export const calculateAnnualizedPortfolioRate = (
 
   return totalPrincipalPen > 0 ? (weightedSum / totalPrincipalPen) * 100 : 0;
 };
+
+export const calculateAnnualizedPortfolioRate = (
+  investments: InvestmentDetail[],
+  earnings: Earning[],
+  defaultFxRate: number
+): number =>
+  calculateAnnualizedPortfolioRateInternal(investments, earnings, defaultFxRate, false);
+
+export const calculateAnnualizedPortfolioRateAll = (
+  investments: InvestmentDetail[],
+  earnings: Earning[],
+  defaultFxRate: number
+): number =>
+  calculateAnnualizedPortfolioRateInternal(investments, earnings, defaultFxRate, true);
