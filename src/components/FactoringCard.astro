@@ -169,9 +169,9 @@ const { contracts } = getFactoringMetrics();
       return;
     }    // Show Estado column only for 'all' tab
     if (tab === 'all') {
-      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th>Estado</th><th style="text-align: right;">Ganancia</th></tr>';
+      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: center;">Fecha Pago</th><th>Estado</th><th style="text-align: right;">Ganancia</th></tr>';
     } else {
-      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: right;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
+      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: center;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
     }
     if (list.length === 0) {
       const row = document.createElement('tr');
@@ -189,9 +189,9 @@ const { contracts } = getFactoringMetrics();
       const status = c.estado.toLowerCase();
       const cls = status === 'cobrado' ? 'paid' : (status === 'rechazado' ? 'rejected' : 'pending');
       if (tab === 'all') {
-        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td><span class="status ${cls}">${c.estado}</span></td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
+        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: center;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td><span class="status ${cls}">${c.estado}</span></td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
       } else {
-        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: right;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
+        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: center;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
       }
       tbody.appendChild(row);
     });
@@ -337,6 +337,11 @@ const { contracts } = getFactoringMetrics();
     min-width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
+    /* column width variables for easy customization */
+    --col-cliente: 60%;
+    --col-fecha: 40%;
+    --col-estado: 20%;
+    --col-ganancia: 10%;
   }
 
   .details-table tr:nth-child(even) {
@@ -345,25 +350,25 @@ const { contracts } = getFactoringMetrics();
   
 .details-table th:nth-child(1),
 .details-table td:nth-child(1) {
-  width: 40%;
+  width: var(--col-cliente);
   min-width: 120px;
 }
 
 .details-table th:nth-child(2),
 .details-table td:nth-child(2) {
-  width: 20%;
+  width: var(--col-fecha);
   min-width: 100px;
 }
 
 .details-table th:nth-child(3),
 .details-table td:nth-child(3) {
-  width: 20%;
+  width: var(--col-estado);
   min-width: 80px;
 }
 
 .details-table th:nth-child(4),
 .details-table td:nth-child(4) {
-  width: 20%;
+  width: var(--col-ganancia);
   min-width: 100px;
 }
 
@@ -376,7 +381,10 @@ const { contracts } = getFactoringMetrics();
     border-bottom: 0.5px solid theme('colors.border.300');
   }
   
-  .details-table th:nth-child(2),
+  /* center Fecha Pago header, keep Estado right */
+  .details-table th:nth-child(2) {
+    text-align: center;
+  }
   .details-table th:nth-child(3) {
     text-align: right;
   }
@@ -389,7 +397,10 @@ const { contracts } = getFactoringMetrics();
     overflow-wrap: break-word;
   }
   
-  .details-table td:nth-child(2),
+  /* center Fecha Pago cells, keep others right */
+  .details-table td:nth-child(2) {
+    text-align: center;
+  }
   .details-table td:nth-child(3),
   .details-table td:nth-child(4) {
     text-align: right;
