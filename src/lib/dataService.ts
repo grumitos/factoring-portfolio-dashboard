@@ -19,8 +19,8 @@ interface Movement {
 
 /** Capital proveniente de otras fuentes de inversión */
 export const externalCapital = {
-  pen: 0,
-  usd: 0
+  pen: 5068 + 6336,
+  usd: 1728 + 568
 };
 
 /**
