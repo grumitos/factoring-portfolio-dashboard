@@ -17,6 +17,12 @@ interface Movement {
   fxRate?: number;
 }
 
+/** Capital proveniente de otras fuentes de inversión */
+export const externalCapital = {
+  pen: 0,
+  usd: 0
+};
+
 /**
  * Retorna el neto invertido en PEN y USD
  */
@@ -50,8 +56,8 @@ export const getNetInvestedByCurrency = () => {
   const freeUsd     = free(usdMovs, 'USD');
 
   return {
-    netPen: investedPen + freePen,
-    netUsd: investedUsd + freeUsd,
+    netPen: investedPen + freePen + externalCapital.pen,
+    netUsd: investedUsd + freeUsd + externalCapital.usd,
     investedPen,
     investedUsd,
     freePen,
