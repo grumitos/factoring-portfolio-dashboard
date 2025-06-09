@@ -146,6 +146,8 @@ export const getMonthlyGains = (defaultFxRate = 3.7) => {
   const now = new Date();
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(now.getMonth() - 1);
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   let realMonthlyPen = 0;
   let realMonthlyUsd = 0;
   let expectedMonthlyPen = 0;
@@ -165,10 +167,17 @@ export const getMonthlyGains = (defaultFxRate = 3.7) => {
   // calcular ganancia esperada de un mes para contratos pendientes por moneda
   investments.forEach(inv => {
     const est = inv.estado.toLowerCase();
-    if (est !== 'rechazado' && est !== 'cobrado') {
+    const payment = parseISO(inv.fechaPago);
+    if (
+      est !== 'rechazado' &&
+      est !== 'cobrado' &&
+      payment >= thisMonthStart &&
+      payment < nextMonthStart
+    ) {
       if (inv.moneda === 'USD') {
         expectedMonthlyUsd += inv.inversion * (inv.retornoMensualPct / 100);
-        expectedMonthlyPen += inv.inversion * (inv.fxRate ?? defaultFxRate) * (inv.retornoMensualPct / 100);
+        expectedMonthlyPen +=
+          inv.inversion * (inv.fxRate ?? defaultFxRate) * (inv.retornoMensualPct / 100);
       } else {
         expectedMonthlyPen += inv.inversion * (inv.retornoMensualPct / 100);
       }
