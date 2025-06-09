@@ -51,9 +51,10 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
 The library in `src/lib/portfolioUtils.ts` provides helpers for computing an
 annualized return across multiple investments.
 
-- `calculateAnnualizedPortfolioRate(investments, earnings, fxRate)` – ignores
-  contracts whose state (`estado`) is `cobrado` or `rechazado`.
-- `calculateAnnualizedPortfolioRateAll(investments, earnings, fxRate)` – similar
-  to the above but includes contracts marked as `cobrado`.
+- `calculateAnnualizedPortfolioRate(investments, earnings, fxRate, includePaid = false)` –
+  when `includePaid` is `false`, contracts whose state (`estado`) is `cobrado` or
+  `rechazado` are ignored. Pass `true` to include them.
+- `calculateAnnualizedPortfolioRateAll` – alias for calling `calculateAnnualizedPortfolioRate`
+  with `includePaid` set to `true`.
 
 Both functions return the weighted annualized rate as a percentage.

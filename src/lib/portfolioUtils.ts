@@ -100,13 +100,19 @@ const calculateAnnualizedPortfolioRateInternal = (
 export const calculateAnnualizedPortfolioRate = (
   investments: InvestmentDetail[],
   earnings: Earning[],
-  defaultFxRate: number
+  defaultFxRate: number,
+  includePaid = false
 ): number =>
-  calculateAnnualizedPortfolioRateInternal(investments, earnings, defaultFxRate, false);
+  calculateAnnualizedPortfolioRateInternal(
+    investments,
+    earnings,
+    defaultFxRate,
+    includePaid
+  );
 
 export const calculateAnnualizedPortfolioRateAll = (
   investments: InvestmentDetail[],
   earnings: Earning[],
   defaultFxRate: number
 ): number =>
-  calculateAnnualizedPortfolioRateInternal(investments, earnings, defaultFxRate, true);
+  calculateAnnualizedPortfolioRate(investments, earnings, defaultFxRate, true);
