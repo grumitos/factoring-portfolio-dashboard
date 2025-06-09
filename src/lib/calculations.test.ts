@@ -105,8 +105,8 @@ describe('calculateAnnualizedPortfolioRate', () => {
   });
 });
 
-describe('calculateAnnualizedPortfolioRateAll', () => {
-  it('includes paid contracts in the calculation', () => {
+describe('calculateAnnualizedPortfolioRate with includePaid option', () => {
+  it('includes paid contracts when flag is true', () => {
     const investments: InvestmentDetail[] = [
       {
         codigo: 'A1',
@@ -139,8 +139,38 @@ describe('calculateAnnualizedPortfolioRateAll', () => {
       }
     ];
 
-    const rate = calculateAnnualizedPortfolioRateAll(investments, earnings, 1);
+    const rate = calculateAnnualizedPortfolioRate(investments, earnings, 1, true);
     expect(rate).toBeCloseTo(19.98, 2);
+  });
+});
+
+describe('calculateAnnualizedPortfolioRateAll alias', () => {
+  it('delegates to calculateAnnualizedPortfolioRate with includePaid true', () => {
+    const investments: InvestmentDetail[] = [
+      {
+        codigo: 'X1',
+        cliente: 'c',
+        fechaIngreso: '2024-01-01T00:00:00',
+        fechaPago: '2024-02-01',
+        inversion: 1000,
+        moneda: 'PEN',
+        retornoMensualPct: 2,
+        estado: 'cobrado'
+      }
+    ];
+
+    const earnings: Earning[] = [
+      {
+        codigo: 'X1',
+        monto: 20,
+        fecha: '2024-02-01',
+        moneda: 'PEN'
+      }
+    ];
+
+    const direct = calculateAnnualizedPortfolioRate(investments, earnings, 1, true);
+    const alias = calculateAnnualizedPortfolioRateAll(investments, earnings, 1);
+    expect(alias).toBeCloseTo(direct);
   });
 });
 
