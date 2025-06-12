@@ -47,7 +47,8 @@ export const annualRateForContract = (
 };
 
 /**
- * Calcula tasa anual promedio ponderada de contratos pendientes
+ * Calcula tasa anual promedio ponderada de contratos
+ * (cobrados y pendientes, omitiendo los rechazados por defecto).
  */
 const calculateAnnualizedPortfolioRateInternal = (
   investments: InvestmentDetail[],
@@ -101,7 +102,7 @@ export const calculateAnnualizedPortfolioRate = (
   investments: InvestmentDetail[],
   earnings: Earning[],
   defaultFxRate: number,
-  includePaid = false
+  includePaid = true
 ): number =>
   calculateAnnualizedPortfolioRateInternal(
     investments,
