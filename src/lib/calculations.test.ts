@@ -67,7 +67,7 @@ describe('calculateAnnualizedPortfolioRate', () => {
     expect(rate).toBeCloseTo(19.98, 2);
   });
 
-  it('ignores contracts marked as paid', () => {
+  it('includes paid contracts by default', () => {
   const investments: InvestmentDetail[] = [
     {
       codigo: 'A1',
@@ -101,12 +101,12 @@ describe('calculateAnnualizedPortfolioRate', () => {
   ];
 
   const rate = calculateAnnualizedPortfolioRate(investments, earnings, 1);
-  expect(rate).toBeCloseTo(12.68, 2);
+  expect(rate).toBeCloseTo(19.98, 2);
   });
 });
 
 describe('calculateAnnualizedPortfolioRate with includePaid option', () => {
-  it('includes paid contracts when flag is true', () => {
+  it('excludes paid contracts when flag is false', () => {
     const investments: InvestmentDetail[] = [
       {
         codigo: 'A1',
@@ -139,8 +139,8 @@ describe('calculateAnnualizedPortfolioRate with includePaid option', () => {
       }
     ];
 
-    const rate = calculateAnnualizedPortfolioRate(investments, earnings, 1, true);
-    expect(rate).toBeCloseTo(19.98, 2);
+    const rate = calculateAnnualizedPortfolioRate(investments, earnings, 1, false);
+    expect(rate).toBeCloseTo(12.68, 2);
   });
 });
 
@@ -168,7 +168,7 @@ describe('calculateAnnualizedPortfolioRateAll alias', () => {
       }
     ];
 
-    const direct = calculateAnnualizedPortfolioRate(investments, earnings, 1, true);
+    const direct = calculateAnnualizedPortfolioRate(investments, earnings, 1);
     const alias = calculateAnnualizedPortfolioRateAll(investments, earnings, 1);
     expect(alias).toBeCloseTo(direct);
   });
