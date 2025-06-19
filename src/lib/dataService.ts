@@ -298,25 +298,6 @@ export const getTimeToGoalWithInjection = (
  * Calcula porcentaje de avance y fecha estimada sin inyección
  * considerando el capital en USD convertido a PEN.
  */
-export const getGoalProjection = (
-  report: PortfolioReport,
-  goalPen: number,
-  defaultFxRate: number = 3.7
-): { progressPct: number; trendLabel: string } => {
-  // incluir capital en USD para el avance inicial
-  const totalInvestedPen = report.netPen + report.netUsd * defaultFxRate;
-  const progressPct = (totalInvestedPen / goalPen) * 100;
-  const rAnnual = report.annualRatePct / 100;
-  const yearsToGoal = Math.log(goalPen / report.netPen) / Math.log(1 + rAnnual);
-  const projected = new Date();
-  projected.setMonth(projected.getMonth() + Math.round(yearsToGoal * 12));
-  const trendLabel = new Intl.DateTimeFormat('es-PE', {
-    month: 'long',
-    year: 'numeric',
-  }).format(projected);
-  return { progressPct, trendLabel };
-};
-
 /**
  * Obtiene el reporte de portafolio y calcula el % de avance (sin considerar inyección)
  */

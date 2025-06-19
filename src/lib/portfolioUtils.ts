@@ -111,9 +111,3 @@ export const calculateAnnualizedPortfolioRate = (
     includePaid
   );
 
-export const calculateAnnualizedPortfolioRateAll = (
-  investments: InvestmentDetail[],
-  earnings: Earning[],
-  defaultFxRate: number
-): number =>
-  calculateAnnualizedPortfolioRate(investments, earnings, defaultFxRate, true);
