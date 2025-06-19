@@ -20,7 +20,6 @@ const { contracts } = await getFactoringMetrics();
   <div class="tabs-container">
     <button class="tab active" data-tab="pending">Pendientes</button>
     <button class="tab" data-tab="paid">Pagados</button>
-    <button class="tab" data-tab="all">Todos</button>
     <button class="tab" data-tab="potential-earnings">Ganancias</button>
   </div>
   
@@ -35,13 +34,12 @@ const { contracts } = await getFactoringMetrics();
         <tr>
           <th>Cliente</th>
           <th>Fecha Pago</th>
-          <th>Estado</th>
           <th>Ganancia</th>
         </tr>
       </thead>
       <tbody id="factoring-details">
         <tr class="waiting-state-row">
-          <td colspan="4">
+          <td colspan="3">
             <div class="empty-state waiting-message">
               <span class="svg-icon">
                 <IconSVG name="touch" />
@@ -90,8 +88,6 @@ const { contracts } = await getFactoringMetrics();
         if (c.estado.toLowerCase() === 'cobrado' || c.estado.toLowerCase() === 'rechazado') return false;
       } else if (tab === 'paid') {
         if (c.estado.toLowerCase() !== 'cobrado') return false;
-      } else if (tab === 'all') {
-        if (c.estado.toLowerCase() === 'rechazado') return false;
       } else if (tab === 'potential-earnings') {
         if (c.estado.toLowerCase() === 'rechazado') return false;
       }
@@ -105,11 +101,6 @@ const { contracts } = await getFactoringMetrics();
     if (tab === 'pending' || tab === 'paid') {
       return [...list].sort(byDate);
     }
-    if (tab === 'all') {
-      const pending = list.filter(c => c.estado.toLowerCase() !== 'cobrado').sort(byDate);
-      const paid = list.filter(c => c.estado.toLowerCase() === 'cobrado').sort(byDate);
-      return [...pending, ...paid];
-    }
     return list;
   }
 
@@ -119,8 +110,6 @@ const { contracts } = await getFactoringMetrics();
       headerInfo.textContent = `Pendientes: ${list.length}`;
     } else if (tab === 'paid') {
       headerInfo.textContent = `Pagados: ${list.length}`;
-    } else if (tab === 'all') {
-      headerInfo.textContent = `Total: ${list.length}`;
     } else if (tab === 'potential-earnings') {
       const gain = list.reduce((s, c) => s + c.gainPen, 0);
       headerInfo.textContent = `Ganancias: ${formatCurrency(gain)}`;
@@ -167,16 +156,11 @@ const { contracts } = await getFactoringMetrics();
         tbody.appendChild(row);
       });
       return;
-    }    // Show Estado column only for 'all' tab
-    if (tab === 'all') {
-      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: center;">Fecha Pago</th><th>Estado</th><th style="text-align: right;">Ganancia</th></tr>';
-    } else {
-      thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: center;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
     }
+    thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: center;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
     if (list.length === 0) {
       const row = document.createElement('tr');
-      // Adjust colspan based on Estado column
-      const colspan = tab === 'all' ? 4 : 3;
+      const colspan = 3;
       row.innerHTML = `<td colspan="${colspan}"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
       tbody.appendChild(row);
       return;
@@ -185,14 +169,7 @@ const { contracts } = await getFactoringMetrics();
     const paginated = list.slice(start, start + ITEMS_PER_PAGE);
     paginated.forEach(c => {
       const row = document.createElement('tr');
-      // Render row with or without Estado column
-      const status = c.estado.toLowerCase();
-      const cls = status === 'cobrado' ? 'paid' : (status === 'rechazado' ? 'rejected' : 'pending');
-      if (tab === 'all') {
-        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: center;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td><span class="status ${cls}">${c.estado}</span></td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
-      } else {
-        row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: center;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
-      }
+      row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: center;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
       tbody.appendChild(row);
     });
   }
@@ -339,9 +316,8 @@ const { contracts } = await getFactoringMetrics();
     table-layout: fixed;
     /* column width variables for easy customization */
     --col-cliente: 60%;
-    --col-fecha: 40%;
-    --col-estado: 20%;
-    --col-ganancia: 10%;
+    --col-fecha: 20%;
+    --col-ganancia: 20%;
   }
 
   .details-table tr:nth-child(even) {
@@ -362,12 +338,6 @@ const { contracts } = await getFactoringMetrics();
 
 .details-table th:nth-child(3),
 .details-table td:nth-child(3) {
-  width: var(--col-estado);
-  min-width: 80px;
-}
-
-.details-table th:nth-child(4),
-.details-table td:nth-child(4) {
   width: var(--col-ganancia);
   min-width: 100px;
 }
@@ -381,7 +351,7 @@ const { contracts } = await getFactoringMetrics();
     border-bottom: 0.5px solid theme('colors.border.300');
   }
   
-  /* center Fecha Pago header, keep Estado right */
+  /* center Fecha Pago header, keep Ganancia right */
   .details-table th:nth-child(2) {
     text-align: center;
   }
@@ -401,8 +371,7 @@ const { contracts } = await getFactoringMetrics();
   .details-table td:nth-child(2) {
     text-align: center;
   }
-  .details-table td:nth-child(3),
-  .details-table td:nth-child(4) {
+  .details-table td:nth-child(3) {
     text-align: right;
   }
 
@@ -412,24 +381,6 @@ const { contracts } = await getFactoringMetrics();
     text-overflow: ellipsis;
   }
 
-  .status {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: capitalize;
-  }
-
-  .status.paid {
-    color: #d97706;
-  }
-
-  .status.pending {
-    color: #d97706;
-  }
-
-  .status.rejected {
-    color: #dc2626;
-  }
   .waiting-state-row td {
     padding: 2rem 1rem;
   }
@@ -550,13 +501,6 @@ const { contracts } = await getFactoringMetrics();
       min-width: 70px;
       font-size: 0.8rem;
     }
-
-    .details-table th:nth-child(4),
-    .details-table td:nth-child(4) {
-      width: 20%;
-      min-width: 80px;
-      font-size: 0.8rem;
-    }
     
     .empty-state {
       padding: 1rem 0;
@@ -623,9 +567,7 @@ const { contracts } = await getFactoringMetrics();
     .details-table th:nth-child(2),
     .details-table td:nth-child(2),
     .details-table th:nth-child(3),
-    .details-table td:nth-child(3),
-    .details-table th:nth-child(4),
-    .details-table td:nth-child(4) {
+    .details-table td:nth-child(3) {
       font-size: 0.75rem;
     }
   }
