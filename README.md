@@ -54,8 +54,6 @@ annualized return across multiple investments.
 - `calculateAnnualizedPortfolioRate(investments, earnings, fxRate, includePaid = true)` –
   incluye por defecto contratos `cobrado` y `pendiente`, omitiendo solo aquellos
   con estado `rechazado`. Pasa `false` para excluir los pagados.
-- `calculateAnnualizedPortfolioRateAll` – alias para llamar a `calculateAnnualizedPortfolioRate`
-  asegurando `includePaid` en `true`.
 
 Both functions return the weighted annualized rate as a percentage.
 
@@ -67,65 +65,3 @@ Create a `.env` file with the following variables:
 - `SUPABASE_URL` – URL of your Supabase instance
 - `SUPABASE_ANON_KEY` – public anon key for Supabase access
 
-Install `supabase-py` if you plan to use the Python uploader:
-
-```sh
-pip install supabase
-```
-
-## Data Migration
-
-The application retrieves all investment information directly from Supabase.
-To populate your database using the sample JSON files found in `src/data/`, run
-the `scripts/migrateData.ts` helper. Ensure the tables `investments`,
-`earnings` and `movements` exist in your project, then execute:
-
-```sh
-npx ts-node scripts/migrateData.ts
-```
-
-You can also run the Python helper to convert the original spreadsheets and
-upload the JSON data:
-
-```sh
-python src/data/script.py
-```
-
-### Table Structure
-
-Create the following tables in Supabase (SQL):
-
-```sql
--- Investments table
-create table investments (
-  "Fecha" date,
-  "Hora" time,
-  "Cliente" text,
-  "RUC" bigint,
-  "Codigo de subasta" text primary key,
-  "Riesgo" text,
-  "Inversion" numeric,
-  "Moneda" text,
-  "Retorno mensual (%)" numeric,
-  "Fecha de cierre de subasta" text,
-  "Fecha de pago" timestamp,
-  "Estado" text
-);
-
--- Earnings table
-create table earnings (
-  "Fecha" timestamp,
-  "Código de subasta" text,
-  "Movimiento" text,
-  "Monto" numeric,
-  "Moneda" text
-);
-
--- Movements table
-create table movements (
-  "Fecha" timestamp,
-  "Movimiento" text,
-  "Monto" numeric,
-  "Moneda" text
-);
-```
