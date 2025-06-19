@@ -75,9 +75,10 @@ pip install supabase
 
 ## Data Migration
 
-The `scripts/migrateData.ts` script uploads the JSON files in `src/data/` to
-Supabase. Ensure the tables `investments`, `earnings` and `movements` exist in
-your project, then run:
+The application retrieves all investment information directly from Supabase.
+To populate your database using the sample JSON files found in `src/data/`, run
+the `scripts/migrateData.ts` helper. Ensure the tables `investments`,
+`earnings` and `movements` exist in your project, then execute:
 
 ```sh
 npx ts-node scripts/migrateData.ts
