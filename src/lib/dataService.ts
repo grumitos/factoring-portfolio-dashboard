@@ -1,9 +1,4 @@
 import { parseISO } from 'date-fns';
-import investmentsJson from '../data/investmentDetails.json';
-import earningsPenJson from '../data/earningsPEN.json';
-import earningsUsdJson from '../data/earningsUSD.json';
-import movementsPenJson from '../data/movementsPEN.json';
-import movementsUsdJson from '../data/movementsUSD.json';
 import { supabase } from './supabaseClient';
 import type { InvestmentDetail, Earning } from './portfolioUtils';
 import { calculateAnnualizedPortfolioRate, toPen, monthsBetween } from './portfolioUtils';
@@ -19,50 +14,6 @@ interface Movement {
   fxRate?: number;
 }
 
-// --- helpers to load data either from Supabase or local JSON ---
-const buildInvestmentsFromJson = (): InvestmentDetail[] =>
-  (investmentsJson as any[]).map(e => ({
-    codigo: e['Codigo de subasta'],
-    cliente: e['Cliente'],
-    fechaIngreso: `${e['Fecha']}T${e['Hora']}`,
-    fechaPago: e['Fecha de pago'],
-    inversion: e['Inversion'],
-    moneda: e['Moneda'] as 'PEN' | 'USD',
-    retornoMensualPct: e['Retorno mensual (%)'],
-    estado: e['Estado'],
-    fxRate: e['Moneda'] === 'USD' ? (e as any).fxRate : undefined
-  }));
-
-const buildEarningsFromJson = (): Earning[] => [
-  ...earningsPenJson.map((e: any) => ({
-    codigo: e['Código de subasta'],
-    monto: e['Monto'],
-    fecha: e['Fecha'],
-    moneda: 'PEN' as 'PEN'
-  })),
-  ...earningsUsdJson.map((e: any) => ({
-    codigo: e['Código de subasta'],
-    monto: e['Monto'],
-    fecha: e['Fecha'],
-    moneda: 'USD' as 'USD',
-    fxRate: (e as any).fxRate
-  }))
-] as Earning[];
-
-const buildMovementsFromJson = (): Movement[] => [
-  ...movementsPenJson.map((e: any) => ({
-    Movimiento: e['Movimiento'],
-    Monto: e['Monto'],
-    Moneda: 'PEN' as 'PEN',
-    fxRate: (e as any).fxRate
-  })),
-  ...movementsUsdJson.map((e: any) => ({
-    Movimiento: e['Movimiento'],
-    Monto: e['Monto'],
-    Moneda: 'USD' as 'USD',
-    fxRate: (e as any).fxRate
-  }))
-] as Movement[];
 
 const getInvestments = async (): Promise<InvestmentDetail[]> => {
   try {
@@ -80,7 +31,7 @@ const getInvestments = async (): Promise<InvestmentDetail[]> => {
       fxRate: e['Moneda'] === 'USD' ? (e as any).fxRate : undefined
     }));
   } catch {
-    return buildInvestmentsFromJson();
+    throw new Error('Failed to load investments from Supabase');
   }
 };
 
@@ -96,7 +47,7 @@ const getEarnings = async (): Promise<Earning[]> => {
       fxRate: (e as any).fxRate
     }));
   } catch {
-    return buildEarningsFromJson();
+    throw new Error('Failed to load earnings from Supabase');
   }
 };
 
@@ -111,7 +62,7 @@ const getMovements = async (): Promise<Movement[]> => {
       fxRate: (e as any).fxRate
     }));
   } catch {
-    return buildMovementsFromJson();
+    throw new Error('Failed to load movements from Supabase');
   }
 };
 
