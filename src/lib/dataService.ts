@@ -21,23 +21,64 @@ interface Movement {
 
 // --- helpers to load data either from Supabase or local JSON ---
 const buildInvestmentsFromJson = (): InvestmentDetail[] =>
-  (investmentsJson as any[]) as InvestmentDetail[];
+  (investmentsJson as any[]).map(e => ({
+    codigo: e['Codigo de subasta'],
+    cliente: e['Cliente'],
+    fechaIngreso: `${e['Fecha']}T${e['Hora']}`,
+    fechaPago: e['Fecha de pago'],
+    inversion: e['Inversion'],
+    moneda: e['Moneda'] as 'PEN' | 'USD',
+    retornoMensualPct: e['Retorno mensual (%)'],
+    estado: e['Estado'],
+    fxRate: e['Moneda'] === 'USD' ? (e as any).fxRate : undefined
+  }));
 
 const buildEarningsFromJson = (): Earning[] => [
-  ...(earningsPenJson as any[]),
-  ...(earningsUsdJson as any[])
+  ...earningsPenJson.map((e: any) => ({
+    codigo: e['Código de subasta'],
+    monto: e['Monto'],
+    fecha: e['Fecha'],
+    moneda: 'PEN' as 'PEN'
+  })),
+  ...earningsUsdJson.map((e: any) => ({
+    codigo: e['Código de subasta'],
+    monto: e['Monto'],
+    fecha: e['Fecha'],
+    moneda: 'USD' as 'USD',
+    fxRate: (e as any).fxRate
+  }))
 ] as Earning[];
 
 const buildMovementsFromJson = (): Movement[] => [
-  ...(movementsPenJson as any[]),
-  ...(movementsUsdJson as any[])
+  ...movementsPenJson.map((e: any) => ({
+    Movimiento: e['Movimiento'],
+    Monto: e['Monto'],
+    Moneda: 'PEN' as 'PEN',
+    fxRate: (e as any).fxRate
+  })),
+  ...movementsUsdJson.map((e: any) => ({
+    Movimiento: e['Movimiento'],
+    Monto: e['Monto'],
+    Moneda: 'USD' as 'USD',
+    fxRate: (e as any).fxRate
+  }))
 ] as Movement[];
 
 const getInvestments = async (): Promise<InvestmentDetail[]> => {
   try {
     const { data, error } = await supabase.from('investments').select('*');
     if (error || !data) throw error;
-    return data as InvestmentDetail[];
+    return (data as any[]).map(e => ({
+      codigo: e['Codigo de subasta'],
+      cliente: e['Cliente'],
+      fechaIngreso: `${e['Fecha']}T${e['Hora']}`,
+      fechaPago: e['Fecha de pago'],
+      inversion: e['Inversion'],
+      moneda: e['Moneda'] as 'PEN' | 'USD',
+      retornoMensualPct: e['Retorno mensual (%)'],
+      estado: e['Estado'],
+      fxRate: e['Moneda'] === 'USD' ? (e as any).fxRate : undefined
+    }));
   } catch {
     return buildInvestmentsFromJson();
   }
@@ -47,7 +88,13 @@ const getEarnings = async (): Promise<Earning[]> => {
   try {
     const { data, error } = await supabase.from('earnings').select('*');
     if (error || !data) throw error;
-    return data as Earning[];
+    return (data as any[]).map(e => ({
+      codigo: e['Código de subasta'],
+      monto: e['Monto'],
+      fecha: e['Fecha'],
+      moneda: e['Moneda'] as 'PEN' | 'USD',
+      fxRate: (e as any).fxRate
+    }));
   } catch {
     return buildEarningsFromJson();
   }
@@ -57,7 +104,12 @@ const getMovements = async (): Promise<Movement[]> => {
   try {
     const { data, error } = await supabase.from('movements').select('*');
     if (error || !data) throw error;
-    return data as Movement[];
+    return (data as any[]).map(e => ({
+      Movimiento: e['Movimiento'],
+      Monto: e['Monto'],
+      Moneda: e['Moneda'] as 'PEN' | 'USD',
+      fxRate: (e as any).fxRate
+    }));
   } catch {
     return buildMovementsFromJson();
   }
@@ -112,40 +164,6 @@ export const getNetInvestedByCurrency = async () => {
   };
 };
 
-/**
- * Construye un array tipado de ganancias reales
- */
-const buildEarningsArrayFromJson = (): Earning[] => [
-  ...earningsPenJson.map((e: any) => ({
-    codigo: e['Código de subasta'],
-    monto: e['Monto'],
-    fecha: e['Fecha'],
-    moneda: 'PEN' as 'PEN'
-  })),
-  ...earningsUsdJson.map((e: any) => ({
-    codigo: e['Código de subasta'],
-    monto: e['Monto'],
-    fecha: e['Fecha'],
-    moneda: 'USD' as 'USD',
-    fxRate: (e as any).fxRate
-  }))
-];
-
-/**
- * Construye un array tipado de inversiones
- */
-const buildInvestmentsArrayFromJson = (): InvestmentDetail[] =>
-  (investmentsJson as any[]).map((e: any) => ({
-    codigo: e['Codigo de subasta'],
-    cliente: e['Cliente'],
-    fechaIngreso: `${e['Fecha']}T${e['Hora']}`,
-    fechaPago: e['Fecha de pago'],
-    inversion: e['Inversion'],
-    moneda: e['Moneda'] as 'PEN' | 'USD',
-    retornoMensualPct: e['Retorno mensual (%)'],
-    estado: e['Estado'],
-    fxRate: e['Moneda'] === 'USD' ? (e as any).fxRate : undefined
-  }));
 
 /**
  * Obtiene ganancias reales y proyectadas
