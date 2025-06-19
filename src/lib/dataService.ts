@@ -4,6 +4,7 @@ import earningsPenJson from '../data/earningsPEN.json';
 import earningsUsdJson from '../data/earningsUSD.json';
 import movementsPenJson from '../data/movementsPEN.json';
 import movementsUsdJson from '../data/movementsUSD.json';
+import { supabase } from './supabaseClient';
 import type { InvestmentDetail, Earning } from './portfolioUtils';
 import { calculateAnnualizedPortfolioRate, toPen, monthsBetween } from './portfolioUtils';
 import { fetchLatestRate } from './fxService';
@@ -14,8 +15,53 @@ import { fetchLatestRate } from './fxService';
 interface Movement {
   Movimiento: 'inversion' | 'pago capital' | string;
   Monto: number;
+  Moneda: 'PEN' | 'USD';
   fxRate?: number;
 }
+
+// --- helpers to load data either from Supabase or local JSON ---
+const buildInvestmentsFromJson = (): InvestmentDetail[] =>
+  (investmentsJson as any[]) as InvestmentDetail[];
+
+const buildEarningsFromJson = (): Earning[] => [
+  ...(earningsPenJson as any[]),
+  ...(earningsUsdJson as any[])
+] as Earning[];
+
+const buildMovementsFromJson = (): Movement[] => [
+  ...(movementsPenJson as any[]),
+  ...(movementsUsdJson as any[])
+] as Movement[];
+
+const getInvestments = async (): Promise<InvestmentDetail[]> => {
+  try {
+    const { data, error } = await supabase.from('investments').select('*');
+    if (error || !data) throw error;
+    return data as InvestmentDetail[];
+  } catch {
+    return buildInvestmentsFromJson();
+  }
+};
+
+const getEarnings = async (): Promise<Earning[]> => {
+  try {
+    const { data, error } = await supabase.from('earnings').select('*');
+    if (error || !data) throw error;
+    return data as Earning[];
+  } catch {
+    return buildEarningsFromJson();
+  }
+};
+
+const getMovements = async (): Promise<Movement[]> => {
+  try {
+    const { data, error } = await supabase.from('movements').select('*');
+    if (error || !data) throw error;
+    return data as Movement[];
+  } catch {
+    return buildMovementsFromJson();
+  }
+};
 
 /** Capital proveniente de otras fuentes de inversión */
 export const externalCapital = {
@@ -26,7 +72,7 @@ export const externalCapital = {
 /**
  * Retorna el neto invertido en PEN y USD
  */
-export const getNetInvestedByCurrency = () => {
+export const getNetInvestedByCurrency = async () => {
   const invested = (movs: Movement[]) =>
     movs.filter(m => m.Movimiento === 'inversion')
         .reduce((s, m) => s + m.Monto * (m.fxRate ?? 1), 0) -
@@ -47,8 +93,9 @@ export const getNetInvestedByCurrency = () => {
     }, 0);
   };
 
-  const penMovs = movementsPenJson as Movement[];
-  const usdMovs = movementsUsdJson as Movement[];
+  const allMovs = await getMovements();
+  const penMovs = allMovs.filter(m => m.Moneda === 'PEN');
+  const usdMovs = allMovs.filter(m => m.Moneda === 'USD');
 
   const investedPen = invested(penMovs);
   const investedUsd = invested(usdMovs);
@@ -68,7 +115,7 @@ export const getNetInvestedByCurrency = () => {
 /**
  * Construye un array tipado de ganancias reales
  */
-const buildEarningsArray = (): Earning[] => [
+const buildEarningsArrayFromJson = (): Earning[] => [
   ...earningsPenJson.map((e: any) => ({
     codigo: e['Código de subasta'],
     monto: e['Monto'],
@@ -87,7 +134,7 @@ const buildEarningsArray = (): Earning[] => [
 /**
  * Construye un array tipado de inversiones
  */
-const buildInvestmentsArray = (): InvestmentDetail[] =>
+const buildInvestmentsArrayFromJson = (): InvestmentDetail[] =>
   (investmentsJson as any[]).map((e: any) => ({
     codigo: e['Codigo de subasta'],
     cliente: e['Cliente'],
@@ -103,9 +150,9 @@ const buildInvestmentsArray = (): InvestmentDetail[] =>
 /**
  * Obtiene ganancias reales y proyectadas
  */
-export const getGains = (defaultFxRate = 3.7) => {
-  const investments = buildInvestmentsArray();
-  const earnings = buildEarningsArray();
+export const getGains = async (defaultFxRate = 3.7) => {
+  const investments = await getInvestments();
+  const earnings = await getEarnings();
   let real = 0;
   let expected = 0;
 
@@ -140,9 +187,9 @@ export const getGains = (defaultFxRate = 3.7) => {
 /**
  * Calcula ganancias (reales y esperadas) del último mes
  */
-export const getMonthlyGains = (defaultFxRate = 3.7) => {
-  const investments = buildInvestmentsArray();
-  const earnings = buildEarningsArray();
+export const getMonthlyGains = async (defaultFxRate = 3.7) => {
+  const investments = await getInvestments();
+  const earnings = await getEarnings();
   const now = new Date();
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(now.getMonth() - 1);
@@ -216,21 +263,21 @@ export const getPortfolioReport = async (
   } catch {
     // fallback a tasa estática
   }
-  const { netPen, netUsd } = getNetInvestedByCurrency();
-  const earnings = buildEarningsArray();
-  const investments = buildInvestmentsArray();
+  const { netPen, netUsd } = await getNetInvestedByCurrency();
+  const earnings = await getEarnings();
+  const investments = await getInvestments();
   const annualRatePct = calculateAnnualizedPortfolioRate(
     investments,
     earnings,
     defaultFxRate
   );
-  const { real, expected, total } = getGains(defaultFxRate);
+  const { real, expected, total } = await getGains(defaultFxRate);
   const {
     realMonthlyPen,
     expectedMonthlyPen,
     realMonthlyUsd,
     expectedMonthlyUsd
-  } = getMonthlyGains(defaultFxRate);
+  } = await getMonthlyGains(defaultFxRate);
 
   return {
     netPen,
@@ -317,11 +364,11 @@ export const getReportMetrics = async (
 
 export type FactoringContract = InvestmentDetail & { gainPen: number };
 
-export const getFactoringContracts = (
+export const getFactoringContracts = async (
   defaultFxRate = 3.7
-): FactoringContract[] => {
-  const investments = buildInvestmentsArray();
-  const earnings = buildEarningsArray();
+): Promise<FactoringContract[]> => {
+  const investments = await getInvestments();
+  const earnings = await getEarnings();
 
   const earnMap = new Map<string, { monto: number; fx: number }[]>();
   earnings.forEach(e => {
@@ -353,8 +400,8 @@ export const getFactoringContracts = (
   });
 };
 
-export const getFactoringMetrics = (defaultFxRate = 3.7) => {
-  const contracts = getFactoringContracts(defaultFxRate);
+export const getFactoringMetrics = async (defaultFxRate = 3.7) => {
+  const contracts = await getFactoringContracts(defaultFxRate);
   const valid = contracts.filter(c => c.estado.toLowerCase() !== 'rechazado');
   const pending = valid.filter(c => c.estado.toLowerCase() !== 'cobrado').length;
   const paid = valid.filter(c => c.estado.toLowerCase() === 'cobrado').length;
