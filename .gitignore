@@ -35,3 +35,6 @@ pnpm-debug.log*
 # JetBrains setting folder
 .idea/
 *.sublime-*
+
+# Exclude data files
+src/data/
