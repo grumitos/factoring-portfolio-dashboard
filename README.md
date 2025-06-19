@@ -95,6 +95,7 @@ python src/data/script.py
 Create the following tables in Supabase (SQL):
 
 ```sql
+-- Investments table
 create table investments (
   "Fecha" date,
   "Hora" time,
@@ -107,24 +108,23 @@ create table investments (
   "Retorno mensual (%)" numeric,
   "Fecha de cierre de subasta" text,
   "Fecha de pago" timestamp,
-  "Estado" text,
-  "fxRate" numeric
+  "Estado" text
 );
 
+-- Earnings table
 create table earnings (
   "Fecha" timestamp,
   "Código de subasta" text,
   "Movimiento" text,
   "Monto" numeric,
-  "Moneda" text,
-  "fxRate" numeric
+  "Moneda" text
 );
 
+-- Movements table
 create table movements (
   "Fecha" timestamp,
   "Movimiento" text,
   "Monto" numeric,
-  "Moneda" text,
-  "fxRate" numeric
+  "Moneda" text
 );
 ```
