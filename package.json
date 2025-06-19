@@ -12,7 +12,8 @@
   "dependencies": {
     "@astrojs/tailwind": "^6.0.2",
     "astro": "^5.9.1",
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "@supabase/supabase-js": "^2.42.0"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.12",

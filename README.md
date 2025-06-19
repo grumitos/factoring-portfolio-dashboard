@@ -58,3 +58,73 @@ annualized return across multiple investments.
   asegurando `includePaid` en `true`.
 
 Both functions return the weighted annualized rate as a percentage.
+
+## Environment Variables
+
+Create a `.env` file with the following variables:
+
+- `CURRENCY_FREAKS_API_KEY` – API key for currency rates
+- `SUPABASE_URL` – URL of your Supabase instance
+- `SUPABASE_ANON_KEY` – public anon key for Supabase access
+
+Install `supabase-py` if you plan to use the Python uploader:
+
+```sh
+pip install supabase
+```
+
+## Data Migration
+
+The `scripts/migrateData.ts` script uploads the JSON files in `src/data/` to
+Supabase. Ensure the tables `investments`, `earnings` and `movements` exist in
+your project, then run:
+
+```sh
+npx ts-node scripts/migrateData.ts
+```
+
+You can also run the Python helper to convert the original spreadsheets and
+upload the JSON data:
+
+```sh
+python src/data/script.py
+```
+
+### Table Structure
+
+Create the following tables in Supabase (SQL):
+
+```sql
+create table investments (
+  "Fecha" date,
+  "Hora" time,
+  "Cliente" text,
+  "RUC" bigint,
+  "Codigo de subasta" text primary key,
+  "Riesgo" text,
+  "Inversion" numeric,
+  "Moneda" text,
+  "Retorno mensual (%)" numeric,
+  "Fecha de cierre de subasta" text,
+  "Fecha de pago" timestamp,
+  "Estado" text,
+  "fxRate" numeric
+);
+
+create table earnings (
+  "Fecha" timestamp,
+  "Código de subasta" text,
+  "Movimiento" text,
+  "Monto" numeric,
+  "Moneda" text,
+  "fxRate" numeric
+);
+
+create table movements (
+  "Fecha" timestamp,
+  "Movimiento" text,
+  "Monto" numeric,
+  "Moneda" text,
+  "fxRate" numeric
+);
+```
