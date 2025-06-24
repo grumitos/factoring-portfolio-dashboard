@@ -37,4 +37,3 @@ pnpm-debug.log*
 *.sublime-*
 
 # Exclude data files
-src/data/
