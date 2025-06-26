@@ -20,7 +20,7 @@ const getInvestments = async (): Promise<InvestmentDetail[]> => {
     const { data, error } = await supabase.from('investments').select('*');
     if (error || !data) throw error;
     return (data as any[]).map(e => ({
-      codigo: e['Codigo de subasta'],
+      codigo: e['Código de subasta'],
       cliente: e['Cliente'],
       fechaIngreso: `${e['Fecha']}T${e['Hora']}`,
       fechaPago: e['Fecha de pago'],
