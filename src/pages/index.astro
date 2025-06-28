@@ -9,7 +9,7 @@ import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } 
 const goal = 300_000;
 // obtener datos async
 const { report, progressPct } = await getReportMetrics(goal);
-const { months } = getTimeToGoalWithInjection(report, goal, 6000);
+const { months } = getTimeToGoalWithInjection(report, goal, 5700);
 const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
