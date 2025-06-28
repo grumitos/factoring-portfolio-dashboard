@@ -37,3 +37,5 @@ pnpm-debug.log*
 *.sublime-*
 
 # Exclude data files
+*.json
+*.xlsx
