@@ -6,7 +6,7 @@ import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
 
-const goal = 200_000;
+const goal = 300_000;
 // obtener datos async
 const { report, progressPct } = await getReportMetrics(goal);
 const { months } = getTimeToGoalWithInjection(report, goal, 6000);
