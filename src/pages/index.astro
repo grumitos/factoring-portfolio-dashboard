@@ -35,7 +35,7 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 				/>
 				<SummaryCard
 					class="summary-goal-card"
-					title="Meta: S/ 200 mil"
+					title={`Meta: S/ ${new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' }).format(goal)}`}
 					value={`${progressPct.toFixed(2)}%`}
 					trend={`${trendLabelInjection}`}
 				/>
