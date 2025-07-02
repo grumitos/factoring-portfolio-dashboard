@@ -68,7 +68,7 @@ const getMovements = async (): Promise<Movement[]> => {
 
 /** Capital proveniente de otras fuentes de inversión */
 export const externalCapital = {
-  pen: 5068 + 6336,
+  pen: 5068 + 6336 + 100000,
   usd: 1728 + 568
 };
 
