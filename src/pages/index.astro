@@ -7,9 +7,10 @@ import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
 
 const goal = 300_000;
+const injection = 5700;
 // obtener datos async
 const { report, progressPct } = await getReportMetrics(goal);
-const { months } = getTimeToGoalWithInjection(report, goal, 5700);
+const { months } = await getTimeToGoalWithInjection(report, goal, injection);
 const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
@@ -41,7 +42,7 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 				/>
 			</div>
 
-			<ChartContainer report={report} />
+                        <ChartContainer report={report} injection={injection} />
 			<FactoringCard report={report} />
 		</div>
 	</main>
