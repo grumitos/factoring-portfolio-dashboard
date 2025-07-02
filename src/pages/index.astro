@@ -5,9 +5,10 @@ import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
+import { GOAL_DEFAULT, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
 
-const goal = 300_000;
-const injection = 5700;
+const goal = GOAL_DEFAULT;
+const injection = INITIAL_INJECTION;
 // obtener datos async
 const { report, progressPct } = await getReportMetrics(goal);
 const { months } = await getTimeToGoalWithInjection(report, goal, injection);
@@ -42,7 +43,14 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 				/>
 			</div>
 
-                        <ChartContainer report={report} injection={injection} />
+                        <ChartContainer
+                                report={report}
+                                injection={injection}
+                                sliderMin={SLIDER_MIN}
+                                sliderMax={SLIDER_MAX}
+                                sliderStep={SLIDER_STEP}
+                                sliderInitial={SLIDER_INITIAL}
+                        />
 			<FactoringCard report={report} />
 		</div>
 	</main>
