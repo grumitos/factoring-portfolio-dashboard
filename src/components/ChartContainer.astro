@@ -155,7 +155,9 @@ try {
             pointBorderColor: bgColor000,
             pointBorderWidth: 2,
             pointRadius: 4,
-            pointHoverRadius: 6
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: textColor100,
+            pointHoverBorderColor: bgColor000
           },
           {
             label: 'Con Aportes',
@@ -168,7 +170,9 @@ try {
             pointBorderColor: bgColor000,
             pointBorderWidth: 2,
             pointRadius: 4,
-            pointHoverRadius: 6
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: accentMain100,
+            pointHoverBorderColor: bgColor000
           }
         ]
       },
@@ -263,11 +267,6 @@ try {
         interaction: {
           intersect: false,
           mode: 'index'
-        },
-        elements: {
-          point: {
-            hoverBackgroundColor: accentMain100
-          }
         }
       }
     });
