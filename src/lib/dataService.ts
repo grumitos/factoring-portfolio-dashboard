@@ -266,12 +266,18 @@ export const getPortfolioReport = async (
  * Calcula el tiempo estimado (meses y años) para alcanzar una meta
  * con aportes periódicos de S/6 000 a mitad de cada mes.
  */
-export const getTimeToGoalWithInjection = (
+export const getTimeToGoalWithInjection = async (
   report: PortfolioReport,
   goalPen: number,
   injection: number = 6000,
   defaultFxRate: number = 3.7
-): { months: number; years: number } => {
+): Promise<{ months: number; years: number }> => {
+  try {
+    defaultFxRate = await fetchLatestRate();
+  } catch {
+    // mantener valor por defecto
+  }
+
   // derivar tasa mensual efectiva
   const rMonth = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
   // factor de crecimiento en medio mes

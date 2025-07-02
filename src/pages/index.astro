@@ -10,7 +10,7 @@ const goal = 300_000;
 const injection = 5700;
 // obtener datos async
 const { report, progressPct } = await getReportMetrics(goal);
-const { months } = getTimeToGoalWithInjection(report, goal, injection);
+const { months } = await getTimeToGoalWithInjection(report, goal, injection);
 const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
