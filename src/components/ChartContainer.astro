@@ -6,7 +6,8 @@ import {
   SLIDER_MIN,
   SLIDER_MAX,
   SLIDER_STEP,
-  SLIDER_INITIAL
+  SLIDER_INITIAL,
+  GOAL_DEFAULT
 } from '../lib/config';
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
   sliderMax?: number;
   sliderStep?: number;
   sliderInitial?: number;
+  goalInitial?: number;
 }
 
 const {
@@ -24,7 +26,8 @@ const {
   sliderMin = SLIDER_MIN,
   sliderMax = SLIDER_MAX,
   sliderStep = SLIDER_STEP,
-  sliderInitial = SLIDER_INITIAL
+  sliderInitial = SLIDER_INITIAL,
+  goalInitial = GOAL_DEFAULT
 } = Astro.props as Props;
 let fxRate = 3.7;
 try {
@@ -44,11 +47,11 @@ try {
     <div class="header-right chart-legend-container">
       <div class="chart-legend">
         <div class="legend-item">
-          <div class="legend-dot" style="background-color: #C2C0B6;"></div>
+          <div class="legend-dot" style="background-color: var(--color-text-100);"></div>
           <span class="legend-label">Sin Aportes</span>
         </div>
         <div class="legend-item">
-          <div class="legend-dot" style="background-color: #C96442;"></div>
+          <div class="legend-dot" style="background-color: var(--color-accent-main-000);"></div>
           <span class="legend-label">Con Aportes</span>
         </div>
       </div>
@@ -79,7 +82,7 @@ try {
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script define:vars={{ report, injection, fxRate, sliderInitial }}>
+<script define:vars={{ report, injection, fxRate, sliderInitial, goalInitial }}>
   // Esperar a que Chart.js se cargue
   function initChart() {
     if (typeof Chart === 'undefined') {
@@ -131,7 +134,7 @@ try {
       return { labels, seriesA, seriesB };
     };
 
-    let { labels, seriesA, seriesB } = computeData(sliderInitial);
+    let { labels, seriesA, seriesB } = computeData(goalInitial);
 
     const chart = new Chart(ctx, {
       type: 'line',
@@ -139,11 +142,11 @@ try {
         labels,        datasets: [          {
             label: 'Sin Aportes',
             data: seriesA,
-            borderColor: textColor200,
-            backgroundColor: `${textColor200}1A`, // 10% opacity
+            borderColor: textColor100,
+            backgroundColor: `${textColor100}1A`, // 10% opacity
             tension: 0.3,
             borderWidth: 2,
-            pointBackgroundColor: textColor200,
+            pointBackgroundColor: textColor100,
             pointBorderColor: bgColor000,
             pointBorderWidth: 2,
             pointRadius: 4,
@@ -197,14 +200,15 @@ try {
               },
               label: function(context) {
                 const value = context.parsed.y;
-                const formattedValue = new Intl.NumberFormat('es-PE', { 
-                  style: 'currency', 
+                const formattedValue = new Intl.NumberFormat('es-PE', {
+                  style: 'currency',
                   currency: 'PEN',
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0
                 }).format(value);
                 return `${context.dataset.label}: ${formattedValue}`;
-              }
+              },
+              itemSort: (a, b) => b.datasetIndex - a.datasetIndex
             }
           }
         },
