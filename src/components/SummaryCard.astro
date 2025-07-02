@@ -21,24 +21,25 @@ const { title, value, trend = '', trendClass = 'positive', fullWidth = false, cl
   </div>
 </div>
 
-<style>  .summary-card {
+<style>
+  .summary-card {
     background-color: theme('colors.bg.000');
     border: 0.5px solid theme('colors.border.300');
     border-radius: 1rem;
-    padding: theme('spacing.standard'); /* Usando la variable centralizada */
+    padding: theme('spacing.standard');
     transition: all 0.2s ease;
     box-shadow: 0 0.25rem 1.25rem rgb(0 0 0 / 7%);
   }
-  
+
   .summary-card:hover {
     border-color: theme('colors.border.200');
     box-shadow: 0 0.25rem 1.25rem rgb(0 0 0 / 15%);
   }
-  
+
   .full-width {
     grid-column: 1 / -1;
   }
-  
+
   .summary-info {
     display: flex;
     flex-direction: column;
@@ -46,23 +47,23 @@ const { title, value, trend = '', trendClass = 'positive', fullWidth = false, cl
     justify-content: center;
     text-align: center;
   }
-  
+
   .summary-value {
     margin: 0.5rem 0;
     font-weight: 600;
   }
-  
+
   .summary-trend {
     font-size: 0.875rem;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  
+
   .positive {
     color: theme('colors.accent-main.000');
   }
-  
+
   .negative {
     color: #ef4444;
   }

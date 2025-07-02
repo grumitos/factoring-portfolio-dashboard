@@ -13,53 +13,56 @@ const { months } = await getTimeToGoalWithInjection(report, GOAL, INITIAL_INJECT
 const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
-<Layout title="Proyección de Inversiones">	<main class="main-content mx-auto w-full">		<div class="dashboard-content">
-			<div class="grid grid-cols-2 gap-standard mb-standard">
-				<SummaryCard
-					class="summary-soles-card"
-					title="Total en Soles"
-					value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
-					trend={`En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
-				/>
-				<SummaryCard
-					class="summary-dolares-card"
-					title="Total en Dólares"
-					value={`$ ${report.netUsd.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-					trend={`En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}`}
-				/>
-				<SummaryCard
-					class="summary-tasa-card"
-					title="Tasa Promedio"
-					value={`${report.annualRatePct.toFixed(2)}%`}
-					trend="Anualizada"
-				/>
-				<SummaryCard
-					class="summary-goal-card"
-                    title={`Meta: S/ ${new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' }).format(GOAL)}`}
-					value={`${progressPct.toFixed(2)}%`}
-					trend={`${trendLabelInjection}`}
-				/>
-			</div>
+<Layout title="Proyección de Inversiones">
+  <main class="main-content mx-auto w-full">
+    <div class="dashboard-content">
+      <div class="grid grid-cols-2 gap-standard mb-standard">
+        <SummaryCard
+          class="summary-soles-card"
+          title="Total en Soles"
+          value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
+          trend={`En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
+        />
+        <SummaryCard
+          class="summary-dolares-card"
+          title="Total en Dólares"
+          value={`$ ${report.netUsd.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          trend={`En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}`}
+        />
+        <SummaryCard
+          class="summary-tasa-card"
+          title="Tasa Promedio"
+          value={`${report.annualRatePct.toFixed(2)}%`}
+          trend="Anualizada"
+        />
+        <SummaryCard
+          class="summary-goal-card"
+          title={`Meta: S/ ${new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' }).format(GOAL)}`}
+          value={`${progressPct.toFixed(2)}%`}
+          trend={`${trendLabelInjection}`}
+        />
+      </div>
 
-                        <ChartContainer
-                                report={report}
-                                injection={INITIAL_INJECTION}
-                                sliderMin={SLIDER_MIN}
-                                sliderMax={SLIDER_MAX}
-                                sliderStep={SLIDER_STEP}
-                                sliderInitial={SLIDER_INITIAL}
-                                goalInitial={GOAL}
-                        />
-			<FactoringCard report={report} />
-		</div>
-	</main>
-	<SvgSprite />
+      <ChartContainer
+        report={report}
+        injection={INITIAL_INJECTION}
+        sliderMin={SLIDER_MIN}
+        sliderMax={SLIDER_MAX}
+        sliderStep={SLIDER_STEP}
+        sliderInitial={SLIDER_INITIAL}
+        goalInitial={GOAL}
+      />
+      <FactoringCard report={report} />
+    </div>
+  </main>
+  <SvgSprite />
 </Layout>
 
-<style>	.main-content { max-width: 1200px; }
-	.dashboard-content { padding: 0; }
-	/* Removing the bottom margin for the last component to avoid extra space */
-	.dashboard-content > :last-child {
-		margin-bottom: 0;
-	}
+<style>
+  .main-content {
+    max-width: 1200px;
+  }
+  .dashboard-content {
+    padding: 0;
+  }
 </style>

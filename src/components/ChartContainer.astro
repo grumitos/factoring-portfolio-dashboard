@@ -37,7 +37,8 @@ try {
 }
 ---
 
-<section class="chart-container card">  <div class="card-header flex-between">
+<section class="chart-container card">
+  <div class="card-header flex-between">
     <div class="header-left flex-center">
       <span class="svg-icon text-accent-main-000">
         <IconSVG name="chart" />
@@ -92,7 +93,8 @@ try {
 
     const ctx = document.getElementById('proyeccion-chart');
     if (!ctx) {
-      console.error('Canvas element not found');      return;
+      console.error('Canvas element not found');
+      return;
     }
 
     console.log('Report data:', report); // Debug
@@ -113,8 +115,9 @@ try {
       const labels = [];
       const seriesA = [];
       const seriesB = [];
-      let month = 0;      const startYear = new Date().getFullYear();
-      
+      let month = 0;
+      const startYear = new Date().getFullYear();
+
       while ((withInj < goal || month % 12 !== 0) && month < 600) {
         if (month % 12 === 0) {
           labels.push(String(startYear + month / 12));
@@ -129,7 +132,7 @@ try {
       labels.push(String(startYear + month / 12));
       seriesA.push(Math.round(withoutInj));
       seriesB.push(Math.round(withInj));
-      
+
       console.log('Chart data computed:', { labels, seriesA, seriesB }); // Debug
       return { labels, seriesA, seriesB };
     };
@@ -139,7 +142,9 @@ try {
     const chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels,        datasets: [          {
+        labels,
+        datasets: [
+          {
             label: 'Sin Aportes',
             data: seriesA,
             borderColor: textColor100,
@@ -151,7 +156,8 @@ try {
             pointBorderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6
-          },          {
+          },
+          {
             label: 'Con Aportes',
             data: seriesB,
             borderColor: accentMain000,
@@ -168,7 +174,8 @@ try {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,        plugins: {
+        maintainAspectRatio: false,
+        plugins: {
           legend: {
             display: false
           },
@@ -212,23 +219,25 @@ try {
             }
           }
         },
-        scales: {          x: {
-                ticks: {
-                  color: textColor200,
-                  font: {
-                    family: 'Merriweather',
-                    size: 12
-                  },
-                  callback: function(value, index, ticks) {
-                    const label = this.getLabelForValue(value);
-                    return label.slice(-2);
-                  }
-                },
-                grid: {
-                  color: `${textColor200}1A`, // 10% opacity
-                  borderColor: textColor200
-                }
-              },          y: {
+        scales: {
+          x: {
+            ticks: {
+              color: textColor200,
+              font: {
+                family: 'Merriweather',
+                size: 12
+              },
+              callback: function(value, index, ticks) {
+                const label = this.getLabelForValue(value);
+                return label.slice(-2);
+              }
+            },
+            grid: {
+              color: `${textColor200}1A`, // 10% opacity
+              borderColor: textColor200
+            }
+          },
+          y: {
             ticks: {
               color: textColor200,
               font: {
@@ -254,7 +263,8 @@ try {
         interaction: {
           intersect: false,
           mode: 'index'
-        },        elements: {
+        },
+        elements: {
           point: {
             hoverBackgroundColor: accentMain100
           }
@@ -273,7 +283,7 @@ try {
     }
     const range = document.getElementById('goalRange');
     const label = document.getElementById('goalValue');
-    
+
     if (range && label) {
       label.textContent = `S/ ${formatSliderValue(Number(range.value))}`;
 
@@ -320,7 +330,8 @@ try {
     display: flex;
     gap: theme('spacing.standard');
     align-items: center;
-  }  .legend-item {
+  }
+  .legend-item {
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -335,40 +346,41 @@ try {
     font-size: 0.875rem;
     color: theme('colors.text.200');
     font-weight: 500;
-  }  @media (max-width: 640px) {
+  }
+  @media (max-width: 640px) {
     .card-header {
       padding: theme('spacing.compact');
       flex-wrap: nowrap;
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .header-left {
       gap: 0.5rem;
       flex-shrink: 0;
     }
-    
+
     .chart-legend {
       gap: theme('spacing.compact');
       flex-shrink: 0;
     }
-    
+
     .legend-item {
       gap: 0.25rem;
     }
-    
+
     .legend-label {
       font-size: 0.75rem;
       white-space: nowrap;
     }
-    
+
     .legend-dot {
       width: 0.625rem;
       height: 0.625rem;
       flex-shrink: 0;
     }
   }
-  
+
   @media (max-width: 480px) {
     .card-header {
       padding: theme('spacing.compact');
@@ -376,26 +388,26 @@ try {
       align-items: center;
       gap: 0.25rem;
     }
-    
+
     .header-left {
       gap: 0.25rem;
       flex-shrink: 0;
     }
-    
+
     .chart-legend {
       gap: 0.25rem;
       flex-shrink: 0;
     }
-    
+
     .legend-item {
       gap: 0.2rem;
     }
-    
+
     .legend-label {
       font-size: 0.65rem;
       white-space: nowrap;
     }
-    
+
     .legend-dot {
       width: 0.5rem;
       height: 0.5rem;

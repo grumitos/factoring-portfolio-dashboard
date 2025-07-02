@@ -5,7 +5,8 @@ import { getFactoringMetrics, type FactoringContract } from '../lib/dataService'
 const { contracts } = await getFactoringMetrics();
 ---
 
-<section class="investment-card card">  <div class="card-header flex-between">
+<section class="investment-card card">
+  <div class="card-header flex-between">
     <div class="header-left flex-center">
       <span class="svg-icon text-accent-main-000">
         <IconSVG name="document" />
@@ -16,18 +17,18 @@ const { contracts } = await getFactoringMetrics();
       <span id="factoring-header-info"></span>
     </div>
   </div>
-  
+
   <div class="tabs-container">
     <button class="tab active" data-tab="pending">Pendientes</button>
     <button class="tab" data-tab="paid">Pagados</button>
     <button class="tab" data-tab="potential-earnings">Ganancias</button>
   </div>
-  
+
   <div class="search-container">
     <input type="text" id="search-contracts" placeholder="Buscar contratos..." class="search-input">
     <button id="clear-search" class="clear-search-btn" title="Limpiar búsqueda">&times;</button>
   </div>
-  
+
   <div class="card-details">
     <table class="details-table">
       <thead>
@@ -212,13 +213,14 @@ const { contracts } = await getFactoringMetrics();
   }
 </script>
 
-<style is:global>  .investment-card {
+<style is:global>
+  .investment-card {
     width: 100%;
     max-width: 100%;
     overflow: hidden;
     box-sizing: border-box;
   }
-  
+
   .card-header {
     padding: theme('spacing.standard');
     border-bottom: 0.5px solid theme('colors.border.300');
@@ -228,11 +230,11 @@ const { contracts } = await getFactoringMetrics();
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .header-left {
     gap: 0.75rem;
   }
-  
+
   .svg-icon {
     display: flex;
     align-items: center;
@@ -246,7 +248,7 @@ const { contracts } = await getFactoringMetrics();
     flex-wrap: nowrap;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
-  
+
   .tab {
     padding: 0.5rem 0.75rem;
     white-space: nowrap;
@@ -259,7 +261,7 @@ const { contracts } = await getFactoringMetrics();
     transition: all 0.2s ease;
     font-size: 0.875rem;
   }
-  
+
   .tab:hover, .tab.active {
     color: theme('colors.text.100');
     background-color: theme('colors.bg.300');
@@ -270,7 +272,7 @@ const { contracts } = await getFactoringMetrics();
     gap: 0.5rem;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
-  
+
   .search-input {
     flex: 1;
     min-width: 0;
@@ -282,7 +284,7 @@ const { contracts } = await getFactoringMetrics();
     font-size: 0.875rem;
     box-sizing: border-box;
   }
-  
+
   .search-input:focus {
     outline: none;
     border-color: theme('colors.border.200');
@@ -302,7 +304,7 @@ const { contracts } = await getFactoringMetrics();
     cursor: pointer;
     transition: all 0.2s ease;
   }
-  
+
   .clear-search-btn:hover {
     background-color: theme('colors.bg.400');
     color: theme('colors.text.100');
@@ -312,7 +314,7 @@ const { contracts } = await getFactoringMetrics();
     overflow: hidden;
     width: 100%;
   }
-  
+
   .details-table {
     width: 100%;
     min-width: 100%;
@@ -327,7 +329,7 @@ const { contracts } = await getFactoringMetrics();
   .details-table tr:nth-child(even) {
     background-color: theme('colors.bg.200');
   }
-  
+
 .details-table th:nth-child(1),
 .details-table td:nth-child(1) {
   width: var(--col-cliente);
@@ -354,7 +356,7 @@ const { contracts } = await getFactoringMetrics();
     font-weight: 500;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
-  
+
   /* center Fecha Pago header, keep Ganancia right */
   .details-table th:nth-child(2) {
     text-align: center;
@@ -362,7 +364,7 @@ const { contracts } = await getFactoringMetrics();
   .details-table th:nth-child(3) {
     text-align: right;
   }
-  
+
   .details-table td {
     padding: 0.75rem theme('spacing.standard');
     text-align: left;
@@ -370,7 +372,7 @@ const { contracts } = await getFactoringMetrics();
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   /* center Fecha Pago cells, keep others right */
   .details-table td:nth-child(2) {
     text-align: center;
@@ -388,7 +390,7 @@ const { contracts } = await getFactoringMetrics();
   .waiting-state-row td {
     padding: 2rem 1rem;
   }
-  
+
   .empty-state {
     display: flex;
     flex-direction: column;
@@ -398,14 +400,14 @@ const { contracts } = await getFactoringMetrics();
     padding: 1.5rem 0;
     min-height: 120px;
   }
-  
+
   .empty-state .svg-icon {
     height: 3rem;
     width: 3rem;
     margin-bottom: 1rem;
     color: theme('colors.text.300');
   }
-  
+
   .primary-text {
     font-weight: 600;
     margin-bottom: 0.5rem;
@@ -415,7 +417,7 @@ const { contracts } = await getFactoringMetrics();
     font-size: 0.875rem;
     color: theme('colors.text.300');
   }
-  
+
   /* Override the margin-bottom from the base card class to eliminate the extra space */
   .investment-card.card {
     margin-bottom: 0;
@@ -455,12 +457,12 @@ const { contracts } = await getFactoringMetrics();
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .header-left {
       gap: 0.5rem;
       flex-shrink: 0;
     }
-    
+
     .header-right {
       text-align: right;
       white-space: nowrap;
@@ -468,11 +470,11 @@ const { contracts } = await getFactoringMetrics();
       text-overflow: ellipsis;
       min-width: 0;
     }
-    
+
     .search-container {
       padding: theme('spacing.compact');
     }
-    
+
     .search-input {
       font-size: 1rem; /* Evita zoom en iOS */
     }
@@ -480,13 +482,13 @@ const { contracts } = await getFactoringMetrics();
       padding: 0.5rem 0.25rem;
       font-size: 0.8rem;
     }
-    
+
     .details-table th,
     .details-table td {
       padding: 0.5rem theme('spacing.compact');
       font-size: 0.875rem;
     }
-    
+
     .details-table th:nth-child(1),
     .details-table td:nth-child(1) {
       width: 40%;
@@ -505,31 +507,31 @@ const { contracts } = await getFactoringMetrics();
       min-width: 70px;
       font-size: 0.8rem;
     }
-    
+
     .empty-state {
       padding: 1rem 0;
       min-height: 100px;
     }
-    
+
     .empty-state .svg-icon {
       height: 2.5rem;
       width: 2.5rem;
       margin-bottom: 0.75rem;
     }
-    
+
     .primary-text {
       font-size: 0.9rem;
     }
-    
+
     .secondary-text {
       font-size: 0.8rem;
     }
-    
+
     .pagination {
       padding: theme('spacing.compact');
       gap: 0.5rem;
     }
-    
+
     .page-btn {
       padding: 0.5rem 0.75rem;
       font-size: 0.875rem;
@@ -542,12 +544,12 @@ const { contracts } = await getFactoringMetrics();
       align-items: center;
       gap: 0.25rem;
     }
-    
+
     .header-left {
       gap: 0.25rem;
       flex-shrink: 0;
     }
-    
+
     .header-right {
       text-align: right;
       white-space: nowrap;
@@ -556,12 +558,12 @@ const { contracts } = await getFactoringMetrics();
       min-width: 0;
       font-size: 0.75rem;
     }
-    
+
     .tab {
       padding: 0.5rem 0.2rem;
       font-size: 0.75rem;
     }
-    
+
     .details-table th,
     .details-table td {
       padding: 0.4rem theme('spacing.compact');
