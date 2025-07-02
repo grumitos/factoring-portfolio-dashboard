@@ -1,15 +1,15 @@
 export const DEFAULT_FX_RATE = 3.7;
 
-export const MOVEMENT_TYPES = {
-  PEN: {
-    adds: ['deposito', 'pago capital', 'interes ganado', 'dolares a soles'],
-    subs: ['inversion', 'retiro', 'soles a dolares']
-  },
-  USD: {
-    adds: ['deposito', 'pago capital', 'interes ganado', 'soles a dolares'],
-    subs: ['inversion', 'retiro', 'dolares a soles']
-  }
-} as const;
+export const MOVEMENT_TYPES: Record<'PEN'|'USD', { adds: string[]; subs: string[] }> = {
+   PEN: {
+     adds: ['deposito', 'pago capital', 'interes ganado', 'dolares a soles'],
+     subs: ['inversion', 'retiro', 'soles a dolares']
+   },
+   USD: {
+     adds: ['deposito', 'pago capital', 'interes ganado', 'soles a dolares'],
+     subs: ['inversion', 'retiro', 'dolares a soles']
+   }
+};
 
 export const EXTERNAL_CAPITAL = {
   pen: 5068 + 6336 + 100000,
