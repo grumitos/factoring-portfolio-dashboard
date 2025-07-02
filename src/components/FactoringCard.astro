@@ -98,8 +98,12 @@ const { contracts } = await getFactoringMetrics();
 
   function sortContracts(list, tab) {
     const byDate = (a, b) => new Date(a.fechaPago) - new Date(b.fechaPago);
-    if (tab === 'pending' || tab === 'paid') {
+    if (tab === 'pending') {
+      // pending: closest payment date first
       return [...list].sort(byDate);
+    } else if (tab === 'paid') {
+      // paid: most recently paid first
+      return [...list].sort((a, b) => byDate(b, a));
     }
     return list;
   }
