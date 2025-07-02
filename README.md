@@ -65,3 +65,6 @@ Create a `.env` file with the following variables:
 - `SUPABASE_URL` – URL of your Supabase instance
 - `SUPABASE_ANON_KEY` – public anon key for Supabase access
 
+
+
+For automation instructions see [AGENTS.md](AGENTS.md).
