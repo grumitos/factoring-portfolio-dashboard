@@ -2,13 +2,30 @@
 import IconSVG from './IconSVG.astro';
 import type { PortfolioReport } from '../lib/dataService';
 import { fetchLatestRate } from '../lib/fxService';
+import {
+  SLIDER_MIN,
+  SLIDER_MAX,
+  SLIDER_STEP,
+  SLIDER_INITIAL
+} from '../lib/config';
 
 interface Props {
   report: PortfolioReport;
   injection: number;
+  sliderMin?: number;
+  sliderMax?: number;
+  sliderStep?: number;
+  sliderInitial?: number;
 }
 
-const { report, injection } = Astro.props as Props;
+const {
+  report,
+  injection,
+  sliderMin = SLIDER_MIN,
+  sliderMax = SLIDER_MAX,
+  sliderStep = SLIDER_STEP,
+  sliderInitial = SLIDER_INITIAL
+} = Astro.props as Props;
 let fxRate = 3.7;
 try {
   fxRate = await fetchLatestRate();
@@ -45,31 +62,24 @@ try {
     <input
       id="goalRange"
       type="range"
-      min="200000"
-      max="2000000"
-      step="200000"
-      value="200000"
+      min={sliderMin}
+      max={sliderMax}
+      step={sliderStep}
+      value={sliderInitial}
       list="goalTicks"
       class="flex-1"
     />
     <datalist id="goalTicks">
-      <option value="200000"></option>
-      <option value="400000"></option>
-      <option value="600000"></option>
-      <option value="800000"></option>
-      <option value="1000000"></option>
-      <option value="1200000"></option>
-      <option value="1400000"></option>
-      <option value="1600000"></option>
-      <option value="1800000"></option>
-      <option value="2000000"></option>
+      {Array.from({ length: Math.floor((sliderMax - sliderMin) / sliderStep) + 1 }, (_, i) => (
+        <option value={sliderMin + i * sliderStep}></option>
+      ))}
     </datalist>
-    <span id="goalValue" class="text-sm text-text-100">S/ 200,000</span>
+    <span id="goalValue" class="text-sm text-text-100">S/ {sliderInitial.toLocaleString('es-PE')}</span>
   </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script define:vars={{ report, injection, fxRate }}>
+<script define:vars={{ report, injection, fxRate, sliderInitial }}>
   // Esperar a que Chart.js se cargue
   function initChart() {
     if (typeof Chart === 'undefined') {
@@ -121,7 +131,7 @@ try {
       return { labels, seriesA, seriesB };
     };
 
-    let { labels, seriesA, seriesB } = computeData(200000);
+    let { labels, seriesA, seriesB } = computeData(sliderInitial);
 
     const chart = new Chart(ctx, {
       type: 'line',
