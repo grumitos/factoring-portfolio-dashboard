@@ -1,12 +1,20 @@
 ---
 import IconSVG from './IconSVG.astro';
 import type { PortfolioReport } from '../lib/dataService';
+import { fetchLatestRate } from '../lib/fxService';
 
 interface Props {
   report: PortfolioReport;
+  injection: number;
 }
 
-const { report } = Astro.props as Props;
+const { report, injection } = Astro.props as Props;
+let fxRate = 3.7;
+try {
+  fxRate = await fetchLatestRate();
+} catch {
+  // keep default fxRate
+}
 ---
 
 <section class="chart-container card">  <div class="card-header flex-between">
@@ -61,7 +69,7 @@ const { report } = Astro.props as Props;
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script define:vars={{ report }}>
+<script define:vars={{ report, injection, fxRate }}>
   // Esperar a que Chart.js se cargue
   function initChart() {
     if (typeof Chart === 'undefined') {
@@ -87,8 +95,7 @@ const { report } = Astro.props as Props;
 
     const computeData = (goal) => {
       const rMonthly = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
-      const injection = 6000;
-      let withoutInj = report.netPen + report.netUsd * 3.7;
+      let withoutInj = report.netPen + report.netUsd * fxRate;
       let withInj = withoutInj;
       const labels = [];
       const seriesA = [];
