@@ -7,7 +7,7 @@ import {
   SLIDER_MAX,
   SLIDER_STEP,
   SLIDER_INITIAL,
-  GOAL_DEFAULT
+  GOAL
 } from '../lib/config';
 
 interface Props {
@@ -27,7 +27,7 @@ const {
   sliderMax = SLIDER_MAX,
   sliderStep = SLIDER_STEP,
   sliderInitial = SLIDER_INITIAL,
-  goalInitial = GOAL_DEFAULT
+  goalInitial = GOAL
 } = Astro.props as Props;
 let fxRate = 3.7;
 try {

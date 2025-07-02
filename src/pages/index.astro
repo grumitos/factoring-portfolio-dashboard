@@ -5,11 +5,11 @@ import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
-import { GOAL_DEFAULT, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
+import { GOAL, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
 
 // obtener datos async
-const { report, progressPct } = await getReportMetrics(GOAL_DEFAULT);
-const { months } = await getTimeToGoalWithInjection(report, GOAL_DEFAULT, INITIAL_INJECTION);
+const { report, progressPct } = await getReportMetrics(GOAL);
+const { months } = await getTimeToGoalWithInjection(report, GOAL, INITIAL_INJECTION);
 const trendLabelInjection = getInjectionTrendLabel(months);
 ---
 
@@ -35,7 +35,7 @@ const trendLabelInjection = getInjectionTrendLabel(months);
 				/>
 				<SummaryCard
 					class="summary-goal-card"
-                                        title={`Meta: S/ ${new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' }).format(GOAL_DEFAULT)}`}
+                    title={`Meta: S/ ${new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' }).format(GOAL)}`}
 					value={`${progressPct.toFixed(2)}%`}
 					trend={`${trendLabelInjection}`}
 				/>
@@ -48,7 +48,7 @@ const trendLabelInjection = getInjectionTrendLabel(months);
                                 sliderMax={SLIDER_MAX}
                                 sliderStep={SLIDER_STEP}
                                 sliderInitial={SLIDER_INITIAL}
-                                goalInitial={GOAL_DEFAULT}
+                                goalInitial={GOAL}
                         />
 			<FactoringCard report={report} />
 		</div>
