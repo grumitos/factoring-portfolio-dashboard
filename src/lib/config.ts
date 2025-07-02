@@ -25,4 +25,4 @@ export const INITIAL_INJECTION = 5700;
 export const SLIDER_MIN = 200000;
 export const SLIDER_MAX = 2000000;
 export const SLIDER_STEP = 200000;
-export const SLIDER_INITIAL = 200000;
+export const SLIDER_INITIAL = GOAL_DEFAULT;
