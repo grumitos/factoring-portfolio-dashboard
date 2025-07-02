@@ -22,7 +22,7 @@ export const INJECTION_ITER_LIMIT = 5000;
 export const GOAL_DEFAULT = 300_000;
 export const INITIAL_INJECTION = 5700;
 
-export const SLIDER_MIN = 200000;
+export const SLIDER_MIN = 400000;
 export const SLIDER_MAX = 2000000;
 export const SLIDER_STEP = 200000;
 export const SLIDER_INITIAL = GOAL_DEFAULT;
