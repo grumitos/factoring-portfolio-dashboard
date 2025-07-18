@@ -12,7 +12,7 @@ export const MOVEMENT_TYPES: Record<'PEN'|'USD', { adds: string[]; subs: string[
 };
 
 export const EXTERNAL_CAPITAL = {
-  pen: 5068 + 6336 + 100000,
+  pen: 5068 + 6336 + 120000,
   usd: 1728 + 568
 };
 
