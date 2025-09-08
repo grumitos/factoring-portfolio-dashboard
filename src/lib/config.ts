@@ -12,8 +12,8 @@ export const MOVEMENT_TYPES: Record<'PEN'|'USD', { adds: string[]; subs: string[
 };
 
 export const EXTERNAL_CAPITAL = {
-  pen: 120000,
-  usd: 8000
+  pen: 121000,
+  usd: 10820
 };
 
 export const PERIODIC_INJECTION = 5700;
