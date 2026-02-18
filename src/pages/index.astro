@@ -7,62 +7,55 @@ import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
 import { GOAL, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
 
-// obtener datos async
-const { report, progressPct } = await getReportMetrics(GOAL);
-const { months } = await getTimeToGoalWithInjection(report, GOAL, INITIAL_INJECTION);
+const { report, progressPct, fxRate } = await getReportMetrics(GOAL);
+const { months } = getTimeToGoalWithInjection(report, fxRate, GOAL, INITIAL_INJECTION);
 const trendLabelInjection = getInjectionTrendLabel(months);
+
+const penFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
+const usdFormatter = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const compactPenFormatter = new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' });
 ---
 
 <Layout title="Proyección de Inversiones">
-  <main class="main-content mx-auto w-full">
-    <div class="dashboard-content">
-      <div class="grid grid-cols-2 gap-standard mb-standard">
-        <SummaryCard
-          class="summary-soles-card"
-          title="Total en Soles"
-          value={new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(report.netPen)}
-          trend={`En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
-        />
-        <SummaryCard
-          class="summary-dolares-card"
-          title="Total en Dólares"
-          value={`$ ${report.netUsd.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          trend={`En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}`}
-        />
-        <SummaryCard
-          class="summary-tasa-card"
-          title="Tasa Promedio"
-          value={`${report.annualRatePct.toFixed(2)}%`}
-          trend="Anualizada"
-        />
-        <SummaryCard
-          class="summary-goal-card"
-          title={`Meta: S/ ${new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' }).format(GOAL)}`}
-          value={`${progressPct.toFixed(2)}%`}
-          trend={`${trendLabelInjection}`}
-        />
-      </div>
-
-      <ChartContainer
-        report={report}
-        injection={INITIAL_INJECTION}
-        sliderMin={SLIDER_MIN}
-        sliderMax={SLIDER_MAX}
-        sliderStep={SLIDER_STEP}
-        sliderInitial={SLIDER_INITIAL}
-        goalInitial={GOAL}
+  <main class="w-full">
+    <div class="grid grid-cols-2 gap-standard mb-standard">
+      <SummaryCard
+        class="summary-soles-card"
+        title="Total en Soles"
+        value={penFormatter.format(report.netPen)}
+        trend={`En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
       />
-      <FactoringCard report={report} />
+      <SummaryCard
+        class="summary-dolares-card"
+        title="Total en Dólares"
+        value={`$ ${usdFormatter.format(report.netUsd)}`}
+        trend={`En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}`}
+      />
+      <SummaryCard
+        class="summary-tasa-card"
+        title="Tasa Promedio"
+        value={`${report.annualRatePct.toFixed(2)}%`}
+        trend="Anualizada"
+      />
+      <SummaryCard
+        class="summary-goal-card"
+        title={`Meta: S/ ${compactPenFormatter.format(GOAL)}`}
+        value={`${progressPct.toFixed(2)}%`}
+        trend={`${trendLabelInjection}`}
+      />
     </div>
+
+    <ChartContainer
+      report={report}
+      injection={INITIAL_INJECTION}
+      fxRate={fxRate}
+      sliderMin={SLIDER_MIN}
+      sliderMax={SLIDER_MAX}
+      sliderStep={SLIDER_STEP}
+      sliderInitial={SLIDER_INITIAL}
+      goalInitial={GOAL}
+    />
+    <FactoringCard />
   </main>
   <SvgSprite />
 </Layout>
-
-<style>
-  .main-content {
-    max-width: 1200px;
-  }
-  .dashboard-content {
-    padding: 0;
-  }
-</style>

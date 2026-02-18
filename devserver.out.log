@@ -1,0 +1,19 @@
+
+> invest@0.5.0 dev
+> astro dev
+
+23:20:00 [types] Generated 6ms
+23:20:00 [content] Syncing content
+23:20:00 [content] Synced content
+23:20:00 [vite] Re-optimizing dependencies because vite config has changed
+
+ astro  v5.10.1 ready in 1248 ms
+
+┃ Local    http://localhost:4321/
+┃ Network  use --host to expose
+
+23:20:00 watching for file changes...
+23:20:06 [200] / 973ms
+23:20:19 [200] / 18ms
+23:42:15 [200] / 78ms
+23:42:20 [404] /.well-known/appspecific/com.chrome.devtools.json 3ms

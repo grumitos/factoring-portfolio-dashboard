@@ -1,4 +1,3 @@
-/* portfolioUtils.ts */
 import { parseISO, differenceInMilliseconds } from 'date-fns';
 
 export interface InvestmentDetail {
@@ -39,10 +38,13 @@ export const annualRateForContract = (
   startDate: Date,
   endDate: Date
 ): number => {
+  if (principal <= 0) return 0;
   const months = monthsBetween(startDate, endDate);
   if (months <= 0) return 0;
   const finalAmount = principal + gain;
+  if (finalAmount <= 0) return 0;
   const rMonth = Math.pow(finalAmount / principal, 1 / months) - 1;
+  if (!Number.isFinite(rMonth)) return 0;
   return Math.pow(1 + rMonth, 12) - 1;
 };
 
@@ -50,25 +52,31 @@ export const annualRateForContract = (
  * Calcula tasa anual promedio ponderada de contratos
  * (cobrados y pendientes, omitiendo los rechazados por defecto).
  */
-const calculateAnnualizedPortfolioRateInternal = (
+export const calculateAnnualizedPortfolioRate = (
   investments: InvestmentDetail[],
   earnings: Earning[],
   defaultFxRate: number,
-  includePaid: boolean
+  includePaid = true
 ): number => {
-  const earningMap = new Map<string, { amountPen: number; date: Date }>();
+  const earningMap = new Map<string, { amountPen: number; latestDate: Date }>();
   earnings.forEach(e => {
     const date = parseISO(e.fecha);
     const fx = e.moneda === 'USD' ? (e.fxRate ?? defaultFxRate) : 1;
     const amountPen = toPen(e.monto, fx);
-    earningMap.set(e.codigo, { amountPen, date });
+    const existing = earningMap.get(e.codigo);
+    if (existing) {
+      existing.amountPen += amountPen;
+      if (date > existing.latestDate) existing.latestDate = date;
+      return;
+    }
+    earningMap.set(e.codigo, { amountPen, latestDate: date });
   });
 
   let weightedSum = 0;
   let totalPrincipalPen = 0;
 
   investments.forEach(inv => {
-    const est = inv.estado.toLowerCase();
+    const est = inv.estado.trim().toLowerCase();
     if (est === 'rechazado') return;
     if (!includePaid && est === 'cobrado') return;
 
@@ -83,7 +91,7 @@ const calculateAnnualizedPortfolioRateInternal = (
 
     if (real) {
       gainPen = real.amountPen;
-      endDate = real.date;
+      endDate = real.latestDate;
     } else {
       const months = monthsBetween(start, planned);
       gainPen = principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1);
@@ -97,17 +105,3 @@ const calculateAnnualizedPortfolioRateInternal = (
 
   return totalPrincipalPen > 0 ? (weightedSum / totalPrincipalPen) * 100 : 0;
 };
-
-export const calculateAnnualizedPortfolioRate = (
-  investments: InvestmentDetail[],
-  earnings: Earning[],
-  defaultFxRate: number,
-  includePaid = true
-): number =>
-  calculateAnnualizedPortfolioRateInternal(
-    investments,
-    earnings,
-    defaultFxRate,
-    includePaid
-  );
-

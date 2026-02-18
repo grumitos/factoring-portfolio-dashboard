@@ -1,6 +1,6 @@
 ---
 import IconSVG from './IconSVG.astro';
-import { getFactoringMetrics, type FactoringContract } from '../lib/dataService';
+import { getFactoringMetrics } from '../lib/dataService';
 
 const { contracts } = await getFactoringMetrics();
 ---
@@ -60,158 +60,8 @@ const { contracts } = await getFactoringMetrics();
   </div>
 </section>
 
-<script define:vars={{ contracts }}>
-  const data = contracts;
-  let currentTab = '';
-  const tbody = document.getElementById('factoring-details');
-  const thead = document.querySelector('.details-table thead');
-  const headerInfo = document.getElementById('factoring-header-info');
-  const searchInput = document.getElementById('search-contracts');
-  const clearBtn = document.getElementById('clear-search');
-  const tabs = Array.from(document.querySelectorAll('.tab'));
-  const pagination = document.getElementById('pagination');
-  const prevBtn = document.getElementById('prev-page');
-  const nextBtn = document.getElementById('next-page');
-  const pageInfo = document.getElementById('page-info');
-  const ITEMS_PER_PAGE = 10;
-  let currentPage = 1;
-  let totalPages = 1;
-
-
-  function formatCurrency(v) {
-    return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(v);
-  }
-
-  function filterContracts(tab, term) {
-    const t = term.trim().toLowerCase();
-    return data.filter(c => {
-      if (tab === 'pending') {
-        if (c.estado.toLowerCase() === 'cobrado' || c.estado.toLowerCase() === 'rechazado') return false;
-      } else if (tab === 'paid') {
-        if (c.estado.toLowerCase() !== 'cobrado') return false;
-      } else if (tab === 'potential-earnings') {
-        if (c.estado.toLowerCase() === 'rechazado') return false;
-      }
-      if (!t) return true;
-      return c.cliente.toLowerCase().includes(t) || c.codigo.toLowerCase().includes(t);
-    });
-  }
-
-  function sortContracts(list, tab) {
-    const byDate = (a, b) => new Date(a.fechaPago) - new Date(b.fechaPago);
-    if (tab === 'pending') {
-      // pending: closest payment date first
-      return [...list].sort(byDate);
-    } else if (tab === 'paid') {
-      // paid: most recently paid first
-      return [...list].sort((a, b) => byDate(b, a));
-    }
-    return list;
-  }
-
-  function updateHeader(tab, list) {
-    if (!headerInfo) return;
-    if (tab === 'pending') {
-      headerInfo.textContent = `Pendientes: ${list.length}`;
-    } else if (tab === 'paid') {
-      headerInfo.textContent = `Pagados: ${list.length}`;
-    } else if (tab === 'potential-earnings') {
-      const gain = list.reduce((s, c) => s + c.gainPen, 0);
-      headerInfo.textContent = `Ganancias: ${formatCurrency(gain)}`;
-    }
-  }
-
-  function updatePagination(list) {
-    if (!pagination) return;
-    totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
-    pageInfo.textContent = `${currentPage} / ${totalPages}`;
-    prevBtn.disabled = currentPage <= 1;
-    nextBtn.disabled = currentPage >= totalPages;
-    pagination.classList.toggle('hidden', totalPages <= 1);
-    pagination.style.display = totalPages <= 1 ? 'none' : '';
-  }
-
-  function render(tab) {
-    currentTab = tab;
-    tabs.forEach(tb => tb.classList.toggle('active', tb.dataset.tab === tab));
-    const filtered = filterContracts(tab, searchInput.value || '');
-    const list = sortContracts(filtered, tab);
-    if (!tbody || !thead) return;
-    updateHeader(tab, list);
-    if (tab === 'potential-earnings') {
-      if (pagination) {
-        pagination.classList.add('hidden');
-        pagination.style.display = 'none';
-      }
-    } else {
-      updatePagination(list);
-    }
-    tbody.innerHTML = '';    if (tab === 'potential-earnings') {
-      thead.innerHTML = '<tr><th>Estado</th><th style="text-align: right;">Contratos</th><th style="text-align: right;">Ganancia</th></tr>';
-      const pending = list.filter(c => c.estado.toLowerCase() !== 'cobrado');
-      const paid = list.filter(c => c.estado.toLowerCase() === 'cobrado');
-      const rows = [
-        { label: 'Pendientes', count: pending.length, gain: pending.reduce((s,c) => s + c.gainPen, 0) },
-        { label: 'Pagados', count: paid.length, gain: paid.reduce((s,c) => s + c.gainPen, 0) },
-        { label: 'Total', count: pending.length + paid.length, gain: pending.reduce((s,c) => s + c.gainPen, 0) + paid.reduce((s,c) => s + c.gainPen, 0) }
-      ];
-      rows.forEach(r => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${r.label}</td><td style="text-align: right;">${r.count}</td><td style="text-align: right;">${formatCurrency(r.gain)}</td>`;
-        tbody.appendChild(row);
-      });
-      return;
-    }
-    thead.innerHTML = '<tr><th>Cliente</th><th style="text-align: center;">Fecha Pago</th><th style="text-align: right;">Ganancia</th></tr>';
-    if (list.length === 0) {
-      const row = document.createElement('tr');
-      const colspan = 3;
-      row.innerHTML = `<td colspan="${colspan}"><div class="empty-state"><span class="svg-icon"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>`;
-      tbody.appendChild(row);
-      return;
-    }
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginated = list.slice(start, start + ITEMS_PER_PAGE);
-    paginated.forEach(c => {
-      const row = document.createElement('tr');
-      row.innerHTML = `<td class="client-name" title="${c.cliente}">${c.cliente}</td><td style="text-align: center;">${new Date(c.fechaPago).toLocaleDateString('es-PE')}</td><td style="text-align: right;">${formatCurrency(c.gainPen)}</td>`;
-      tbody.appendChild(row);
-    });
-  }
-
-  tabs.forEach(tb => tb.addEventListener('click', () => {
-    currentPage = 1;
-    render(tb.dataset.tab);
-  }));
-  searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    render(currentTab);
-  });
-  clearBtn?.addEventListener('click', () => {
-    if (searchInput) searchInput.value = '';
-    currentPage = 1;
-    render(currentTab);
-  });
-  prevBtn?.addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      render(currentTab);
-    }
-  });
-  nextBtn?.addEventListener('click', () => {
-    if (currentPage < totalPages) {
-      currentPage++;
-      render(currentTab);
-    }
-  });
-
-  // Mostrar inicialmente los contratos pendientes
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => render('pending'));
-  } else {
-    render('pending');
-  }
-</script>
+<script is:inline id="factoring-data" type="application/json" set:html={JSON.stringify(contracts)} />
+<script src="../scripts/factoring.ts"></script>
 
 <style is:global>
   .investment-card {
@@ -221,35 +71,14 @@ const { contracts } = await getFactoringMetrics();
     box-sizing: border-box;
   }
 
-  .card-header {
-    padding: theme('spacing.standard');
-    border-bottom: 0.5px solid theme('colors.border.300');
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .header-left {
-    gap: 0.75rem;
-  }
-
-  .svg-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 1.5rem;
-    width: 1.5rem;
-  }
-  .tabs-container {
+  .investment-card .tabs-container {
     min-height: 2.5rem;
     display: flex;
     flex-wrap: nowrap;
     border-bottom: 0.5px solid theme('colors.border.300');
   }
 
-  .tab {
+  .investment-card .tab {
     padding: 0.5rem 0.75rem;
     white-space: nowrap;
     flex: 1;
@@ -262,10 +91,13 @@ const { contracts } = await getFactoringMetrics();
     font-size: 0.875rem;
   }
 
-  .tab:hover, .tab.active {
+  .investment-card .tab:hover,
+  .investment-card .tab.active {
     color: theme('colors.text.100');
     background-color: theme('colors.bg.300');
-  }  .search-container {
+  }
+
+  .investment-card .search-container {
     padding: theme('spacing.compact');
     display: flex;
     align-items: center;
@@ -273,7 +105,7 @@ const { contracts } = await getFactoringMetrics();
     border-bottom: 0.5px solid theme('colors.border.300');
   }
 
-  .search-input {
+  .investment-card .search-input {
     flex: 1;
     min-width: 0;
     padding: 0.5rem 0.75rem;
@@ -285,11 +117,12 @@ const { contracts } = await getFactoringMetrics();
     box-sizing: border-box;
   }
 
-  .search-input:focus {
+  .investment-card .search-input:focus {
     outline: none;
     border-color: theme('colors.border.200');
   }
-    .clear-search-btn {
+
+  .investment-card .clear-search-btn {
     width: 2rem;
     height: 2rem;
     flex-shrink: 0;
@@ -305,50 +138,50 @@ const { contracts } = await getFactoringMetrics();
     transition: all 0.2s ease;
   }
 
-  .clear-search-btn:hover {
+  .investment-card .clear-search-btn:hover {
     background-color: theme('colors.bg.400');
     color: theme('colors.text.100');
   }
-    .card-details {
+
+  .investment-card .card-details {
     padding: 0;
     overflow: hidden;
     width: 100%;
   }
 
-  .details-table {
+  .investment-card .details-table {
     width: 100%;
     min-width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    /* column width variables for easy customization */
     --col-cliente: 60%;
     --col-fecha: 20%;
     --col-ganancia: 20%;
   }
 
-  .details-table tr:nth-child(even) {
+  .investment-card .details-table tr:nth-child(even) {
     background-color: theme('colors.bg.200');
   }
 
-.details-table th:nth-child(1),
-.details-table td:nth-child(1) {
-  width: var(--col-cliente);
-  min-width: 120px;
-}
+  .investment-card .details-table th:nth-child(1),
+  .investment-card .details-table td:nth-child(1) {
+    width: var(--col-cliente);
+    min-width: 120px;
+  }
 
-.details-table th:nth-child(2),
-.details-table td:nth-child(2) {
-  width: var(--col-fecha);
-  min-width: 100px;
-}
+  .investment-card .details-table th:nth-child(2),
+  .investment-card .details-table td:nth-child(2) {
+    width: var(--col-fecha);
+    min-width: 100px;
+  }
 
-.details-table th:nth-child(3),
-.details-table td:nth-child(3) {
-  width: var(--col-ganancia);
-  min-width: 100px;
-}
+  .investment-card .details-table th:nth-child(3),
+  .investment-card .details-table td:nth-child(3) {
+    width: var(--col-ganancia);
+    min-width: 100px;
+  }
 
-.details-table th {
+  .investment-card .details-table th {
     padding: 0.75rem theme('spacing.standard');
     text-align: left;
     color: theme('colors.text.300');
@@ -357,15 +190,14 @@ const { contracts } = await getFactoringMetrics();
     border-bottom: 0.5px solid theme('colors.border.300');
   }
 
-  /* center Fecha Pago header, keep Ganancia right */
-  .details-table th:nth-child(2) {
+  .investment-card .details-table th:nth-child(2) {
     text-align: center;
   }
-  .details-table th:nth-child(3) {
+  .investment-card .details-table th:nth-child(3) {
     text-align: right;
   }
 
-  .details-table td {
+  .investment-card .details-table td {
     padding: 0.75rem theme('spacing.standard');
     text-align: left;
     border-bottom: 0.5px solid theme('colors.border.300');
@@ -373,25 +205,24 @@ const { contracts } = await getFactoringMetrics();
     overflow-wrap: break-word;
   }
 
-  /* center Fecha Pago cells, keep others right */
-  .details-table td:nth-child(2) {
+  .investment-card .details-table td:nth-child(2) {
     text-align: center;
   }
-  .details-table td:nth-child(3) {
+  .investment-card .details-table td:nth-child(3) {
     text-align: right;
   }
 
-  .client-name {
+  .investment-card .client-name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .waiting-state-row td {
+  .investment-card .waiting-state-row td {
     padding: 2rem 1rem;
   }
 
-  .empty-state {
+  .investment-card .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -401,29 +232,29 @@ const { contracts } = await getFactoringMetrics();
     min-height: 120px;
   }
 
-  .empty-state .svg-icon {
+  .investment-card .empty-state .svg-icon {
     height: 3rem;
     width: 3rem;
     margin-bottom: 1rem;
     color: theme('colors.text.300');
   }
 
-  .primary-text {
+  .investment-card .primary-text {
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: theme('colors.text.200');
   }
-    .secondary-text {
+
+  .investment-card .secondary-text {
     font-size: 0.875rem;
     color: theme('colors.text.300');
   }
 
-  /* Override the margin-bottom from the base card class to eliminate the extra space */
   .investment-card.card {
     margin-bottom: 0;
   }
 
-  .pagination {
+  .investment-card .pagination {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -432,7 +263,7 @@ const { contracts } = await getFactoringMetrics();
     border-top: 0.5px solid theme('colors.border.300');
   }
 
-  .page-btn {
+  .investment-card .page-btn {
     padding: 0.25rem 0.5rem;
     border: 0.5px solid theme('colors.border.300');
     background-color: theme('colors.bg.300');
@@ -442,28 +273,16 @@ const { contracts } = await getFactoringMetrics();
     transition: all 0.2s ease;
   }
 
-  .page-btn:hover:not(:disabled) {
+  .investment-card .page-btn:hover:not(:disabled) {
     background-color: theme('colors.bg.400');
   }
-  .page-btn:disabled {
+  .investment-card .page-btn:disabled {
     opacity: 0.5;
     cursor: default;
   }
-    /* Responsive styles */
+
   @media (max-width: 640px) {
-    .card-header {
-      padding: theme('spacing.compact');
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .header-left {
-      gap: 0.5rem;
-      flex-shrink: 0;
-    }
-
-    .header-right {
+    .investment-card .header-right {
       text-align: right;
       white-space: nowrap;
       overflow: hidden;
@@ -471,86 +290,76 @@ const { contracts } = await getFactoringMetrics();
       min-width: 0;
     }
 
-    .search-container {
+    .investment-card .search-container {
       padding: theme('spacing.compact');
     }
 
-    .search-input {
-      font-size: 1rem; /* Evita zoom en iOS */
+    .investment-card .search-input {
+      font-size: 1rem;
     }
-      .tab {
+
+    .investment-card .tab {
       padding: 0.5rem 0.25rem;
       font-size: 0.8rem;
     }
 
-    .details-table th,
-    .details-table td {
+    .investment-card .details-table th,
+    .investment-card .details-table td {
       padding: 0.5rem theme('spacing.compact');
       font-size: 0.875rem;
     }
 
-    .details-table th:nth-child(1),
-    .details-table td:nth-child(1) {
+    .investment-card .details-table th:nth-child(1),
+    .investment-card .details-table td:nth-child(1) {
       width: 40%;
       min-width: 90px;
     }
 
-    .details-table th:nth-child(2),
-    .details-table td:nth-child(2) {
+    .investment-card .details-table th:nth-child(2),
+    .investment-card .details-table td:nth-child(2) {
       width: 20%;
       min-width: 70px;
     }
 
-    .details-table th:nth-child(3),
-    .details-table td:nth-child(3) {
+    .investment-card .details-table th:nth-child(3),
+    .investment-card .details-table td:nth-child(3) {
       width: 20%;
       min-width: 70px;
       font-size: 0.8rem;
     }
 
-    .empty-state {
+    .investment-card .empty-state {
       padding: 1rem 0;
       min-height: 100px;
     }
 
-    .empty-state .svg-icon {
+    .investment-card .empty-state .svg-icon {
       height: 2.5rem;
       width: 2.5rem;
       margin-bottom: 0.75rem;
     }
 
-    .primary-text {
+    .investment-card .primary-text {
       font-size: 0.9rem;
     }
 
-    .secondary-text {
+    .investment-card .secondary-text {
       font-size: 0.8rem;
     }
 
-    .pagination {
+    .investment-card .pagination {
       padding: theme('spacing.compact');
       gap: 0.5rem;
     }
 
-    .page-btn {
+    .investment-card .page-btn {
       padding: 0.5rem 0.75rem;
       font-size: 0.875rem;
     }
   }
+
   @media (max-width: 480px) {
-    .card-header {
-      padding: theme('spacing.compact');
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .header-left {
-      gap: 0.25rem;
-      flex-shrink: 0;
-    }
-
-    .header-right {
+    .investment-card .header-right {
       text-align: right;
       white-space: nowrap;
       overflow: hidden;
@@ -559,21 +368,21 @@ const { contracts } = await getFactoringMetrics();
       font-size: 0.75rem;
     }
 
-    .tab {
+    .investment-card .tab {
       padding: 0.5rem 0.2rem;
       font-size: 0.75rem;
     }
 
-    .details-table th,
-    .details-table td {
+    .investment-card .details-table th,
+    .investment-card .details-table td {
       padding: 0.4rem theme('spacing.compact');
       font-size: 0.8rem;
     }
 
-    .details-table th:nth-child(2),
-    .details-table td:nth-child(2),
-    .details-table th:nth-child(3),
-    .details-table td:nth-child(3) {
+    .investment-card .details-table th:nth-child(2),
+    .investment-card .details-table td:nth-child(2),
+    .investment-card .details-table th:nth-child(3),
+    .investment-card .details-table td:nth-child(3) {
       font-size: 0.75rem;
     }
   }
