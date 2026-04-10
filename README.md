@@ -1,4 +1,4 @@
-# Astro Starter Kit: Minimal
+# Factoring Portfolio Dashboard
 
 ```sh
 npm create astro@latest -- --template minimal

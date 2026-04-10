@@ -1,4 +1,4 @@
-# AGENTS Instructions for Invest Project
+# AGENTS Instructions for Factoring Portfolio Dashboard
 
 ## Project Overview
 
