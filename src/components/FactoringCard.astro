@@ -1,8 +1,9 @@
 ---
 import IconSVG from './IconSVG.astro';
 import { getFactoringMetrics } from '../lib/dataService';
+import { EXPOSE_PRIVATE_PORTFOLIO_DATA } from '../lib/config';
 
-const { contracts } = await getFactoringMetrics();
+const { contracts } = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getFactoringMetrics() : { contracts: [] };
 ---
 
 <section class="investment-card card">
@@ -18,50 +19,68 @@ const { contracts } = await getFactoringMetrics();
     </div>
   </div>
 
-  <div class="tabs-container">
-    <button class="tab active" data-tab="pending">Pendientes</button>
-    <button class="tab" data-tab="paid">Pagados</button>
-    <button class="tab" data-tab="potential-earnings">Ganancias</button>
-  </div>
+  {EXPOSE_PRIVATE_PORTFOLIO_DATA ? (
+    <>
+      <div class="tabs-container">
+        <button class="tab active" data-tab="pending">Pendientes</button>
+        <button class="tab" data-tab="paid">Pagados</button>
+        <button class="tab" data-tab="potential-earnings">Ganancias</button>
+      </div>
 
-  <div class="search-container">
-    <input type="text" id="search-contracts" placeholder="Buscar contratos..." class="search-input">
-    <button id="clear-search" class="clear-search-btn" title="Limpiar búsqueda">&times;</button>
-  </div>
+      <div class="search-container">
+        <input type="text" id="search-contracts" placeholder="Buscar contratos..." class="search-input">
+        <button id="clear-search" class="clear-search-btn" title="Limpiar búsqueda">&times;</button>
+      </div>
 
-  <div class="card-details">
-    <table class="details-table">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Fecha Pago</th>
-          <th>Ganancia</th>
-        </tr>
-      </thead>
-      <tbody id="factoring-details">
-        <tr class="waiting-state-row">
-          <td colspan="3">
-            <div class="empty-state waiting-message">
-              <span class="svg-icon">
-                <IconSVG name="touch" />
-              </span>
-              <p class="primary-text">Selecciona una categoría</p>
-              <p class="secondary-text">Haz clic en una de las pestañas superiores para ver los contratos</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="pagination hidden" id="pagination">
-      <button id="prev-page" class="page-btn">&lt;</button>
-      <span id="page-info"></span>
-      <button id="next-page" class="page-btn">&gt;</button>
+      <div class="card-details">
+        <table class="details-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Fecha Pago</th>
+              <th>Ganancia</th>
+            </tr>
+          </thead>
+          <tbody id="factoring-details">
+            <tr class="waiting-state-row">
+              <td colspan="3">
+                <div class="empty-state waiting-message">
+                  <span class="svg-icon">
+                    <IconSVG name="touch" />
+                  </span>
+                  <p class="primary-text">Selecciona una categoría</p>
+                  <p class="secondary-text">Haz clic en una de las pestañas superiores para ver los contratos</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination hidden" id="pagination">
+          <button id="prev-page" class="page-btn">&lt;</button>
+          <span id="page-info"></span>
+          <button id="next-page" class="page-btn">&gt;</button>
+        </div>
+      </div>
+    </>
+  ) : (
+    <div class="privacy-state">
+      <span class="svg-icon text-accent-main-000">
+        <IconSVG name="warning" />
+      </span>
+      <p class="primary-text">Contratos privados ocultos</p>
+      <p class="secondary-text">
+        El build de producción no serializa contratos. Define PUBLIC_EXPOSE_PORTFOLIO_DATA=true solo para un despliegue privado.
+      </p>
     </div>
-  </div>
+  )}
 </section>
 
-<script is:inline id="factoring-data" type="application/json" set:html={JSON.stringify(contracts)} />
-<script src="../scripts/factoring.ts"></script>
+{EXPOSE_PRIVATE_PORTFOLIO_DATA && (
+  <>
+    <script is:inline id="factoring-data" type="application/json" set:html={JSON.stringify(contracts)} />
+    <script src="../scripts/factoring.ts"></script>
+  </>
+)}
 
 <style is:global>
   .investment-card {
@@ -118,7 +137,8 @@ const { contracts } = await getFactoringMetrics();
   }
 
   .investment-card .search-input:focus {
-    outline: none;
+    outline: 2px solid theme('colors.accent-main.100');
+    outline-offset: 2px;
     border-color: theme('colors.border.200');
   }
 
@@ -248,6 +268,17 @@ const { contracts } = await getFactoringMetrics();
   .investment-card .secondary-text {
     font-size: 0.875rem;
     color: theme('colors.text.300');
+  }
+
+  .investment-card .privacy-state {
+    min-height: 11rem;
+    padding: theme('spacing.standard');
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
   }
 
   .investment-card.card {

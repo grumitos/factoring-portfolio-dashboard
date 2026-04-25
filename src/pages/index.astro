@@ -5,11 +5,14 @@ import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
 import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
-import { GOAL, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
+import { EXPOSE_PRIVATE_PORTFOLIO_DATA, GOAL, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
 
-const { report, progressPct, fxRate } = await getReportMetrics(GOAL);
-const { months } = getTimeToGoalWithInjection(report, fxRate, GOAL, INITIAL_INJECTION);
-const trendLabelInjection = getInjectionTrendLabel(months);
+const metrics = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getReportMetrics(GOAL) : null;
+const report = metrics?.report;
+const progressPct = metrics?.progressPct ?? 0;
+const fxRate = metrics?.fxRate ?? 0;
+const months = report ? getTimeToGoalWithInjection(report, fxRate, GOAL, INITIAL_INJECTION).months : 0;
+const trendLabelInjection = report ? getInjectionTrendLabel(months) : 'Oculto en build publico';
 
 const penFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
 const usdFormatter = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -22,40 +25,70 @@ const compactPenFormatter = new Intl.NumberFormat('es-PE', { notation: 'compact'
       <SummaryCard
         class="summary-soles-card"
         title="Total en Soles"
-        value={penFormatter.format(report.netPen)}
-        trend={`En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}`}
+        value={report ? penFormatter.format(report.netPen) : 'Privado'}
+        trend={report ? `En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}` : 'No serializado'}
       />
       <SummaryCard
         class="summary-dolares-card"
         title="Total en Dólares"
-        value={`$ ${usdFormatter.format(report.netUsd)}`}
-        trend={`En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}`}
+        value={report ? `$ ${usdFormatter.format(report.netUsd)}` : 'Privado'}
+        trend={report ? `En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}` : 'No serializado'}
       />
       <SummaryCard
         class="summary-tasa-card"
         title="Tasa Promedio"
-        value={`${report.annualRatePct.toFixed(2)}%`}
-        trend="Anualizada"
+        value={report ? `${report.annualRatePct.toFixed(2)}%` : 'Privado'}
+        trend={report ? 'Anualizada' : 'No serializado'}
       />
       <SummaryCard
         class="summary-goal-card"
         title={`Meta: S/ ${compactPenFormatter.format(GOAL)}`}
-        value={`${progressPct.toFixed(2)}%`}
+        value={report ? `${progressPct.toFixed(2)}%` : 'Privado'}
         trend={`${trendLabelInjection}`}
       />
     </div>
 
-    <ChartContainer
-      report={report}
-      injection={INITIAL_INJECTION}
-      fxRate={fxRate}
-      sliderMin={SLIDER_MIN}
-      sliderMax={SLIDER_MAX}
-      sliderStep={SLIDER_STEP}
-      sliderInitial={SLIDER_INITIAL}
-      goalInitial={GOAL}
-    />
+    {report ? (
+      <ChartContainer
+        report={report}
+        injection={INITIAL_INJECTION}
+        fxRate={fxRate}
+        sliderMin={SLIDER_MIN}
+        sliderMax={SLIDER_MAX}
+        sliderStep={SLIDER_STEP}
+        sliderInitial={SLIDER_INITIAL}
+        goalInitial={GOAL}
+      />
+    ) : (
+      <section class="card private-dashboard-state">
+        <h4>Proyección privada oculta</h4>
+        <p>El build de producción no serializa totales, tasas ni contratos. Define PUBLIC_EXPOSE_PORTFOLIO_DATA=true solo para un despliegue privado.</p>
+      </section>
+    )}
     <FactoringCard />
   </main>
   <SvgSprite />
 </Layout>
+
+<style>
+  .private-dashboard-state {
+    margin-bottom: theme('spacing.standard');
+    min-height: 12rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: theme('spacing.standard');
+  }
+
+  .private-dashboard-state h4 {
+    font-weight: 600;
+  }
+
+  .private-dashboard-state p {
+    color: theme('colors.text.300');
+    max-width: 34rem;
+  }
+</style>

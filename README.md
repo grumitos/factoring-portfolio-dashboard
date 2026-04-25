@@ -1,70 +1,110 @@
 # Factoring Portfolio Dashboard
 
+Astro 6 dashboard for a local factoring investment portfolio. The app reads optional local JSON files from `src/data`, computes portfolio metrics in TypeScript, and renders a static single-page dashboard with Chart.js projections.
+
+## Setup
+
+Requirements:
+
+- Node.js 18+
+- Optional Python environment with `pandas` and `openpyxl` for XLSX conversion
+
+Install dependencies:
+
 ```sh
-npm create astro@latest -- --template minimal
+npm install
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/minimal)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/minimal)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/minimal/devcontainer.json)
+Create a local `.env` file when live USD/PEN rates are needed:
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```env
+CURRENCY_FREAKS_API_KEY=your_currency_freaks_key
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+If the key is absent or the provider fails, the app falls back to `DEFAULT_FX_RATE` in `src/lib/config.ts`.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Commands
 
-Any static assets, like images, can be placed in the `public/` directory.
+```sh
+npm run dev      # local dev server, usually http://localhost:4321
+npm run check    # Astro/TypeScript diagnostics
+npm run build    # static production build into dist/
+npm run preview  # preview the built static site
+```
 
-## 🧞 Commands
+There are currently no automated unit tests.
 
-All commands are run from the root of the project, from a terminal:
+## Data Refresh
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+The dashboard consumes these local files:
 
-## 👀 Want to learn more?
+- `src/data/investmentDetails.json`
+- `src/data/earningsPEN.json`
+- `src/data/earningsUSD.json`
+- `src/data/movementsPEN.json`
+- `src/data/movementsUSD.json`
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+`src/data/script.py` converts the local XLSX exports into those JSON files. Run it from `src/data`:
 
-## Portfolio Calculation Utilities
+```sh
+python script.py
+```
 
-The library in `src/lib/portfolioUtils.ts` provides helpers for computing an
-annualized return across multiple investments.
+The Supabase upload path is disabled by default. To enable it intentionally, provide environment variables:
 
-- `calculateAnnualizedPortfolioRate(investments, earnings, fxRate, includePaid = true)` –
-  incluye por defecto contratos `cobrado` y `pendiente`, omitiendo solo aquellos
-  con estado `rechazado`. Pasa `false` para excluir los pagados.
+```env
+UPLOAD_TO_SUPABASE=1
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-Both functions return the weighted annualized rate as a percentage.
+Remote table clearing is separately gated:
 
-## Environment Variables
+```env
+CLEAR_SUPABASE_TABLES=1
+```
 
-Create a `.env` file with the following variables:
+Do not enable remote upload or table clearing unless the Supabase project, RLS policies, and backup state have been verified.
 
-- `CURRENCY_FREAKS_API_KEY` – API key for currency rates
-- `SUPABASE_URL` – URL of your Supabase instance
-- `SUPABASE_ANON_KEY` – public anon key for Supabase access
+If a Supabase key was ever committed or shared, rotate it in Supabase and verify RLS before enabling uploads again. Removing a key from the current tree does not remove it from Git history.
 
+## Privacy And Deployment
 
+Portfolio datasets contain private financial data and client identifiers. Local JSON/XLSX files are ignored by git and should not be committed.
 
-For automation instructions see [AGENTS.md](AGENTS.md).
+Production builds hide portfolio totals, projections, and factoring contracts by default so the static HTML does not serialize private financial data. Only set this for a private, access-controlled deployment:
+
+```env
+PUBLIC_EXPOSE_PORTFOLIO_DATA=true
+```
+
+Without that opt-in, the dashboard renders privacy notices instead of private figures. This also lets a clean clone build without the private local datasets.
+
+The rationale is captured in `docs/decisions/ADR-001-static-dashboard-private-data-gate.md`.
+
+## Architecture
+
+- `src/pages/index.astro` composes the dashboard.
+- `src/lib/dataService.ts` loads optional local JSON, fetches FX, and builds report metrics.
+- `src/lib/portfolioUtils.ts` contains portfolio math helpers.
+- `src/components/ChartContainer.astro` passes projection data to `src/scripts/chart.ts`.
+- `src/components/FactoringCard.astro` gates private contract serialization and loads `src/scripts/factoring.ts` only when detailed contracts are exposed.
+- `src/styles/global.css` and component styles define the Tailwind-based dark UI.
+- Tailwind runs through PostCSS (`postcss.config.js`); `astro.config.mjs` intentionally has no Tailwind integration.
+
+## Quality Gate
+
+Before handing off changes, run:
+
+```sh
+npm run check
+npm run build
+npm audit --omit=dev
+git status --short
+```
+
+Temporary files commonly produced during local work:
+
+```powershell
+Remove-Item devserver*.log,tmp_dev*.log,tmpclaude-*-cwd,nul -ErrorAction SilentlyContinue
+```

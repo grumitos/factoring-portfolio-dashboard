@@ -12,6 +12,9 @@ package-lock.json
 pnpm-lock.yaml
 
 # logs
+devserver*.log
+tmp_dev*.log
+tmpclaude-*-cwd
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -36,6 +39,6 @@ pnpm-debug.log*
 .idea/
 *.sublime-*
 
-# Exclude data files
-*.json
-*.xlsx
+# Exclude private data files
+src/data/*.json
+src/data/*.xlsx

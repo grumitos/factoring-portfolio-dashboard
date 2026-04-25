@@ -1,4 +1,6 @@
 export const DEFAULT_FX_RATE = 3.7;
+export const EXPOSE_PRIVATE_PORTFOLIO_DATA =
+  import.meta.env.DEV || import.meta.env.PUBLIC_EXPOSE_PORTFOLIO_DATA === 'true';
 
 export const MOVEMENT_TYPES: Record<'PEN'|'USD', { adds: string[]; subs: string[] }> = {
    PEN: {

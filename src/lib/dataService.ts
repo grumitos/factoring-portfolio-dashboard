@@ -12,11 +12,14 @@ import {
 
 // ── Local JSON data ─────────────────────────────────────────
 
-import investmentRows from '../data/investmentDetails.json';
-import earningsPen from '../data/earningsPEN.json';
-import earningsUsd from '../data/earningsUSD.json';
-import movementsPen from '../data/movementsPEN.json';
-import movementsUsd from '../data/movementsUSD.json';
+const dataModules = import.meta.glob('../data/*.json', { eager: true });
+
+const getJsonRows = <T>(fileName: string): T[] => {
+  const mod = dataModules[`../data/${fileName}`] as { default?: T[] } | T[] | undefined;
+  if (!mod) return [];
+  if (Array.isArray(mod)) return mod;
+  return Array.isArray(mod.default) ? mod.default : [];
+};
 
 // ── JSON row types ──────────────────────────────────────────
 
@@ -125,9 +128,15 @@ const fetchAllData = (): Promise<AllData> => {
     _allDataCache = (async () => {
       const fxRate = await fetchLatestRate().catch(() => DEFAULT_FX_RATE);
       return {
-        investments: mapInvestments(investmentRows as InvestmentRow[]),
-        earnings: mapEarnings([...earningsPen, ...earningsUsd] as EarningRow[]),
-        movements: mapMovements([...movementsPen, ...movementsUsd] as MovementRow[]),
+        investments: mapInvestments(getJsonRows<InvestmentRow>('investmentDetails.json')),
+        earnings: mapEarnings([
+          ...getJsonRows<EarningRow>('earningsPEN.json'),
+          ...getJsonRows<EarningRow>('earningsUSD.json')
+        ]),
+        movements: mapMovements([
+          ...getJsonRows<MovementRow>('movementsPEN.json'),
+          ...getJsonRows<MovementRow>('movementsUSD.json')
+        ]),
         fxRate
       };
     })();
