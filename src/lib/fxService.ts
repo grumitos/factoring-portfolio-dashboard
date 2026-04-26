@@ -1,5 +1,6 @@
 // Caché en memoria para entorno servidor
 let serverCacheRate: number | null = null;
+const FX_FETCH_TIMEOUT_MS = 2500;
 
 export async function fetchLatestRate(
   base: string = 'USD',
@@ -18,7 +19,9 @@ export async function fetchLatestRate(
 
   try {
     const url = `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=${symbols}&base=${base}`;
-    const res = await fetch(url);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FX_FETCH_TIMEOUT_MS);
+    const res = await fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
     if (!res.ok) {
       throw new Error(`Error al obtener tasa de Currency API: ${res.status}`);
     }

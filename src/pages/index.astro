@@ -12,7 +12,7 @@ const report = metrics?.report;
 const progressPct = metrics?.progressPct ?? 0;
 const fxRate = metrics?.fxRate ?? 0;
 const months = report ? getTimeToGoalWithInjection(report, fxRate, GOAL, INITIAL_INJECTION).months : 0;
-const trendLabelInjection = report ? getInjectionTrendLabel(months) : 'Oculto en build publico';
+const trendLabelInjection = report ? getInjectionTrendLabel(months) : 'Oculto';
 
 const penFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
 const usdFormatter = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -20,29 +20,39 @@ const compactPenFormatter = new Intl.NumberFormat('es-PE', { notation: 'compact'
 ---
 
 <Layout title="Proyección de Inversiones">
-  <main class="w-full">
-    <div class="grid grid-cols-2 gap-standard mb-standard">
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div class="dashboard-title-block">
+        <h1>Panel de inversión</h1>
+      </div>
+      <div class="dashboard-toolbar" aria-label="Estado del tablero">
+        <span class="status-chip">FX {report ? fxRate.toFixed(3) : 'oculto'}</span>
+      </div>
+    </header>
+
+    <div class="summary-grid" aria-label="Resumen del portafolio">
       <SummaryCard
         class="summary-soles-card"
-        title="Total en Soles"
+        tone="primary"
+        title="Capital PEN"
         value={report ? penFormatter.format(report.netPen) : 'Privado'}
-        trend={report ? `En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}` : 'No serializado'}
+        trend={report ? `Mes S/ ${report.gainRealLastMonth.toFixed(2)}` : 'Oculto'}
       />
       <SummaryCard
         class="summary-dolares-card"
-        title="Total en Dólares"
+        title="Capital USD"
         value={report ? `$ ${usdFormatter.format(report.netUsd)}` : 'Privado'}
-        trend={report ? `En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}` : 'No serializado'}
+        trend={report ? `Mes $ ${report.gainRealLastMonthUsd.toFixed(2)}` : 'Oculto'}
       />
       <SummaryCard
         class="summary-tasa-card"
-        title="Tasa Promedio"
+        title="Tasa anual"
         value={report ? `${report.annualRatePct.toFixed(2)}%` : 'Privado'}
-        trend={report ? 'Anualizada' : 'No serializado'}
+        trend={report ? 'Promedio' : 'Oculto'}
       />
       <SummaryCard
         class="summary-goal-card"
-        title={`Meta: S/ ${compactPenFormatter.format(GOAL)}`}
+        title={`Meta ${compactPenFormatter.format(GOAL)}`}
         value={report ? `${progressPct.toFixed(2)}%` : 'Privado'}
         trend={`${trendLabelInjection}`}
       />
@@ -61,8 +71,13 @@ const compactPenFormatter = new Intl.NumberFormat('es-PE', { notation: 'compact'
       />
     ) : (
       <section class="card private-dashboard-state">
-        <h4>Proyección privada oculta</h4>
-        <p>El build de producción no serializa totales, tasas ni contratos. Define PUBLIC_EXPOSE_PORTFOLIO_DATA=true solo para un despliegue privado.</p>
+        <h2>Datos privados</h2>
+        <p>Este build no serializa montos ni contratos.</p>
+        <div class="private-skeleton" aria-hidden="true">
+          <span class="skeleton-line"></span>
+          <span class="skeleton-line"></span>
+          <span class="skeleton-line"></span>
+        </div>
       </section>
     )}
     <FactoringCard />
@@ -71,24 +86,125 @@ const compactPenFormatter = new Intl.NumberFormat('es-PE', { notation: 'compact'
 </Layout>
 
 <style>
+  .dashboard-shell {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .dashboard-header {
+    min-height: 4.75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: end;
+    padding: 0.5rem 0 0.25rem;
+  }
+
+  .dashboard-title-block {
+    min-width: 0;
+  }
+
+  .dashboard-title-block h1 {
+    color: theme('colors.text.000');
+    font-size: clamp(1.75rem, 3.2vw, 2.65rem);
+    line-height: 1;
+    font-weight: 800;
+  }
+
+  .dashboard-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
   .private-dashboard-state {
-    margin-bottom: theme('spacing.standard');
-    min-height: 12rem;
+    margin-bottom: 0;
+    min-height: 17rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 0.5rem;
-    padding: theme('spacing.standard');
+    gap: 0.75rem;
+    padding: 1.25rem;
   }
 
-  .private-dashboard-state h4 {
-    font-weight: 600;
+  .private-dashboard-state h2 {
+    color: theme('colors.text.000');
+    font-size: 1.15rem;
+    font-weight: 700;
   }
 
   .private-dashboard-state p {
-    color: theme('colors.text.300');
+    color: theme('colors.text.200');
     max-width: 34rem;
+    line-height: 1.55;
+  }
+
+  .private-skeleton {
+    width: min(100%, 28rem);
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.5rem;
+  }
+
+  .private-skeleton .skeleton-line:nth-child(1) {
+    width: 100%;
+  }
+
+  .private-skeleton .skeleton-line:nth-child(2) {
+    width: 76%;
+  }
+
+  .private-skeleton .skeleton-line:nth-child(3) {
+    width: 52%;
+  }
+
+  @media (max-width: 900px) {
+    .dashboard-header {
+      grid-template-columns: 1fr;
+      align-items: start;
+      min-height: auto;
+    }
+
+    .dashboard-toolbar {
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .dashboard-shell {
+      gap: 0.75rem;
+    }
+
+    .dashboard-title-block h1 {
+      font-size: 1.9rem;
+    }
+
+    .dashboard-toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+    }
+
+    .summary-grid {
+      grid-template-columns: 1fr;
+      gap: 0.625rem;
+    }
   }
 </style>

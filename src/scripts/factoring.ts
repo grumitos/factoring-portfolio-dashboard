@@ -110,6 +110,11 @@ function initFactoring() {
     pagination.style.display = totalPages <= 1 ? 'none' : '';
   }
 
+  function updateSearchState() {
+    if (!clearBtn || !searchInput) return;
+    (clearBtn as HTMLButtonElement).disabled = searchInput.value.length === 0;
+  }
+
   function setPotentialHeader() {
     if (!thead) return;
     const row = document.createElement('tr');
@@ -182,7 +187,7 @@ function initFactoring() {
   function renderEmptyState() {
     if (!tbody) return;
     const row = document.createElement('tr');
-    row.innerHTML = "<td colspan=\"3\"><div class=\"empty-state\"><span class=\"svg-icon\"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>";
+    row.innerHTML = "<td colspan=\"3\"><div class=\"empty-state\"><span class=\"svg-icon\"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p><p class='secondary-text'>No hay resultados para esta vista o búsqueda.</p></div></td>";
     tbody.innerHTML = '';
     tbody.appendChild(row);
   }
@@ -226,11 +231,17 @@ function initFactoring() {
 
   function render(tab: string) {
     currentTab = tab;
-    tabs.forEach(tb => tb.classList.toggle('active', (tb as HTMLElement).dataset.tab === tab));
+    tabs.forEach(tb => {
+      const isActive = (tb as HTMLElement).dataset.tab === tab;
+      tb.classList.toggle('active', isActive);
+      tb.setAttribute('aria-selected', String(isActive));
+    });
     const filtered = filterContracts(tab, searchInput?.value || '');
     const list = sortContracts(filtered, tab);
     if (!tbody || !thead) return;
+    tbody.setAttribute('aria-busy', 'true');
     updateHeader(tab, list);
+    updateSearchState();
 
     if (tab === 'potential-earnings') {
       if (pagination) {
@@ -243,10 +254,12 @@ function initFactoring() {
 
     if (tab === 'potential-earnings') {
       renderPotentialRows(list);
+      tbody.setAttribute('aria-busy', 'false');
       return;
     }
 
     renderContractRows(list);
+    tbody.setAttribute('aria-busy', 'false');
   }
 
   tabs.forEach(tb => tb.addEventListener('click', () => {
@@ -256,12 +269,15 @@ function initFactoring() {
 
   searchInput?.addEventListener('input', () => {
     currentPage = 1;
+    updateSearchState();
     render(currentTab);
   });
 
   clearBtn?.addEventListener('click', () => {
     if (searchInput) searchInput.value = '';
     currentPage = 1;
+    updateSearchState();
+    searchInput?.focus();
     render(currentTab);
   });
 

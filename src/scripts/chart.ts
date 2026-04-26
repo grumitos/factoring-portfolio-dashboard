@@ -148,9 +148,9 @@ function initChart() {
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: true,
-          titleFont: { family: 'Merriweather', size: 14, weight: 'bold' },
-          bodyFont: { family: 'Merriweather', size: 12 },
-          footerFont: { family: 'Merriweather', size: 10 },
+          titleFont: { family: 'Inter', size: 13, weight: 700 },
+          bodyFont: { family: 'Inter', size: 12 },
+          footerFont: { family: 'Inter', size: 10 },
           footerColor: textColor300,
           itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
           callbacks: {
@@ -166,7 +166,7 @@ function initChart() {
         x: {
           ticks: {
             color: textColor200,
-            font: { family: 'Merriweather', size: 12 },
+            font: { family: 'Inter', size: 11, weight: 600 },
             callback: function (value) {
               return this.getLabelForValue(value as number).slice(-2);
             }
@@ -176,7 +176,7 @@ function initChart() {
         y: {
           ticks: {
             color: textColor200,
-            font: { family: 'Merriweather', size: 12 },
+            font: { family: 'Inter', size: 11, weight: 600 },
             callback: (value) => formatCompact(Number(value))
           },
           grid: { color: `${textColor200}1A` }
@@ -192,6 +192,7 @@ function initChart() {
   if (range && label) {
     label.textContent = `S/ ${formatCompact(Number(range.value))}`;
     range.addEventListener('input', () => {
+      range.setAttribute('aria-busy', 'true');
       const goal = Number(range.value);
       label.textContent = `S/ ${formatCompact(goal)}`;
       const d = computeData(goal);
@@ -199,6 +200,7 @@ function initChart() {
       chart.data.datasets[0].data = d.seriesA;
       chart.data.datasets[1].data = d.seriesB;
       chart.update('none');
+      range.setAttribute('aria-busy', 'false');
     });
   }
 }

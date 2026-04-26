@@ -4,7 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'merriweather': ['Merriweather', 'serif'],
+        'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'SFMono-Regular', 'Consolas', 'monospace'],
+        'merriweather': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderWidth: {
         '0.5': '0.5px',
@@ -16,27 +18,34 @@ export default {
       },
       colors: {
         'bg': {
-          '400': '#0F0F0E',
-          '300': '#141413',
-          '200': '#1F1E1D',
-          '100': '#262624',
-          '000': '#30302E',
+          '500': '#1f1f1e',
+          '400': '#1f1f1e',
+          '300': '#2c2c2a',
+          '200': '#2c2c2a',
+          '100': '#2c2c2a',
+          '000': '#2c2c2a',
         },
         'text': {
-          '000': '#FAF9F5',
-          '100': '#DEDCD1',
-          '200': '#C2C0B6',
-          '300': '#9C9A92',
+          '000': '#ffffff',
+          '100': '#f8f8f6',
+          '200': '#c3c2b7',
+          '300': '#97958c',
         },
         'border': {
-          '200': '#DEDCD1',
-          '300': '#9C9A92',
+          '100': '#e2e1da4d',
+          '200': '#97958c66',
+          '300': '#e2e1da26',
         },
         'accent-main': {
-          '000': '#C96442',
-          '100': '#D97757',
-          '200': '#D97757',
+          '000': '#d97757',
+          '100': '#d97757',
+          '200': '#d97757',
         },
+        'accent-soft': '#97958c26',
+        'accent-focus': '#3886e5',
+        'accent-warn': '#d97757',
+        'accent-danger': '#d97757',
+        'accent-success': '#c3c2b7',
         'always-black': '#000000',
         'always-white': '#FFFFFF',
         'oncolor': {

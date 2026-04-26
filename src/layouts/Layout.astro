@@ -18,14 +18,14 @@ const { title } = Astro.props;
 		<meta name="description" content="Herramienta de proyección de inversiones que permite simular y visualizar el crecimiento de tus inversiones en el tiempo" />
 		<title>{title}</title>
 		
-		<!-- Merriweather font -->
+		<!-- Product UI font -->
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 		
 		<link rel="icon" href="/piggy.svg" type="image/svg+xml" />
 	</head>
-	<body>
+	<body class="app-surface">
 		<div class="app-container">
 			<slot />
 		</div>
@@ -34,8 +34,14 @@ const { title } = Astro.props;
 
 <style is:global>
 	.app-container {
-		max-width: 1200px;
+		width: min(100%, 1240px);
 		margin: 0 auto;
-		padding: theme('spacing.standard');
+		padding: 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.app-container {
+			padding: 1.25rem;
+		}
 	}
 </style>

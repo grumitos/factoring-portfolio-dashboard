@@ -5,16 +5,25 @@ interface Props {
   trend?: string;
   trendClass?: string;
   fullWidth?: boolean;
+  tone?: 'default' | 'primary';
   class?: string;
 }
 
-const { title, value, trend = '', trendClass = 'positive', fullWidth = false, class: customClassFromProp } = Astro.props;
+const {
+  title,
+  value,
+  trend = '',
+  trendClass = 'positive',
+  fullWidth = false,
+  tone = 'default',
+  class: customClassFromProp
+} = Astro.props;
 ---
 
-<div class:list={["card summary-card", customClassFromProp, { "full-width": fullWidth }]}>
+<div class:list={["card summary-card", `tone-${tone}`, customClassFromProp, { "full-width": fullWidth }]}>
   <div class="summary-info">
-    <h3 class="text-sm font-medium text-text-300">{title}</h3>
-    <p class="summary-value text-xl font-semibold">{value}</p>
+    <h3>{title}</h3>
+    <p class="summary-value">{value}</p>
     {trend && (
       <p class={`summary-trend ${trendClass}`}>{trend}</p>
     )}
@@ -24,7 +33,9 @@ const { title, value, trend = '', trendClass = 'positive', fullWidth = false, cl
 <style>
   .summary-card {
     margin-bottom: 0;
-    padding: theme('spacing.standard');
+    min-height: 7.25rem;
+    padding: 0.95rem;
+    position: relative;
   }
 
   .full-width {
@@ -34,28 +45,63 @@ const { title, value, trend = '', trendClass = 'positive', fullWidth = false, cl
   .summary-info {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    text-align: center;
+    text-align: left;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .summary-info h3 {
+    color: theme('colors.text.300');
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
   }
 
   .summary-value {
-    margin: 0.5rem 0;
-    font-weight: 600;
+    width: 100%;
+    margin: 0.55rem 0 0.35rem;
+    color: theme('colors.text.000');
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    line-height: 1;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .summary-trend {
-    font-size: 0.875rem;
+    min-height: 1.25rem;
+    font-size: 0.78rem;
+    line-height: 1.25;
     display: flex;
     align-items: center;
-    justify-content: center;
+    color: theme('colors.text.300');
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .positive {
-    color: theme('colors.accent-main.000');
+    color: theme('colors.accent-success');
   }
 
   .negative {
-    color: #ef4444;
+    color: theme('colors.accent-danger');
+  }
+
+  .tone-primary {
+    background: theme('colors.bg.300');
+    border-color: theme('colors.accent-main.000');
+  }
+
+  @media (max-width: 520px) {
+    .summary-card {
+      min-height: 5.9rem;
+    }
   }
 </style>
