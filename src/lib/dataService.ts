@@ -220,7 +220,9 @@ const computeGains = (
       }
     } else if (status !== STATUS_REJECTED) {
       const months = monthsBetween(start, planned);
-      expected += principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1);
+      if (months > 0) {
+        expected += principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1);
+      }
     }
   }
 
@@ -292,7 +294,9 @@ const computeFactoringContracts = (
       for (const amountPen of real) gainPen += amountPen;
     } else {
       const months = monthsBetween(start, end);
-      gainPen = principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1);
+      gainPen = months > 0
+        ? principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1)
+        : 0;
     }
 
     return { ...inv, gainPen };

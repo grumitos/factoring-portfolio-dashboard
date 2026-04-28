@@ -56,7 +56,14 @@ const {
     </div>
   </div>
   <div class="chart-wrapper">
-    <canvas id="proyeccion-chart"></canvas>
+    <p id="projection-chart-summary" class="sr-only">
+      Gráfico de proyección del portafolio con una serie sin aportes y otra con aportes periódicos.
+    </p>
+    <canvas
+      id="proyeccion-chart"
+      role="img"
+      aria-describedby="projection-chart-summary"
+    ></canvas>
   </div>
   <div class="goal-slider">
     <label for="goalRange" class="text-sm text-text-300">Meta</label>
@@ -69,13 +76,14 @@ const {
       value={sliderInitial}
       list="goalTicks"
       class="flex-1"
+      aria-valuetext={`S/ ${sliderInitial.toLocaleString('es-PE')}`}
     />
     <datalist id="goalTicks">
       {Array.from({ length: Math.floor((sliderMax - sliderMin) / sliderStep) + 1 }, (_, i) => (
         <option value={sliderMin + i * sliderStep}></option>
       ))}
     </datalist>
-    <span id="goalValue" class="text-sm text-text-100">S/ {sliderInitial.toLocaleString('es-PE')}</span>
+    <output id="goalValue" class="text-sm text-text-100" for="goalRange">S/ {sliderInitial.toLocaleString('es-PE')}</output>
   </div>
 </section>
 

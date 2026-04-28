@@ -27,7 +27,9 @@ export const toPen = (amount: number, fxRate: number): number => amount * fxRate
 
 /** Calcula meses exactos entre dos fechas incluyendo horas */
 export const monthsBetween = (start: Date, end: Date): number => {
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return 0;
   const ms = differenceInMilliseconds(end, start);
+  if (!Number.isFinite(ms)) return 0;
   return ms / (1000 * 60 * 60 * 24) / DAYS_PER_MONTH;
 };
 

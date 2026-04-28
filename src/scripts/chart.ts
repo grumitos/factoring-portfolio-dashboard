@@ -49,9 +49,12 @@ const PEN_INTEGER_FORMATTER = new Intl.NumberFormat('es-PE', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0
 });
+const CHART_FONT_FAMILY = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 function computeProjection(report: ChartInitData['report'], fxRate: number, injection: number, goal: number) {
-  const rMonthly = Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1;
+  const annualRatePct = Number.isFinite(report.annualRatePct) ? Math.max(report.annualRatePct, -99) : 0;
+  const targetGoal = Number.isFinite(goal) && goal > 0 ? goal : 0;
+  const rMonthly = Math.pow(1 + annualRatePct / 100, 1 / 12) - 1;
   let withoutInj = report.netPen + report.netUsd * fxRate;
   let withInj = withoutInj;
   const labels: string[] = [];
@@ -60,7 +63,7 @@ function computeProjection(report: ChartInitData['report'], fxRate: number, inje
   let month = 0;
   const startYear = new Date().getFullYear();
 
-  while ((withInj < goal || month % 12 !== 0) && month < 600) {
+  while ((withInj < targetGoal || month % 12 !== 0) && month < 600) {
     if (month % 12 === 0) {
       labels.push(String(startYear + month / 12));
       seriesA.push(Math.round(withoutInj));
@@ -81,7 +84,14 @@ function initChart() {
   const dataEl = document.getElementById('chart-data');
   if (!dataEl?.textContent) return;
 
-  const { report, injection, fxRate, goalInitial } = JSON.parse(dataEl.textContent) as ChartInitData;
+  let initData: ChartInitData;
+  try {
+    initData = JSON.parse(dataEl.textContent) as ChartInitData;
+  } catch {
+    return;
+  }
+
+  const { report, injection, fxRate, goalInitial } = initData;
 
   const ctx = document.getElementById('proyeccion-chart') as HTMLCanvasElement | null;
   if (!ctx) return;
@@ -148,13 +158,13 @@ function initChart() {
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: true,
-          titleFont: { family: 'Inter', size: 13, weight: 700 },
-          bodyFont: { family: 'Inter', size: 12 },
-          footerFont: { family: 'Inter', size: 10 },
+          titleFont: { family: CHART_FONT_FAMILY, size: 13, weight: 700 },
+          bodyFont: { family: CHART_FONT_FAMILY, size: 12 },
+          footerFont: { family: CHART_FONT_FAMILY, size: 10 },
           footerColor: textColor300,
           itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
           callbacks: {
-            title: (items) => items[0].label,
+            title: (items) => items[0]?.label ?? '',
             label: (context) => {
               const formatted = PEN_INTEGER_FORMATTER.format(Number(context.parsed.y ?? 0));
               return `${context.dataset.label}: ${formatted}`;
@@ -166,7 +176,7 @@ function initChart() {
         x: {
           ticks: {
             color: textColor200,
-            font: { family: 'Inter', size: 11, weight: 600 },
+            font: { family: CHART_FONT_FAMILY, size: 11, weight: 600 },
             callback: function (value) {
               return this.getLabelForValue(value as number).slice(-2);
             }
@@ -176,7 +186,7 @@ function initChart() {
         y: {
           ticks: {
             color: textColor200,
-            font: { family: 'Inter', size: 11, weight: 600 },
+            font: { family: CHART_FONT_FAMILY, size: 11, weight: 600 },
             callback: (value) => formatCompact(Number(value))
           },
           grid: { color: `${textColor200}1A` }
@@ -190,17 +200,29 @@ function initChart() {
   const label = document.getElementById('goalValue');
 
   if (range && label) {
-    label.textContent = `S/ ${formatCompact(Number(range.value))}`;
-    range.addEventListener('input', () => {
-      range.setAttribute('aria-busy', 'true');
+    let pendingFrame = 0;
+
+    const updateGoal = () => {
       const goal = Number(range.value);
-      label.textContent = `S/ ${formatCompact(goal)}`;
+      const valueLabel = `S/ ${formatCompact(goal)}`;
+      label.textContent = valueLabel;
+      range.setAttribute('aria-valuetext', valueLabel);
       const d = computeData(goal);
       chart.data.labels = d.labels;
       chart.data.datasets[0].data = d.seriesA;
       chart.data.datasets[1].data = d.seriesB;
       chart.update('none');
       range.setAttribute('aria-busy', 'false');
+      pendingFrame = 0;
+    };
+
+    const initialGoalLabel = `S/ ${formatCompact(Number(range.value))}`;
+    label.textContent = initialGoalLabel;
+    range.setAttribute('aria-valuetext', initialGoalLabel);
+    range.addEventListener('input', () => {
+      range.setAttribute('aria-busy', 'true');
+      if (pendingFrame) cancelAnimationFrame(pendingFrame);
+      pendingFrame = requestAnimationFrame(updateGoal);
     });
   }
 }

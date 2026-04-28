@@ -4,9 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         'mono': ['JetBrains Mono', 'SFMono-Regular', 'Consolas', 'monospace'],
-        'merriweather': ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       borderWidth: {
         '0.5': '0.5px',

@@ -17,27 +17,33 @@ export async function fetchLatestRate(
     throw new Error('CURRENCY_FREAKS_API_KEY no definida en entorno');
   }
 
-  try {
-    const url = `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=${symbols}&base=${base}`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FX_FETCH_TIMEOUT_MS);
-    const res = await fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
-    if (!res.ok) {
-      throw new Error(`Error al obtener tasa de Currency API: ${res.status}`);
-    }
-    const data = await res.json();
-    const rateStr = data.rates?.[symbols];
-    if (!rateStr) {
-      throw new Error('Tasa inválida recibida desde Currency API');
-    }
-    const parsed = parseFloat(rateStr);
+  const url = new URL('https://api.currencyfreaks.com/v2.0/rates/latest');
+  url.search = new URLSearchParams({
+    apikey: apiKey,
+    symbols,
+    base
+  }).toString();
 
-    // Actualizar caché en memoria (servidor)
-    serverCacheRate = parsed;
-
-    return parsed;
-  } catch (err) {
-    // No actualizar cache en caso de error y propagar
-    throw err;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FX_FETCH_TIMEOUT_MS);
+  const res = await fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
+  if (!res.ok) {
+    throw new Error(`Error al obtener tasa de Currency API: ${res.status}`);
   }
+
+  const data = await res.json();
+  const rateStr = data.rates?.[symbols];
+  if (!rateStr) {
+    throw new Error('Tasa inválida recibida desde Currency API');
+  }
+
+  const parsed = Number.parseFloat(rateStr);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error('Tasa inválida recibida desde Currency API');
+  }
+
+  // Actualizar caché en memoria (servidor)
+  serverCacheRate = parsed;
+
+  return parsed;
 }

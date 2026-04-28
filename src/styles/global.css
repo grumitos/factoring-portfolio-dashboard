@@ -23,7 +23,8 @@
   --color-accent-soft: #97958c26;
   --color-accent-focus: #3886e5;
   --color-accent-warn: #d97757;
-  --color-accent-danger: #d97757;
+  --color-accent-danger: #ef6f6c;
+  --color-accent-success: #6fbf8f;
   --focus-ring: 0 0 0 3px #3886e533;
   color-scheme: dark;
 }
@@ -37,6 +38,7 @@
     @apply bg-bg-500 text-text-100 font-sans min-h-screen;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     letter-spacing: 0;
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -115,6 +117,18 @@
 
   .flex-center {
     @apply flex items-center;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
   .svg-icon {
@@ -211,5 +225,16 @@
   @keyframes skeleton-pulse {
     0%, 100% { opacity: 0.45; }
     50% { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

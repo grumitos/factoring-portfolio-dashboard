@@ -16,7 +16,7 @@ const { contracts } = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getFactoringMetrics(
         <h4 class="text-text-100">Factoring</h4>
       </div>
     </div>
-    <div class="header-right text-sm font-medium text-text-300" id="factoring-contracts-count">
+    <div class="header-right text-sm font-medium text-text-300" id="factoring-contracts-count" aria-live="polite">
       <span id="factoring-header-info"></span>
     </div>
   </div>
@@ -24,19 +24,19 @@ const { contracts } = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getFactoringMetrics(
   {EXPOSE_PRIVATE_PORTFOLIO_DATA ? (
     <>
       <div class="tabs-container" role="tablist" aria-label="Vista de contratos">
-        <button class="tab active" data-tab="pending" role="tab" aria-selected="true" type="button">Pendientes</button>
-        <button class="tab" data-tab="paid" role="tab" aria-selected="false" type="button">Pagados</button>
-        <button class="tab" data-tab="potential-earnings" role="tab" aria-selected="false" type="button">Ganancias</button>
+        <button id="tab-pending" class="tab active" data-tab="pending" role="tab" aria-selected="true" aria-controls="factoring-panel" type="button">Pendientes</button>
+        <button id="tab-paid" class="tab" data-tab="paid" role="tab" aria-selected="false" aria-controls="factoring-panel" type="button">Pagados</button>
+        <button id="tab-potential-earnings" class="tab" data-tab="potential-earnings" role="tab" aria-selected="false" aria-controls="factoring-panel" type="button">Ganancias</button>
       </div>
 
       <div class="search-container">
         <label class="search-label" for="search-contracts">Buscar</label>
-        <input type="search" id="search-contracts" placeholder="Cliente o código" class="search-input ui-input" autocomplete="off">
+        <input type="search" id="search-contracts" placeholder="Cliente o código" class="search-input ui-input" autocomplete="off" aria-controls="factoring-details">
         <button id="clear-search" class="clear-search-btn" title="Limpiar búsqueda" aria-label="Limpiar búsqueda" type="button" disabled>&times;</button>
       </div>
 
-      <div class="card-details">
-        <table class="details-table">
+      <div class="card-details" id="factoring-panel" role="tabpanel" aria-labelledby="tab-pending">
+        <table class="details-table" aria-label="Detalle de contratos de factoring">
           <thead>
             <tr>
               <th>Cliente</th>
@@ -44,7 +44,7 @@ const { contracts } = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getFactoringMetrics(
               <th>Ganancia</th>
             </tr>
           </thead>
-          <tbody id="factoring-details">
+          <tbody id="factoring-details" aria-live="polite">
             <tr class="waiting-state-row">
               <td colspan="3">
                 <div class="empty-state waiting-message">
@@ -58,9 +58,9 @@ const { contracts } = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getFactoringMetrics(
             </tr>
           </tbody>
         </table>
-        <div class="pagination hidden" id="pagination">
+        <div class="pagination hidden" id="pagination" hidden>
           <button id="prev-page" class="page-btn" type="button" aria-label="Página anterior">&lt;</button>
-          <span id="page-info"></span>
+          <span id="page-info" aria-live="polite"></span>
           <button id="next-page" class="page-btn" type="button" aria-label="Página siguiente">&gt;</button>
         </div>
       </div>

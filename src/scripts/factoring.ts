@@ -16,25 +16,51 @@ interface PreparedContract extends Contract {
 
 const ITEMS_PER_PAGE = 10;
 const DATE_FORMATTER = new Intl.DateTimeFormat('es-PE');
+const CURRENCY_FORMATTER = new Intl.NumberFormat('es-PE', {
+  style: 'currency',
+  currency: 'PEN',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1
+});
 const STATUS_PAID = 'cobrado';
 const STATUS_REJECTED = 'rechazado';
 
-const normalize = (value: string): string => value.trim().toLowerCase();
+const normalize = (value: string): string => String(value ?? '').trim().toLowerCase();
 
 function formatCurrency(v: number): string {
-  return new Intl.NumberFormat('es-PE', {
-    style: 'currency',
-    currency: 'PEN',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1
-  }).format(v);
+  return CURRENCY_FORMATTER.format(v);
+}
+
+function parseContracts(rawJson: string): Contract[] {
+  const parsed: unknown = JSON.parse(rawJson);
+  return Array.isArray(parsed) ? parsed as Contract[] : [];
 }
 
 function initFactoring() {
   const dataEl = document.getElementById('factoring-data');
+  const tbody = document.getElementById('factoring-details');
+  const thead = document.querySelector('.details-table thead');
+  const headerInfo = document.getElementById('factoring-header-info');
+  const searchInput = document.getElementById('search-contracts') as HTMLInputElement | null;
+  const clearBtn = document.getElementById('clear-search') as HTMLButtonElement | null;
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab'));
+  const panel = document.getElementById('factoring-panel');
+  const pagination = document.getElementById('pagination');
+  const prevBtn = document.getElementById('prev-page') as HTMLButtonElement | null;
+  const nextBtn = document.getElementById('next-page') as HTMLButtonElement | null;
+  const pageInfo = document.getElementById('page-info');
+
   if (!dataEl?.textContent) return;
 
-  const rawData: Contract[] = JSON.parse(dataEl.textContent);
+  let rawData: Contract[] = [];
+  try {
+    rawData = parseContracts(dataEl.textContent);
+  } catch {
+    if (headerInfo) headerInfo.textContent = 'Error de datos';
+    renderState('No se pudo cargar', 'Los contratos no tienen un formato válido.', 'error');
+    return;
+  }
+
   const data: PreparedContract[] = rawData.map((contract) => {
     const fechaPagoDate = new Date(contract.fechaPago);
     const fechaPagoTs = fechaPagoDate.getTime();
@@ -49,20 +75,49 @@ function initFactoring() {
     };
   });
 
-  let currentTab = '';
+  let currentTab = 'pending';
   let currentPage = 1;
   let totalPages = 1;
 
-  const tbody = document.getElementById('factoring-details');
-  const thead = document.querySelector('.details-table thead');
-  const headerInfo = document.getElementById('factoring-header-info');
-  const searchInput = document.getElementById('search-contracts') as HTMLInputElement | null;
-  const clearBtn = document.getElementById('clear-search');
-  const tabs = Array.from(document.querySelectorAll('.tab'));
-  const pagination = document.getElementById('pagination');
-  const prevBtn = document.getElementById('prev-page') as HTMLButtonElement | null;
-  const nextBtn = document.getElementById('next-page') as HTMLButtonElement | null;
-  const pageInfo = document.getElementById('page-info');
+  function createSpriteIcon(name: string): HTMLSpanElement {
+    const icon = document.createElement('span');
+    icon.className = 'svg-icon';
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', `#icon-${name}`);
+    use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#icon-${name}`);
+
+    svg.appendChild(use);
+    icon.appendChild(svg);
+    return icon;
+  }
+
+  function renderState(title: string, detail: string, iconName: string = 'empty-box') {
+    if (!tbody) return;
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 3;
+
+    const state = document.createElement('div');
+    state.className = 'empty-state';
+
+    const primary = document.createElement('p');
+    primary.className = 'primary-text';
+    primary.textContent = title;
+
+    const secondary = document.createElement('p');
+    secondary.className = 'secondary-text';
+    secondary.textContent = detail;
+
+    state.append(createSpriteIcon(iconName), primary, secondary);
+    cell.appendChild(state);
+    row.appendChild(cell);
+    tbody.replaceChildren(row);
+  }
 
   function filterContracts(tab: string, term: string): PreparedContract[] {
     const t = normalize(term);
@@ -106,8 +161,8 @@ function initFactoring() {
     pageInfo.textContent = `${currentPage} / ${totalPages}`;
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
+    pagination.hidden = totalPages <= 1;
     pagination.classList.toggle('hidden', totalPages <= 1);
-    pagination.style.display = totalPages <= 1 ? 'none' : '';
   }
 
   function updateSearchState() {
@@ -127,8 +182,7 @@ function initFactoring() {
     ganancia.textContent = 'Ganancia';
     ganancia.style.textAlign = 'right';
     row.append(estado, contratos, ganancia);
-    thead.innerHTML = '';
-    thead.appendChild(row);
+    thead.replaceChildren(row);
   }
 
   function setContractsHeader() {
@@ -143,8 +197,7 @@ function initFactoring() {
     ganancia.textContent = 'Ganancia';
     ganancia.style.textAlign = 'right';
     row.append(cliente, fechaPago, ganancia);
-    thead.innerHTML = '';
-    thead.appendChild(row);
+    thead.replaceChildren(row);
   }
 
   function renderPotentialRows(list: PreparedContract[]) {
@@ -180,16 +233,11 @@ function initFactoring() {
       fragment.appendChild(row);
     }
 
-    tbody.innerHTML = '';
-    tbody.appendChild(fragment);
+    tbody.replaceChildren(fragment);
   }
 
   function renderEmptyState() {
-    if (!tbody) return;
-    const row = document.createElement('tr');
-    row.innerHTML = "<td colspan=\"3\"><div class=\"empty-state\"><span class=\"svg-icon\"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p><p class='secondary-text'>No hay resultados para esta vista o búsqueda.</p></div></td>";
-    tbody.innerHTML = '';
-    tbody.appendChild(row);
+    renderState('Sin contratos', 'No hay resultados para esta vista o búsqueda.');
   }
 
   function renderContractRows(list: PreparedContract[]) {
@@ -225,47 +273,68 @@ function initFactoring() {
       fragment.appendChild(row);
     }
 
-    tbody.innerHTML = '';
-    tbody.appendChild(fragment);
+    tbody.replaceChildren(fragment);
   }
 
   function render(tab: string) {
     currentTab = tab;
     tabs.forEach(tb => {
-      const isActive = (tb as HTMLElement).dataset.tab === tab;
+      const isActive = tb.dataset.tab === tab;
       tb.classList.toggle('active', isActive);
       tb.setAttribute('aria-selected', String(isActive));
+      tb.tabIndex = isActive ? 0 : -1;
     });
+    panel?.setAttribute('aria-labelledby', `tab-${tab}`);
     const filtered = filterContracts(tab, searchInput?.value || '');
     const list = sortContracts(filtered, tab);
     if (!tbody || !thead) return;
     tbody.setAttribute('aria-busy', 'true');
-    updateHeader(tab, list);
-    updateSearchState();
+    try {
+      updateHeader(tab, list);
+      updateSearchState();
 
-    if (tab === 'potential-earnings') {
-      if (pagination) {
-        pagination.classList.add('hidden');
-        pagination.style.display = 'none';
+      if (tab === 'potential-earnings') {
+        if (pagination) {
+          pagination.hidden = true;
+          pagination.classList.add('hidden');
+        }
+        renderPotentialRows(list);
+        return;
       }
-    } else {
+
       updatePagination(list);
-    }
-
-    if (tab === 'potential-earnings') {
-      renderPotentialRows(list);
+      renderContractRows(list);
+    } finally {
       tbody.setAttribute('aria-busy', 'false');
-      return;
     }
-
-    renderContractRows(list);
-    tbody.setAttribute('aria-busy', 'false');
   }
 
-  tabs.forEach(tb => tb.addEventListener('click', () => {
+  function activateTab(tab: string) {
     currentPage = 1;
-    render((tb as HTMLElement).dataset.tab || '');
-  }));
+    render(tab);
+  }
+
+  tabs.forEach(tb => {
+    tb.addEventListener('click', () => {
+      activateTab(tb.dataset.tab || currentTab);
+    });
+
+    tb.addEventListener('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+
+      const currentIndex = tabs.indexOf(tb);
+      let nextIndex = currentIndex;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = tabs.length - 1;
+      if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+
+      const nextTab = tabs[nextIndex];
+      nextTab.focus();
+      activateTab(nextTab.dataset.tab || currentTab);
+    });
+  });
 
   searchInput?.addEventListener('input', () => {
     currentPage = 1;
