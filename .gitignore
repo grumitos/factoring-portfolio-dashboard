@@ -1,44 +1,19 @@
-# build output
+# Exportes privados del portal (y su ubicación en versiones anteriores)
+data/
+src/data/
+
+# Tablero generado
 dist/
-# generated types
-.astro/
 
-# dependencies
-node_modules/
-.npm
-.pnpm-store/
-yarn.lock
-package-lock.json
-pnpm-lock.yaml
-
-# logs
-devserver*.log
-tmp_dev*.log
-tmpclaude-*-cwd
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# environment variables
+# Secretos
 .env
-.env.production
 
-# macOS-specific files
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Sistema y editores
 .DS_Store
-
-# IDEs and editors
 .idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-!.vscode/launch.json
-!.vscode/tasks.json
-
-# JetBrains setting folder
-.idea/
-*.sublime-*
-
-# Exclude private data files
-src/data/*.json
-src/data/*.xlsx
+.vscode/

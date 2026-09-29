@@ -1,110 +1,47 @@
-# Factoring Portfolio Dashboard
+# Portafolio de factoring
 
-Astro 6 dashboard for a local factoring investment portfolio. The app reads optional local JSON files from `src/data`, computes portfolio metrics in TypeScript, and renders a static single-page dashboard with Chart.js projections.
+Tablero de un portafolio de inversiones en factoring. Lee los exportes XLSX del portal, calcula saldos, tasa anual y la proyección hacia una meta, y genera una sola página, `dist/index.html`, que se abre directamente en el navegador.
 
-## Setup
+> Proyecto archivado: no recibirá más cambios.
 
-Requirements:
+## Requisitos
 
-- Node.js 18+
-- Optional Python environment with `pandas` and `openpyxl` for XLSX conversion
+Python 3.11 o superior. No usa dependencias externas.
 
-Install dependencies:
+## Uso
 
-```sh
-npm install
-```
+1. Copia los cinco exportes del portal en `data/`, con el nombre con que se descargan:
+   `mis-inversiones.xlsx`, `ganancia.xlsx`, `ganancia (1).xlsx`, `todos.xlsx` y `todos (1).xlsx`.
+2. Opcional: para el tipo de cambio en vivo, crea un archivo `.env` con `CURRENCY_FREAKS_API_KEY=tu_clave`.
+   Sin clave, o si el servicio falla, se usa 3.70 y el tablero lo marca como `ref.`
+3. Ejecuta `python -m dashboard --open`. En Windows basta con abrir `run.bat`.
 
-Create a local `.env` file when live USD/PEN rates are needed:
+| Opción | Efecto |
+| --- | --- |
+| `--open` | abre el tablero al terminar |
+| `--fx 3.45` | fija el tipo de cambio sin consultar el servicio |
+| `--public` | genera `dist/public/index.html`, sin cifras ni contratos, apta para publicar |
 
-```env
-CURRENCY_FREAKS_API_KEY=your_currency_freaks_key
-```
+Capital externo, aporte mensual, meta y pasos del deslizador se ajustan en `dashboard/config.py`.
 
-If the key is absent or the provider fails, the app falls back to `DEFAULT_FX_RATE` in `src/lib/config.ts`.
+## Qué muestra
 
-## Commands
+- **Capital PEN / USD**: saldo de cada moneda en el portal más el capital externo. "Último mes" suma lo cobrado desde hace un mes calendario.
+- **Tasa anual**: tasa efectiva promedio ponderada por capital. Si un contrato ya se cobró, usa lo cobrado; si no, lo pactado. Excluye los rechazados.
+- **Meta**: avance del patrimonio total en soles y mes estimado para alcanzarla, aportando cada mes. El deslizador cambia la meta del gráfico y de esta cifra.
+- **Contratos**: pendientes, pagados y total con su suma. Los días relativos (`+11 d`, `−88 d`) se miden contra la fecha de corte, que es el último registro de los exportes.
 
-```sh
-npm run dev      # local dev server, usually http://localhost:4321
-npm run check    # Astro/TypeScript diagnostics
-npm run build    # static production build into dist/
-npm run preview  # preview the built static site
-```
+## Privacidad
 
-There are currently no automated unit tests.
+Los exportes (`data/`), el tablero generado (`dist/`) y `.env` contienen datos privados y están fuera de git. Para publicar, usa solo `dist/public/`, que genera `--public`; ese modo no lee los exportes.
 
-## Data Refresh
+Si un exporte trae un estado o un tipo de movimiento que el tablero no conoce, o si se descarga dos veces el mismo archivo de una moneda, el generador se detiene con un mensaje en vez de mostrar cifras incorrectas.
 
-The dashboard consumes these local files:
+## Estructura
 
-- `src/data/investmentDetails.json`
-- `src/data/earningsPEN.json`
-- `src/data/earningsUSD.json`
-- `src/data/movementsPEN.json`
-- `src/data/movementsUSD.json`
-
-`src/data/script.py` converts the local XLSX exports into those JSON files. Run it from `src/data`:
-
-```sh
-python script.py
-```
-
-The Supabase upload path is disabled by default. To enable it intentionally, provide environment variables:
-
-```env
-UPLOAD_TO_SUPABASE=1
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-Remote table clearing is separately gated:
-
-```env
-CLEAR_SUPABASE_TABLES=1
-```
-
-Do not enable remote upload or table clearing unless the Supabase project, RLS policies, and backup state have been verified.
-
-If a Supabase key was ever committed or shared, rotate it in Supabase and verify RLS before enabling uploads again. Removing a key from the current tree does not remove it from Git history.
-
-## Privacy And Deployment
-
-Portfolio datasets contain private financial data and client identifiers. Local JSON/XLSX files are ignored by git and should not be committed.
-
-Production builds hide portfolio totals, projections, and factoring contracts by default so the static HTML does not serialize private financial data. Only set this for a private, access-controlled deployment:
-
-```env
-PUBLIC_EXPOSE_PORTFOLIO_DATA=true
-```
-
-Without that opt-in, the dashboard renders privacy notices instead of private figures. This also lets a clean clone build without the private local datasets.
-
-The rationale is captured in `docs/decisions/ADR-001-static-dashboard-private-data-gate.md`.
-
-## Architecture
-
-- `src/pages/index.astro` composes the dashboard.
-- `src/lib/dataService.ts` loads optional local JSON, fetches FX, and builds report metrics.
-- `src/lib/portfolioUtils.ts` contains portfolio math helpers.
-- `src/components/ChartContainer.astro` passes projection data to `src/scripts/chart.ts`.
-- `src/components/FactoringCard.astro` gates private contract serialization and loads `src/scripts/factoring.ts` only when detailed contracts are exposed.
-- `src/styles/global.css` and component styles define the Tailwind-based dark UI.
-- Tailwind runs through PostCSS (`postcss.config.js`); `astro.config.mjs` intentionally has no Tailwind integration.
-
-## Quality Gate
-
-Before handing off changes, run:
-
-```sh
-npm run check
-npm run build
-npm audit --omit=dev
-git status --short
-```
-
-Temporary files commonly produced during local work:
-
-```powershell
-Remove-Item devserver*.log,tmp_dev*.log,tmpclaude-*-cwd,nul -ErrorAction SilentlyContinue
+```text
+dashboard/   generador: lectura de XLSX, métricas, proyección y HTML
+web/         plantilla, estilos y script del navegador (se incrustan en la página)
+tests/       pruebas: python -m unittest
+run.bat      atajo de Windows
 ```
