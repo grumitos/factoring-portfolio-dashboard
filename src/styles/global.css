@@ -3,89 +3,51 @@
 @tailwind utilities;
 
 :root {
-  /* CSS variables needed for JS access (chart.ts reads these) */
-  --color-bg-000: #30302E;
-  --color-text-100: #DEDCD1;
-  --color-text-200: #C2C0B6;
-  --color-text-300: #9C9A92;
-  --color-accent-main-000: #C96442;
-  --color-accent-main-100: #D97757;
+  /* Variables que chart.ts lee en tiempo de ejecución; mantener en sincronía con tailwind.config.js */
+  --color-surface: #1A1917;
+  --color-text-000: #F2EFE8;
+  --color-text-100: #D9D5CB;
+  --color-text-300: #8C887F;
+  --color-text-400: #66625B;
+  --color-accent: #D97757;
+  --color-line: rgba(255, 255, 255, 0.06);
+  --color-line-strong: rgba(255, 255, 255, 0.14);
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
 }
 
 @layer base {
   body {
-    @apply bg-bg-100 text-text-100 font-merriweather min-h-screen tracking-tight;
+    @apply bg-bg-300 text-text-100 font-sans antialiased min-h-screen;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-merriweather;
+  :focus-visible {
+    outline: 2px solid theme('colors.accent-main.100');
+    outline-offset: 2px;
   }
 
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  svg {
-    fill: currentColor;
+  ::selection {
+    background-color: theme('colors.accent-main.000');
+    color: theme('colors.text.000');
   }
 }
 
 @layer components {
-  .card {
-    background-color: theme('colors.bg.000');
-    border: 0.5px solid theme('colors.border.300');
-    border-radius: 1rem;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 0.25rem 1.25rem rgb(0 0 0 / 7%);
+  .panel {
+    border: 1px solid theme('colors.border.300');
+    border-radius: 0.625rem;
+    background-color: theme('colors.bg.100');
   }
 
-  .card:hover {
-    border-color: theme('colors.border.200');
-    box-shadow: 0 0.25rem 1.25rem rgb(0 0 0 / 15%);
+  .panel-note {
+    padding: 3rem 1rem;
+    color: theme('colors.text.300');
+    font-size: 0.8125rem;
+    text-align: center;
   }
 
-  .card-header {
-    padding: theme('spacing.standard');
-    border-bottom: 0.5px solid theme('colors.border.300');
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: theme('spacing.compact');
-  }
-
-  .flex-between {
-    @apply flex items-center justify-between;
-  }
-
-  .flex-center {
-    @apply flex items-center;
-  }
-
-  .svg-icon {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    height: 1.5rem;
-    width: 1.5rem;
-  }
-
-  .btn {
-    @apply inline-flex items-center justify-center relative shrink-0 select-none disabled:pointer-events-none disabled:opacity-50 text-text-300 border-transparent transition font-merriweather duration-300 hover:bg-bg-400 hover:text-text-100 active:scale-[0.985];
-  }
-
-  .btn-accent {
-    @apply bg-accent-main-000 text-oncolor-100 hover:bg-accent-main-200;
+  .num {
+    font-family: theme('fontFamily.mono');
+    font-variant-numeric: tabular-nums;
   }
 }

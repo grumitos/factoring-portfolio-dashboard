@@ -22,7 +22,7 @@ export const PERIODIC_INJECTION = 5700;
 export const INJECTION_ITER_LIMIT = 5000;
 
 export const GOAL = 400000;
-export const INITIAL_INJECTION = 5700;
+export const INITIAL_INJECTION = PERIODIC_INJECTION;
 
 export const SLIDER_MIN = GOAL;
 export const SLIDER_MAX = 2000000;

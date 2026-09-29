@@ -1,285 +1,182 @@
+import { formatAmount, formatPen, formatShortDate } from '../lib/format';
+
 interface Contract {
   codigo: string;
   cliente: string;
   fechaPago: string;
   estado: string;
   gainPen: number;
+  riesgo?: string;
 }
 
+interface FactoringPayload {
+  /** Fecha (ISO) del registro más reciente: referencia para los días relativos */
+  asOf: string | null;
+  contracts: Contract[];
+}
+
+type Tab = 'pending' | 'paid' | 'all';
+
 interface PreparedContract extends Contract {
-  estadoNorm: string;
+  isPaid: boolean;
   clienteNorm: string;
   codigoNorm: string;
   fechaPagoTs: number;
   fechaPagoLabel: string;
+  /** Días entre la fecha de corte y la fecha de pago (negativo = vencido) */
+  daysFromAsOf: number | null;
 }
 
-const ITEMS_PER_PAGE = 10;
-const DATE_FORMATTER = new Intl.DateTimeFormat('es-PE');
+const DAY_MS = 86_400_000;
 const STATUS_PAID = 'cobrado';
 const STATUS_REJECTED = 'rechazado';
+const TABS: Tab[] = ['pending', 'paid', 'all'];
+const DATE_FORMATTER = new Intl.DateTimeFormat('es-PE');
 
 const normalize = (value: string): string => value.trim().toLowerCase();
+const sumGains = (list: PreparedContract[]): number => list.reduce((sum, c) => sum + c.gainPen, 0);
+const startOfDay = (date: Date): number => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
-function formatCurrency(v: number): string {
-  return new Intl.NumberFormat('es-PE', {
-    style: 'currency',
-    currency: 'PEN',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1
-  }).format(v);
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function prepare(contract: Contract, asOfDay: number | null): PreparedContract {
+  const date = new Date(contract.fechaPago);
+  const valid = Number.isFinite(date.getTime());
+  return {
+    ...contract,
+    isPaid: normalize(contract.estado) === STATUS_PAID,
+    clienteNorm: normalize(contract.cliente),
+    codigoNorm: normalize(contract.codigo),
+    fechaPagoTs: valid ? date.getTime() : 0,
+    fechaPagoLabel: valid ? DATE_FORMATTER.format(date) : '-',
+    daysFromAsOf: valid && asOfDay !== null ? Math.round((startOfDay(date) - asOfDay) / DAY_MS) : null
+  };
 }
 
 function initFactoring() {
   const dataEl = document.getElementById('factoring-data');
-  if (!dataEl?.textContent) return;
-
-  const rawData: Contract[] = JSON.parse(dataEl.textContent);
-  const data: PreparedContract[] = rawData.map((contract) => {
-    const fechaPagoDate = new Date(contract.fechaPago);
-    const fechaPagoTs = fechaPagoDate.getTime();
-    const hasValidDate = Number.isFinite(fechaPagoTs);
-    return {
-      ...contract,
-      estadoNorm: normalize(contract.estado),
-      clienteNorm: normalize(contract.cliente),
-      codigoNorm: normalize(contract.codigo),
-      fechaPagoTs: hasValidDate ? fechaPagoTs : 0,
-      fechaPagoLabel: hasValidDate ? DATE_FORMATTER.format(fechaPagoDate) : '-'
-    };
-  });
-
-  let currentTab = '';
-  let currentPage = 1;
-  let totalPages = 1;
-
   const tbody = document.getElementById('factoring-details');
-  const thead = document.querySelector('.details-table thead');
-  const headerInfo = document.getElementById('factoring-header-info');
+  if (!dataEl?.textContent || !tbody) return;
+
+  const tableBody: HTMLElement = tbody;
+  const payload = JSON.parse(dataEl.textContent) as FactoringPayload;
+  const asOfDate = payload.asOf ? new Date(payload.asOf) : null;
+  const asOfDay = asOfDate && Number.isFinite(asOfDate.getTime()) ? startOfDay(asOfDate) : null;
+  const daysTitle = asOfDate && asOfDay !== null ? `Días respecto al corte del ${formatShortDate(asOfDate)}` : '';
+  const data = payload.contracts
+    .filter((contract) => normalize(contract.estado) !== STATUS_REJECTED)
+    .map((contract) => prepare(contract, asOfDay));
+
+  const segments = Array.from(document.querySelectorAll<HTMLButtonElement>('.investment-card .segment'));
   const searchInput = document.getElementById('search-contracts') as HTMLInputElement | null;
-  const clearBtn = document.getElementById('clear-search');
-  const tabs = Array.from(document.querySelectorAll('.tab'));
-  const pagination = document.getElementById('pagination');
-  const prevBtn = document.getElementById('prev-page') as HTMLButtonElement | null;
-  const nextBtn = document.getElementById('next-page') as HTMLButtonElement | null;
-  const pageInfo = document.getElementById('page-info');
+  const clearBtn = document.getElementById('clear-search') as HTMLButtonElement | null;
+  const filterCell = searchInput?.closest('th');
 
-  function filterContracts(tab: string, term: string): PreparedContract[] {
+  let currentTab: Tab = 'pending';
+
+  const filterContracts = (tab: Tab, term: string): PreparedContract[] => {
     const t = normalize(term);
-    return data.filter(c => {
-      const est = c.estadoNorm;
-      if (tab === 'pending') {
-        if (est === STATUS_PAID || est === STATUS_REJECTED) return false;
-      } else if (tab === 'paid') {
-        if (est !== STATUS_PAID) return false;
-      } else if (tab === 'potential-earnings') {
-        if (est === STATUS_REJECTED) return false;
-      }
-      if (!t) return true;
-      return c.clienteNorm.includes(t) || c.codigoNorm.includes(t);
-    });
-  }
+    return data.filter(
+      (c) =>
+        (tab === 'all' || (tab === 'paid') === c.isPaid) &&
+        (!t || c.clienteNorm.includes(t) || c.codigoNorm.includes(t))
+    );
+  };
 
-  function sortContracts(list: PreparedContract[], tab: string): PreparedContract[] {
-    const byDate = (a: PreparedContract, b: PreparedContract) => a.fechaPagoTs - b.fechaPagoTs;
-    if (tab === 'pending') return [...list].sort(byDate);
-    if (tab === 'paid') return [...list].sort((a, b) => byDate(b, a));
-    return list;
-  }
+  // Pendientes: el próximo pago primero; pagados y total: lo más reciente primero
+  const sortContracts = (list: PreparedContract[], tab: Tab): PreparedContract[] =>
+    [...list].sort((a, b) => (tab === 'pending' ? a.fechaPagoTs - b.fechaPagoTs : b.fechaPagoTs - a.fechaPagoTs));
 
-  function updateHeader(tab: string, list: PreparedContract[]) {
-    if (!headerInfo) return;
-    if (tab === 'pending') {
-      headerInfo.textContent = `Pendientes: ${list.length}`;
-    } else if (tab === 'paid') {
-      headerInfo.textContent = `Pagados: ${list.length}`;
-    } else if (tab === 'potential-earnings') {
-      const gain = list.reduce((s, c) => s + c.gainPen, 0);
-      headerInfo.textContent = `Ganancias: ${formatCurrency(gain)}`;
+  const contractRow = (contract: PreparedContract): HTMLTableRowElement => {
+    const clientCell = el('td');
+    const name = el('span', 'client-name', contract.cliente);
+    name.title = contract.cliente;
+    const meta = el('span', 'client-meta num');
+    if (contract.riesgo) {
+      const risk = contract.riesgo.trim().toLowerCase();
+      meta.append(el('span', `risk risk-${risk === 'b' || risk === 'c' ? risk : 'a'}`, contract.riesgo));
     }
-  }
+    meta.append(contract.codigo);
+    clientCell.append(name, meta);
 
-  function updatePagination(list: PreparedContract[]) {
-    if (!pagination || !pageInfo || !prevBtn || !nextBtn) return;
-    totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
-    currentPage = Math.min(currentPage, totalPages);
-    pageInfo.textContent = `${currentPage} / ${totalPages}`;
-    prevBtn.disabled = currentPage <= 1;
-    nextBtn.disabled = currentPage >= totalPages;
-    pagination.classList.toggle('hidden', totalPages <= 1);
-    pagination.style.display = totalPages <= 1 ? 'none' : '';
-  }
-
-  function setPotentialHeader() {
-    if (!thead) return;
-    const row = document.createElement('tr');
-    const estado = document.createElement('th');
-    estado.textContent = 'Estado';
-    const contratos = document.createElement('th');
-    contratos.textContent = 'Contratos';
-    contratos.style.textAlign = 'right';
-    const ganancia = document.createElement('th');
-    ganancia.textContent = 'Ganancia';
-    ganancia.style.textAlign = 'right';
-    row.append(estado, contratos, ganancia);
-    thead.innerHTML = '';
-    thead.appendChild(row);
-  }
-
-  function setContractsHeader() {
-    if (!thead) return;
-    const row = document.createElement('tr');
-    const cliente = document.createElement('th');
-    cliente.textContent = 'Cliente';
-    const fechaPago = document.createElement('th');
-    fechaPago.textContent = 'Fecha Pago';
-    fechaPago.style.textAlign = 'center';
-    const ganancia = document.createElement('th');
-    ganancia.textContent = 'Ganancia';
-    ganancia.style.textAlign = 'right';
-    row.append(cliente, fechaPago, ganancia);
-    thead.innerHTML = '';
-    thead.appendChild(row);
-  }
-
-  function renderPotentialRows(list: PreparedContract[]) {
-    if (!tbody) return;
-    setPotentialHeader();
-
-    const pending = list.filter(c => c.estadoNorm !== STATUS_PAID);
-    const paid = list.filter(c => c.estadoNorm === STATUS_PAID);
-    const pendingGain = pending.reduce((s, c) => s + c.gainPen, 0);
-    const paidGain = paid.reduce((s, c) => s + c.gainPen, 0);
-    const rows = [
-      { label: 'Pendientes', count: pending.length, gain: pendingGain },
-      { label: 'Pagados', count: paid.length, gain: paidGain },
-      { label: 'Total', count: pending.length + paid.length, gain: pendingGain + paidGain }
-    ];
-
-    const fragment = document.createDocumentFragment();
-    for (const item of rows) {
-      const row = document.createElement('tr');
-
-      const labelCell = document.createElement('td');
-      labelCell.textContent = item.label;
-
-      const countCell = document.createElement('td');
-      countCell.style.textAlign = 'right';
-      countCell.textContent = String(item.count);
-
-      const gainCell = document.createElement('td');
-      gainCell.style.textAlign = 'right';
-      gainCell.textContent = formatCurrency(item.gain);
-
-      row.append(labelCell, countCell, gainCell);
-      fragment.appendChild(row);
+    const dateCell = el('td', 'num', contract.fechaPagoLabel);
+    const days = contract.daysFromAsOf;
+    if (days !== null && !contract.isPaid) {
+      const relative = el(
+        'span',
+        days < 0 ? 'date-rel is-overdue' : 'date-rel',
+        `${days > 0 ? '+' : days < 0 ? '−' : ''}${Math.abs(days)} d`
+      );
+      if (daysTitle) relative.title = daysTitle;
+      dateCell.append(relative);
     }
 
-    tbody.innerHTML = '';
-    tbody.appendChild(fragment);
-  }
+    const row = el('tr');
+    row.append(clientCell, dateCell, el('td', 'align-right num', formatAmount(contract.gainPen)));
+    return row;
+  };
 
-  function renderEmptyState() {
-    if (!tbody) return;
-    const row = document.createElement('tr');
-    row.innerHTML = "<td colspan=\"3\"><div class=\"empty-state\"><span class=\"svg-icon\"><svg><use xlink:href='#icon-empty-box'></use></svg></span><p class='primary-text'>Sin contratos</p></div></td>";
-    tbody.innerHTML = '';
-    tbody.appendChild(row);
-  }
+  const render = () => {
+    const term = searchInput?.value.trim() ?? '';
 
-  function renderContractRows(list: PreparedContract[]) {
-    if (!tbody) return;
-    setContractsHeader();
+    for (const button of segments) {
+      const tab = TABS.find((candidate) => candidate === button.dataset.tab);
+      if (!tab) continue;
+      const list = filterContracts(tab, term);
+      const active = tab === currentTab;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+      const count = button.querySelector('[data-count-for]');
+      const sum = button.querySelector('[data-sum-for]');
+      if (count) count.textContent = String(list.length);
+      if (sum) sum.textContent = formatPen(sumGains(list));
+    }
 
+    filterCell?.classList.toggle('has-value', term.length > 0);
+    if (clearBtn) clearBtn.hidden = term.length === 0;
+
+    const list = sortContracts(filterContracts(currentTab, term), currentTab);
     if (list.length === 0) {
-      renderEmptyState();
+      const cell = el('td', undefined, term ? 'Sin resultados' : 'Sin contratos');
+      cell.colSpan = 3;
+      const row = el('tr', 'empty-row');
+      row.append(cell);
+      tableBody.replaceChildren(row);
       return;
     }
+    tableBody.replaceChildren(...list.map(contractRow));
+  };
 
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginated = list.slice(start, start + ITEMS_PER_PAGE);
-    const fragment = document.createDocumentFragment();
-
-    for (const contract of paginated) {
-      const row = document.createElement('tr');
-
-      const clientCell = document.createElement('td');
-      clientCell.className = 'client-name';
-      clientCell.title = contract.cliente;
-      clientCell.textContent = contract.cliente;
-
-      const paymentCell = document.createElement('td');
-      paymentCell.style.textAlign = 'center';
-      paymentCell.textContent = contract.fechaPagoLabel;
-
-      const gainCell = document.createElement('td');
-      gainCell.style.textAlign = 'right';
-      gainCell.textContent = formatCurrency(contract.gainPen);
-
-      row.append(clientCell, paymentCell, gainCell);
-      fragment.appendChild(row);
+  const clearSearch = () => {
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.focus();
     }
+    render();
+  };
 
-    tbody.innerHTML = '';
-    tbody.appendChild(fragment);
-  }
+  segments.forEach((button) =>
+    button.addEventListener('click', () => {
+      currentTab = TABS.find((tab) => tab === button.dataset.tab) ?? 'pending';
+      render();
+    })
+  );
 
-  function render(tab: string) {
-    currentTab = tab;
-    tabs.forEach(tb => tb.classList.toggle('active', (tb as HTMLElement).dataset.tab === tab));
-    const filtered = filterContracts(tab, searchInput?.value || '');
-    const list = sortContracts(filtered, tab);
-    if (!tbody || !thead) return;
-    updateHeader(tab, list);
-
-    if (tab === 'potential-earnings') {
-      if (pagination) {
-        pagination.classList.add('hidden');
-        pagination.style.display = 'none';
-      }
-    } else {
-      updatePagination(list);
-    }
-
-    if (tab === 'potential-earnings') {
-      renderPotentialRows(list);
-      return;
-    }
-
-    renderContractRows(list);
-  }
-
-  tabs.forEach(tb => tb.addEventListener('click', () => {
-    currentPage = 1;
-    render((tb as HTMLElement).dataset.tab || '');
-  }));
-
-  searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    render(currentTab);
-  });
-
-  clearBtn?.addEventListener('click', () => {
-    if (searchInput) searchInput.value = '';
-    currentPage = 1;
-    render(currentTab);
-  });
-
-  prevBtn?.addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      render(currentTab);
+  searchInput?.addEventListener('input', render);
+  searchInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && searchInput.value) {
+      event.preventDefault();
+      clearSearch();
     }
   });
+  clearBtn?.addEventListener('click', clearSearch);
 
-  nextBtn?.addEventListener('click', () => {
-    if (currentPage < totalPages) {
-      currentPage++;
-      render(currentTab);
-    }
-  });
-
-  render('pending');
+  render();
 }
 
 if (document.readyState === 'loading') {

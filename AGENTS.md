@@ -28,15 +28,17 @@ src/
   lib/
     config.ts       # constants (GOAL, EXTERNAL_CAPITAL, MOVEMENT_TYPES, slider defaults)
     dataService.ts  # data layer: loads optional JSON, fetches FX rate, caches at module level
+    format.ts       # Intl formatters shared by SSR and client scripts (no dependencies)
     fxService.ts    # live USD/PEN rate via Currency Freaks (in-memory cache)
     portfolioUtils.ts  # pure math: annualized rate, toPen, monthsBetween
+    projection.ts   # goal projection model shared by the goal date (SSR) and the chart (client)
   pages/
     index.astro     # main dashboard page
   scripts/
     chart.ts        # client-side Chart.js projection (imported as module by ChartContainer)
     factoring.ts    # client-side factoring table logic (imported by FactoringCard)
   styles/
-    global.css      # base reset, shared component classes (card, card-header, svg-icon, etc.)
+    global.css      # base styles and shared classes (panel, panel-note, num)
 public/             # static assets served directly
 ```
 
@@ -45,7 +47,8 @@ public/             # static assets served directly
 - **Data flow**: `dataService.ts` loads local JSON files (`investmentDetails.json`, `earningsPEN/USD.json`, `movementsPEN/USD.json`) when present, fetches the live FX rate, caches the result at module level, and exposes `getPortfolioReport()`, `getReportMetrics()`, `getFactoringMetrics()`, and `getTimeToGoalWithInjection()`.
 - **Private data gate**: production builds hide totals, projections, and factoring contracts unless `PUBLIC_EXPOSE_PORTFOLIO_DATA=true`. This keeps static HTML from serializing private portfolio data by default and allows clean clones to build without private datasets. See `docs/decisions/ADR-001-static-dashboard-private-data-gate.md`.
 - **Client scripts**: Astro components pass private data to client scripts via `<script type="application/json">` elements only when the private data gate is enabled. The scripts live in `src/scripts/` and are bundled by Vite as ES modules (no CDN scripts).
-- **Shared CSS**: Global base styles and reusable classes (`.card`, `.card-header`, `.header-left`, `.svg-icon`, `.flex-between`, `.flex`) are in `src/styles/global.css`. Component-scoped styles stay in each `.astro` file.
+- **Shared CSS**: Global base styles and reusable classes (`.panel`, `.panel-note`, `.num` for tabular IBM Plex Mono figures) are in `src/styles/global.css`. Component-scoped styles stay in each `.astro` file; `FactoringCard` keeps `is:global` because `factoring.ts` builds its rows at runtime.
+- **Projection**: `src/lib/projection.ts` is the single projection model (half-month steps, injection mid-month). The goal date in the summary and the chart crossings both come from it, so they always agree.
 - **Currencies**: All values are tracked in PEN and USD. Conversion uses the live FX rate from `fxService.ts`, falling back to `DEFAULT_FX_RATE` (3.7) from `config.ts`.
 - **Tailwind**: Tailwind runs through PostCSS (`postcss.config.js`). Do not re-add `@astrojs/tailwind`; the adapter is not required for the current Astro 6 setup.
 

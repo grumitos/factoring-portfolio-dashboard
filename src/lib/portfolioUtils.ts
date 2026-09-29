@@ -9,6 +9,8 @@ export interface InvestmentDetail {
   moneda: 'PEN' | 'USD';
   retornoMensualPct: number;
   estado: string;
+  /** Calificación de riesgo de la subasta (A+, A, B, C) */
+  riesgo?: string;
   fxRate?: number;
 }
 
@@ -25,11 +27,26 @@ const DAYS_PER_MONTH = 30.4375;
 /** Convierte un monto en USD a PEN usando fxRate */
 export const toPen = (amount: number, fxRate: number): number => amount * fxRate;
 
+/** Tipo de cambio aplicable a un registro: 1 para PEN, el propio o el por defecto para USD */
+export const resolveFx = (
+  currency: 'PEN' | 'USD',
+  ownFxRate: number | undefined,
+  defaultFxRate: number
+): number => (currency === 'USD' ? (ownFxRate ?? defaultFxRate) : 1);
+
 /** Calcula meses exactos entre dos fechas incluyendo horas */
 export const monthsBetween = (start: Date, end: Date): number => {
   const ms = differenceInMilliseconds(end, start);
   return ms / (1000 * 60 * 60 * 24) / DAYS_PER_MONTH;
 };
+
+/** Ganancia compuesta esperada de un contrato entre dos fechas (mismas unidades que el principal) */
+export const expectedGain = (
+  principal: number,
+  monthlyPct: number,
+  startDate: Date,
+  endDate: Date
+): number => principal * (Math.pow(1 + monthlyPct / 100, monthsBetween(startDate, endDate)) - 1);
 
 /** Calcula tasa anualizada de un contrato */
 export const annualRateForContract = (
@@ -50,19 +67,17 @@ export const annualRateForContract = (
 
 /**
  * Calcula tasa anual promedio ponderada de contratos
- * (cobrados y pendientes, omitiendo los rechazados por defecto).
+ * (cobrados y pendientes, omitiendo los rechazados).
  */
 export const calculateAnnualizedPortfolioRate = (
   investments: InvestmentDetail[],
   earnings: Earning[],
-  defaultFxRate: number,
-  includePaid = true
+  defaultFxRate: number
 ): number => {
   const earningMap = new Map<string, { amountPen: number; latestDate: Date }>();
   earnings.forEach(e => {
     const date = parseISO(e.fecha);
-    const fx = e.moneda === 'USD' ? (e.fxRate ?? defaultFxRate) : 1;
-    const amountPen = toPen(e.monto, fx);
+    const amountPen = toPen(e.monto, resolveFx(e.moneda, e.fxRate, defaultFxRate));
     const existing = earningMap.get(e.codigo);
     if (existing) {
       existing.amountPen += amountPen;
@@ -78,12 +93,10 @@ export const calculateAnnualizedPortfolioRate = (
   investments.forEach(inv => {
     const est = inv.estado.trim().toLowerCase();
     if (est === 'rechazado') return;
-    if (!includePaid && est === 'cobrado') return;
 
     const start = parseISO(inv.fechaIngreso);
     const planned = parseISO(inv.fechaPago);
-    const fx = inv.moneda === 'USD' ? (inv.fxRate ?? defaultFxRate) : 1;
-    const principalPen = toPen(inv.inversion, fx);
+    const principalPen = toPen(inv.inversion, resolveFx(inv.moneda, inv.fxRate, defaultFxRate));
 
     let gainPen: number;
     let endDate: Date;
@@ -93,8 +106,7 @@ export const calculateAnnualizedPortfolioRate = (
       gainPen = real.amountPen;
       endDate = real.latestDate;
     } else {
-      const months = monthsBetween(start, planned);
-      gainPen = principalPen * (Math.pow(1 + inv.retornoMensualPct / 100, months) - 1);
+      gainPen = expectedGain(principalPen, inv.retornoMensualPct, start, planned);
       endDate = planned;
     }
 

@@ -1,94 +1,144 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SvgSprite from '../components/SvgSprite.astro';
 import SummaryCard from '../components/SummaryCard.astro';
 import ChartContainer from '../components/ChartContainer.astro';
 import FactoringCard from '../components/FactoringCard.astro';
-import { getReportMetrics, getInjectionTrendLabel, getTimeToGoalWithInjection } from '../lib/dataService';
-import { EXPOSE_PRIVATE_PORTFOLIO_DATA, GOAL, INITIAL_INJECTION, SLIDER_MIN, SLIDER_MAX, SLIDER_STEP, SLIDER_INITIAL } from '../lib/config';
+import { getReportMetrics, getTimeToGoalWithInjection } from '../lib/dataService';
+import {
+  formatAmount,
+  formatCompact,
+  formatMonthYearShort,
+  formatPenInteger,
+  formatPercent,
+  formatShortDate
+} from '../lib/format';
+import { monthFromNow } from '../lib/projection';
+import {
+  EXPOSE_PRIVATE_PORTFOLIO_DATA,
+  GOAL,
+  INITIAL_INJECTION,
+  SLIDER_MIN,
+  SLIDER_MAX,
+  SLIDER_STEP,
+  SLIDER_INITIAL
+} from '../lib/config';
 
 const metrics = EXPOSE_PRIVATE_PORTFOLIO_DATA ? await getReportMetrics(GOAL) : null;
 const report = metrics?.report;
-const progressPct = metrics?.progressPct ?? 0;
 const fxRate = metrics?.fxRate ?? 0;
-const months = report ? getTimeToGoalWithInjection(report, fxRate, GOAL, INITIAL_INJECTION).months : 0;
-const trendLabelInjection = report ? getInjectionTrendLabel(months) : 'Oculto en build publico';
+const progressPct = metrics?.progressPct ?? 0;
+const goalMonths = report ? getTimeToGoalWithInjection(report, fxRate, GOAL, INITIAL_INJECTION).months : null;
+const monthlyYieldPen = report
+  ? (report.netPen + report.netUsd * fxRate) * (Math.pow(1 + report.annualRatePct / 100, 1 / 12) - 1)
+  : 0;
 
-const penFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
-const usdFormatter = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const compactPenFormatter = new Intl.NumberFormat('es-PE', { notation: 'compact', compactDisplay: 'long' });
+const signed = (value: number) => `${value > 0 ? '+' : ''}${formatAmount(value)}`;
+const lastMonth = (value: number) => ({
+  note: 'Último mes',
+  noteValue: signed(value),
+  noteTone: value > 0 ? ('positive' as const) : undefined
+});
 ---
 
-<Layout title="Proyección de Inversiones">
-  <main class="w-full">
-    <div class="grid grid-cols-2 gap-standard mb-standard">
-      <SummaryCard
-        class="summary-soles-card"
-        title="Total en Soles"
-        value={report ? penFormatter.format(report.netPen) : 'Privado'}
-        trend={report ? `En el mes: S/ ${report.gainRealLastMonth.toFixed(2)}` : 'No serializado'}
-      />
-      <SummaryCard
-        class="summary-dolares-card"
-        title="Total en Dólares"
-        value={report ? `$ ${usdFormatter.format(report.netUsd)}` : 'Privado'}
-        trend={report ? `En el mes: $ ${report.gainRealLastMonthUsd.toFixed(2)}` : 'No serializado'}
-      />
-      <SummaryCard
-        class="summary-tasa-card"
-        title="Tasa Promedio"
-        value={report ? `${report.annualRatePct.toFixed(2)}%` : 'Privado'}
-        trend={report ? 'Anualizada' : 'No serializado'}
-      />
-      <SummaryCard
-        class="summary-goal-card"
-        title={`Meta: S/ ${compactPenFormatter.format(GOAL)}`}
-        value={report ? `${progressPct.toFixed(2)}%` : 'Privado'}
-        trend={`${trendLabelInjection}`}
-      />
-    </div>
+<Layout title="Portafolio de factoring">
+  <h1 class="sr-only">Portafolio de factoring</h1>
 
-    {report ? (
-      <ChartContainer
-        report={report}
-        injection={INITIAL_INJECTION}
-        fxRate={fxRate}
-        sliderMin={SLIDER_MIN}
-        sliderMax={SLIDER_MAX}
-        sliderStep={SLIDER_STEP}
-        sliderInitial={SLIDER_INITIAL}
-        goalInitial={GOAL}
+  {metrics && (
+    <p class="data-meta num">
+      <span class:list={{ 'is-fallback': metrics.fxIsFallback }}>
+        USD/PEN {fxRate.toFixed(3)}{metrics.fxIsFallback && ' ref.'}
+      </span>
+      {metrics.dataAsOf && <span>Corte {formatShortDate(new Date(metrics.dataAsOf))}</span>}
+    </p>
+  )}
+
+  <main>
+    <section class="panel kpis" aria-label="Resumen">
+      <SummaryCard
+        label="Capital PEN"
+        value={report ? formatAmount(report.netPen) : '—'}
+        {...(report ? lastMonth(report.gainRealLastMonth) : {})}
       />
-    ) : (
-      <section class="card private-dashboard-state">
-        <h4>Proyección privada oculta</h4>
-        <p>El build de producción no serializa totales, tasas ni contratos. Define PUBLIC_EXPOSE_PORTFOLIO_DATA=true solo para un despliegue privado.</p>
-      </section>
-    )}
-    <FactoringCard />
+      <SummaryCard
+        label="Capital USD"
+        value={report ? formatAmount(report.netUsd) : '—'}
+        {...(report ? lastMonth(report.gainRealLastMonthUsd) : {})}
+      />
+      <SummaryCard
+        label="Tasa anual"
+        value={report ? formatPercent(report.annualRatePct) : '—'}
+        noteValue={report ? `≈ ${formatPenInteger(monthlyYieldPen)} / mes` : undefined}
+      />
+      <SummaryCard
+        name="goal"
+        label={`Meta S/ ${formatCompact(GOAL)}`}
+        value={report ? formatPercent(progressPct) : '—'}
+        progress={report ? progressPct : undefined}
+        noteValue={report ? (goalMonths === null ? 'Fuera de alcance' : formatMonthYearShort(monthFromNow(goalMonths))) : undefined}
+      />
+    </section>
+
+    <div class:list={['workspace', { 'is-private': !report }]}>
+      {report ? (
+        <ChartContainer
+          report={report}
+          injection={INITIAL_INJECTION}
+          fxRate={fxRate}
+          sliderMin={SLIDER_MIN}
+          sliderMax={SLIDER_MAX}
+          sliderStep={SLIDER_STEP}
+          sliderInitial={SLIDER_INITIAL}
+          goalInitial={GOAL}
+        />
+      ) : (
+        <section class="panel panel-note" aria-label="Proyección">Datos privados</section>
+      )}
+      <FactoringCard />
+    </div>
   </main>
-  <SvgSprite />
 </Layout>
 
 <style>
-  .private-dashboard-state {
-    margin-bottom: theme('spacing.standard');
-    min-height: 12rem;
+  .data-meta {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 0.5rem;
-    padding: theme('spacing.standard');
-  }
-
-  .private-dashboard-state h4 {
-    font-weight: 600;
-  }
-
-  .private-dashboard-state p {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0 1.25rem;
+    margin-bottom: 0.5rem;
     color: theme('colors.text.300');
-    max-width: 34rem;
+    font-size: 0.75rem;
+  }
+
+  .is-fallback {
+    color: theme('colors.warning');
+  }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 1rem;
+  }
+
+  .workspace {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 900px) {
+    .kpis {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* Escritorio: gráfico y contratos lado a lado, a la altura de la pantalla */
+  @media (min-width: 1100px) {
+    .workspace {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    }
+
+    /* 14rem = márgenes del contenedor + línea de datos + franja de cifras */
+    .workspace:not(.is-private) {
+      height: clamp(28rem, calc(100vh - 14rem), 46rem);
+    }
   }
 </style>

@@ -4,44 +4,35 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'merriweather': ['Merriweather', 'serif'],
-      },
-      borderWidth: {
-        '0.5': '0.5px',
-      },
-      spacing: {
-        'standard': '1rem',
-        'compact': '0.8rem',
-        'wide': '1.2rem',
+        sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
+        // Superficies de la más clara (000) a la más profunda (300)
         'bg': {
-          '400': '#0F0F0E',
-          '300': '#141413',
-          '200': '#1F1E1D',
-          '100': '#262624',
-          '000': '#30302E',
+          '000': '#201F1C',
+          '100': '#1A1917',
+          '200': '#151412',
+          '300': '#121110',
         },
         'text': {
-          '000': '#FAF9F5',
-          '100': '#DEDCD1',
-          '200': '#C2C0B6',
-          '300': '#9C9A92',
+          '000': '#F2EFE8',
+          '100': '#D9D5CB',
+          '200': '#B5B0A5',
+          '300': '#8C887F',
+          '400': '#66625B',
         },
         'border': {
-          '200': '#DEDCD1',
-          '300': '#9C9A92',
+          '200': 'rgb(255 255 255 / 0.14)',
+          '300': 'rgb(255 255 255 / 0.08)',
         },
         'accent-main': {
           '000': '#C96442',
           '100': '#D97757',
-          '200': '#D97757',
         },
-        'always-black': '#000000',
-        'always-white': '#FFFFFF',
-        'oncolor': {
-          '100': '#FFFFFF',
-        },
+        'positive': '#8FBF8A',
+        'warning': '#E2A857',
+        'danger': '#E0715F',
       },
     },
   },
