@@ -58,9 +58,10 @@ def numeric_date(moment: datetime) -> str:
 # ── Modelo de la vista ───────────────────────────────────────
 
 
-def build_view(data: portfolio.Portfolio, fx_rate: float, fx_fallback: bool, now: datetime) -> dict:
+def build_view(data: portfolio.Portfolio, settings: config.Settings, fx_rate: float, fx_fallback: bool,
+               now: datetime) -> dict:
     """Todo lo que muestra el tablero, calculado y formateado."""
-    net = portfolio.net_balances(data.movements)
+    net = portfolio.net_balances(data.movements, settings.external_capital)
     rate = portfolio.annualized_rate(data, fx_rate)
     last_month = portfolio.last_month_gains(data.earnings, now)
     as_of = portfolio.data_as_of(data)
@@ -68,8 +69,8 @@ def build_view(data: portfolio.Portfolio, fx_rate: float, fx_fallback: bool, now
     first_month = now.month - 1
 
     steps = []
-    for goal in config.GOAL_STEPS:
-        chart = projection.goal_projection(start, rate, config.MONTHLY_INJECTION, goal, first_month)
+    for goal in settings.goal_steps:
+        chart = projection.goal_projection(start, rate, settings.monthly_injection, goal, first_month)
         month = chart["month"]
         progress = start / goal * 100
         steps.append({
@@ -100,7 +101,7 @@ def build_view(data: portfolio.Portfolio, fx_rate: float, fx_fallback: bool, now
             {"label": steps[0]["label"], "value": steps[0]["value"], "progress": steps[0]["progress"],
              "note_value": steps[0]["date"], "name": "goal"},
         ],
-        "injection": pen(config.MONTHLY_INJECTION, 0),
+        "injection": pen(settings.monthly_injection, 0),
         "data": {
             "months": [month_label(now.year, first_month + i) for i in range(horizon)],
             "firstJanuary": first_january,
@@ -154,7 +155,7 @@ def render_page(view: dict | None) -> str:
         fx_class = ' class="is-fallback"' if view["fx_fallback"] else ""
         as_of = f"<span>Corte {view['as_of']}</span>" if view["as_of"] else ""
         meta = f'<p class="data-meta num"><span{fx_class}>{view["fx"]}</span>{as_of}</p>'
-        panels = _chart_panel(view["injection"], len(config.GOAL_STEPS)) + _contracts_panel()
+        panels = _chart_panel(view["injection"], len(view["data"]["steps"])) + _contracts_panel()
         # Todo "<" escapado: ningún texto de los datos puede cerrar ni reabrir la etiqueta <script>
         payload = json.dumps(view["data"], ensure_ascii=False, separators=(",", ":"), allow_nan=False)
         payload = payload.replace("<", "\\u003c")

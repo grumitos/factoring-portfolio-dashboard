@@ -77,6 +77,25 @@ class SourcesTest(unittest.TestCase):
                 self.assertEqual(sources.resolve_fx_rate("key"), default)
 
 
+class SettingsTest(unittest.TestCase):
+    _ENV = {"EXTERNAL_CAPITAL_PEN": "20000", "EXTERNAL_CAPITAL_USD": "1000", "MONTHLY_INJECTION_PEN": "2000",
+            "GOAL_PEN": "300000"}
+
+    def test_reads_personal_parameters_from_env(self):
+        settings = config.Settings.from_env(self._ENV)
+        self.assertEqual(settings, _SETTINGS)
+        self.assertEqual(settings.goal_steps, tuple(range(300_000, 1_900_001, 200_000)))
+
+    def test_missing_or_invalid_parameter_stops_instead_of_defaulting(self):
+        for key, value in (("EXTERNAL_CAPITAL_USD", None), ("MONTHLY_INJECTION_PEN", "2,000"),
+                           ("EXTERNAL_CAPITAL_PEN", "-1"), ("GOAL_PEN", "nan"), ("GOAL_PEN", "0")):
+            env = {k: v for k, v in self._ENV.items() if k != key}
+            if value is not None:
+                env[key] = value
+            with self.subTest(key=key, value=value), self.assertRaisesRegex(ValueError, key):
+                config.Settings.from_env(env)
+
+
 def _movement(kind, amount, currency="PEN"):
     return Movement(kind, amount, currency, datetime(2025, 1, 1))
 
@@ -90,13 +109,13 @@ class PortfolioTest(unittest.TestCase):
             _movement("deposito", 300, "USD"), _movement("dolares a soles", 100, "USD"),
             _movement("soles a dolares", 27, "USD"),
         ]
-        net = portfolio.net_balances(movements)
-        self.assertAlmostEqual(net["PEN"], config.EXTERNAL_CAPITAL["PEN"] + 1_000 + 50 + 370 - 200 - 100)
-        self.assertAlmostEqual(net["USD"], config.EXTERNAL_CAPITAL["USD"] + 300 - 100 + 27)
+        net = portfolio.net_balances(movements, _SETTINGS.external_capital)
+        self.assertAlmostEqual(net["PEN"], _SETTINGS.external_capital["PEN"] + 1_000 + 50 + 370 - 200 - 100)
+        self.assertAlmostEqual(net["USD"], _SETTINGS.external_capital["USD"] + 300 - 100 + 27)
 
     def test_unknown_movement_type_or_status_fails_instead_of_being_ignored(self):
         with self.assertRaises(ValueError):
-            portfolio.net_balances([_movement("bono", 10)])
+            portfolio.net_balances([_movement("bono", 10)], _SETTINGS.external_capital)
         row = dict(_RAW["investments"][0], estado="anulado")
         with self.assertRaisesRegex(ValueError, "anulado"):
             portfolio.parse_exports({"investments": [row], "earnings": [], "movements": []})
@@ -154,11 +173,14 @@ class ProjectionTest(unittest.TestCase):
         self.assertGreaterEqual(horizon, 14 + 6)
         self.assertEqual((8 + horizon) % 12, 0)  # termina en enero
         # Sin aportes la meta llega en el mes 201, fuera del gráfico: no se marca
-        chart = projection.goal_projection(300_000, 12, 5_700, 2_000_000, start_month=0)
+        chart = projection.goal_projection(300_000, 12, 6_000, 2_000_000, start_month=0)
         self.assertEqual(projection.months_to_goal(300_000, 12, 0, 2_000_000), 201)
-        self.assertEqual(chart["crossings"], [None, 113])
+        self.assertEqual(chart["crossings"], [None, 110])
         self.assertEqual(projection.nice_ticks(100_000, 1_000_000), [0, *range(200_000, 1_200_001, 200_000)])
 
+
+# Parámetros sintéticos (los reales vienen de .env)
+_SETTINGS = config.Settings({"PEN": 20_000.0, "USD": 1_000.0}, monthly_injection=2_000.0, goal=300_000.0)
 
 # Exportes sintéticos ya leídos (como los devuelve sources.load_exports)
 _RAW = {
@@ -185,7 +207,7 @@ _RAW = {
 
 
 def _view(raw=_RAW):
-    return render.build_view(portfolio.parse_exports(raw), 3.5, False, datetime(2025, 3, 20))
+    return render.build_view(portfolio.parse_exports(raw), _SETTINGS, 3.5, False, datetime(2025, 3, 20))
 
 
 class ViewTest(unittest.TestCase):
@@ -193,12 +215,15 @@ class ViewTest(unittest.TestCase):
         view = _view()
         self.assertEqual((view["fx"], view["as_of"]), ("USD/PEN 3.500", "10 mar. 2025"))
         pen, usd, rate, goal = view["kpis"]
-        self.assertEqual((pen["value"], pen["note_value"], pen["positive"]), ("126,000.00", "+60.00", True))
-        self.assertEqual((usd["value"], usd["note_value"]), ("10,920.00", "0.00"))
+        self.assertEqual((pen["value"], pen["note_value"], pen["positive"]), ("25,000.00", "+60.00", True))
+        self.assertEqual((usd["value"], usd["note_value"]), ("1,100.00", "0.00"))
         annual = portfolio.annualized_rate(portfolio.parse_exports(_RAW), 3.5)
-        start = 126_000 + 10_920 * 3.5
+        start = 25_000 + 1_100 * 3.5
         self.assertEqual(rate["note_value"], f"≈ {render.pen(start * ((1 + annual / 100) ** (1 / 12) - 1), 0)} / mes")
-        self.assertEqual((goal["label"], goal["value"]), ("Meta S/ 400K", render.percent(start / 400_000 * 100)))
+        self.assertEqual((goal["label"], goal["value"]), ("Meta S/ 300K", render.percent(start / 300_000 * 100)))
+        # El aporte y la meta de los parámetros llegan a la proyección (el corte es marzo: mes 2 desde enero)
+        month = projection.goal_month(start, annual, 2_000, 300_000)
+        self.assertEqual((view["injection"], goal["note_value"]), ("S/ 2,000", render.month_label(2025, 2 + month)))
 
         contracts = {c["code"]: c for c in view["data"]["contracts"]}
         self.assertEqual(list(contracts), ["A1", "B1", "D1"])  # sin el rechazado
@@ -235,17 +260,18 @@ class RenderTest(unittest.TestCase):
 
 
 class CliTest(unittest.TestCase):
-    def test_public_page_never_reads_the_exports(self):
+    def test_public_page_reads_neither_the_exports_nor_env(self):
         with tempfile.TemporaryDirectory() as tmp, \
                 mock.patch.object(config, "OUTPUT_FILE", Path(tmp) / "index.html"), \
                 mock.patch.object(config, "PUBLIC_OUTPUT_FILE", Path(tmp) / "public" / "index.html"), \
-                mock.patch("dashboard.sources.load_exports") as load_exports, mock.patch("sys.stdout"):
+                mock.patch("dashboard.sources.load_exports") as load_exports, \
+                mock.patch("dashboard.sources.read_env") as read_env, mock.patch("sys.stdout"):
             self.assertEqual(cli.main(["--public"]), 0)
             page = (Path(tmp) / "public" / "index.html").read_text(encoding="utf-8")
             self.assertFalse((Path(tmp) / "index.html").exists())
         load_exports.assert_not_called()
+        read_env.assert_not_called()
         self.assertNotIn("<script", page)
-        self.assertNotIn("400K", page)
 
     def test_rejects_an_invalid_exchange_rate(self):
         for value in ("0", "-1", "nan", "inf"):
