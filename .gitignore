@@ -1,19 +1,27 @@
-# Exportes privados del portal (y su ubicación en versiones anteriores)
-data/
-src/data/
-
-# Tablero generado
-dist/
-
 # Secretos
 .env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+venv/
 .venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Datos locales y salidas generadas
+data/
+dist/
+# ubicación de los exportes en versiones anteriores
+src/data/
 
 # Sistema y editores
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
