@@ -19,10 +19,7 @@ const PEN_INTEGER = new Intl.NumberFormat('es-PE', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
-const SERIES = [
-  { name: 'without', color: 'var(--text-300)' },
-  { name: 'with', color: 'var(--accent)' },
-];
+const SERIES = ['without', 'with']; // mismo orden que step.series; los colores viven en styles.css
 const MARGIN = { top: 8, right: 16, bottom: 22, left: 48 }; // right: media etiqueta de año
 const MIN_TICK_GAP_PX = 56;
 const LABEL_CHAR_PX = 6.6; // ancho de un carácter a 11px en la fuente monoespaciada
@@ -44,8 +41,8 @@ function el(tag, className, text) {
 const line = (className, x1, y1, x2, y2) => `<line class="${className}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
 /** @param {number} x @param {number} y @param {string} content @param {string} attrs */
 const text = (x, y, content, attrs) => `<text x="${x}" y="${y}" ${attrs}>${content}</text>`;
-/** @param {number} x @param {number} y @param {number} r @param {string} color */
-const dot = (x, y, r, color) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
+/** @param {number} x @param {number} y @param {string} series */
+const dot = (x, y, series) => `<circle class="marker marker-${series}" cx="${x}" cy="${y}" r="4"/>`;
 
 function initChart() {
   const chart = document.getElementById('chart');
@@ -103,7 +100,7 @@ function initChart() {
 
     if (hover !== null) parts.push(line('crosshair', f.x(hover), f.top, f.x(hover), f.bottom));
 
-    SERIES.forEach(({ name }, s) => {
+    SERIES.forEach((name, s) => {
       if (!visible[s]) return;
       const points = step.series[s].map((v, i) => `${f.x(i).toFixed(1)},${f.y(v).toFixed(1)}`).join(' ');
       parts.push(`<polyline class="series series-${name}" points="${points}"/>`);
@@ -121,15 +118,15 @@ function initChart() {
       const x = f.x(index);
       const y = f.y(step.series[s][index]);
       const label = data.months[index];
-      const fitsLeft = x - 6 - label.length * LABEL_CHAR_PX >= f.left;
-      const attrs = `class="crossing-${SERIES[s].name}" text-anchor="${fitsLeft ? 'end' : 'start'}"`;
-      parts.push(dot(x, y, 3.5, SERIES[s].color), text(fitsLeft ? x - 6 : x + 6, y - 6, label, attrs));
+      const fitsLeft = x - 8 - label.length * LABEL_CHAR_PX >= f.left;
+      const attrs = `class="crossing-${SERIES[s]}" text-anchor="${fitsLeft ? 'end' : 'start'}"`;
+      parts.push(dot(x, y, SERIES[s]), text(fitsLeft ? x - 8 : x + 8, y - 8, label, attrs));
     });
 
     if (hover !== null) {
       const index = hover;
-      SERIES.forEach(({ color }, s) => {
-        if (visible[s]) parts.push(dot(f.x(index), f.y(step.series[s][index]), 4, color));
+      SERIES.forEach((name, s) => {
+        if (visible[s]) parts.push(dot(f.x(index), f.y(step.series[s][index]), name));
       });
     }
 
@@ -144,16 +141,13 @@ function initChart() {
     const index = hover;
     const lines = [el('p', undefined, data.months[index])];
     for (const s of [1, 0]) {
-      if (!visible[s]) continue;
-      const entry = el('p', undefined, PEN_INTEGER.format(step.series[s][index]));
-      entry.style.setProperty('--swatch', SERIES[s].color);
-      lines.push(entry);
+      if (visible[s]) lines.push(el('p', `tip-${SERIES[s]}`, PEN_INTEGER.format(step.series[s][index])));
     }
     tooltip.replaceChildren(...lines);
     const x = f.x(index);
     const fitsRight = x + 12 + tooltip.offsetWidth <= f.width;
     tooltip.style.left = `${fitsRight ? x + 12 : x - 12 - tooltip.offsetWidth}px`;
-    const ys = SERIES.map((_, s) => f.y(step.series[s][index])).filter((_, s) => visible[s]);
+    const ys = step.series.map((values) => f.y(values[index])).filter((_, s) => visible[s]);
     const middle = ys.reduce((sum, y) => sum + y, 0) / ys.length;
     const top = Math.min(Math.max(middle - tooltip.offsetHeight / 2, 0), f.height - tooltip.offsetHeight);
     tooltip.style.top = `${top}px`;
@@ -163,6 +157,8 @@ function initChart() {
     step = data.steps[Number(range.value)];
     output.textContent = step.goal;
     range.setAttribute('aria-valuetext', step.goal);
+    const without = step.crossings[0] === null ? '' : ` Sin aportes: ${data.months[step.crossings[0]]}.`;
+    chart.setAttribute('aria-label', `Proyección hacia ${step.goal}. Con aportes: ${step.date}.${without}`);
     range.style.setProperty('--fill', `${(Number(range.value) / Number(range.max)) * 100}%`);
     if (goalKpi) {
       const label = goalKpi.querySelector('.kpi-label');

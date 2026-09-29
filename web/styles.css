@@ -7,7 +7,6 @@
   --text-100: #d9d5cb;
   --text-200: #b5b0a5;
   --text-300: #8c887f;
-  --text-400: #66625b;
   --line: rgb(255 255 255 / 0.08);
   --line-strong: rgb(255 255 255 / 0.14);
   --grid: rgb(255 255 255 / 0.06);
@@ -281,7 +280,7 @@ svg {
 }
 
 .legend-toggle[aria-pressed='false'] {
-  color: var(--text-400);
+  color: var(--text-300);
 }
 
 .legend-toggle[aria-pressed='false'] .swatch {
@@ -380,7 +379,7 @@ svg {
 }
 
 .chart text {
-  fill: var(--text-400);
+  fill: var(--text-300);
   font-family: var(--font-mono);
   font-size: 11px;
 }
@@ -391,25 +390,43 @@ svg {
 
 .chart .series {
   fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .chart .series-with {
   stroke: var(--accent);
-  stroke-width: 2;
 }
 
 .chart .series-without {
   stroke: var(--text-300);
-  stroke-width: 1.5;
   stroke-dasharray: 5 4;
 }
 
+.chart .marker {
+  stroke: var(--bg-100);
+  stroke-width: 2;
+}
+
+.chart .marker-with,
+.chart-tooltip .tip-with::before {
+  fill: var(--accent);
+  background: var(--accent);
+}
+
+.chart .marker-without,
+.chart-tooltip .tip-without::before {
+  fill: var(--text-300);
+  background: var(--text-300);
+}
+
 .chart .goal-line {
-  stroke: var(--text-400);
+  stroke: var(--text-300);
   stroke-dasharray: 2 4;
 }
 
+/* Las etiquetas van en tinta de texto; el punto de color al lado lleva la identidad de la serie */
 .chart .goal-label,
 .chart .crossing-without {
   fill: var(--text-300);
@@ -417,7 +434,7 @@ svg {
 }
 
 .chart .crossing-with {
-  fill: var(--accent);
+  fill: var(--text-100);
   font-weight: 500;
 }
 
@@ -458,7 +475,6 @@ svg {
   content: '';
   width: 10px;
   height: 2px;
-  background: var(--swatch);
 }
 
 @media (min-width: 768px) {
@@ -516,7 +532,7 @@ svg {
 
 .segment-label .num {
   margin-left: 0.25rem;
-  color: var(--text-400);
+  color: var(--text-300);
 }
 
 .segment-value {
@@ -668,7 +684,7 @@ svg {
 .date-rel {
   display: block;
   margin-top: 0.125rem;
-  color: var(--text-400);
+  color: var(--text-300);
   font-size: 0.6875rem;
 }
 
