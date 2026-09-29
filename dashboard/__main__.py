@@ -1,4 +1,4 @@
-"""Genera el tablero a partir de los exportes en data/.
+"""Genera el tablero a partir de los exportes en data/ y los parámetros de .env.
 
     python -m dashboard            dist/index.html, con los datos
     python -m dashboard --public   dist/public/index.html, sin cifras ni contratos (apto para publicar)
@@ -37,13 +37,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         view = None
         if not args.public:
+            env = {**sources.read_env(), **os.environ}  # una variable del sistema pisa a la de .env
+            settings = config.Settings.from_env(env)
             data = parse_exports(sources.load_exports())
             if args.fx is not None:
                 fx_rate, fx_fallback = args.fx, False
             else:
-                api_key = os.environ.get(API_KEY) or sources.read_env().get(API_KEY)
-                fx_rate, fx_fallback = sources.resolve_fx_rate(api_key)
-            view = render.build_view(data, fx_rate, fx_fallback, datetime.now())
+                fx_rate, fx_fallback = sources.resolve_fx_rate(env.get(API_KEY))
+            view = render.build_view(data, settings, fx_rate, fx_fallback, datetime.now())
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(render.render_page(view), encoding="utf-8")
     except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:

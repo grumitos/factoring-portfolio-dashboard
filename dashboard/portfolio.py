@@ -186,9 +186,9 @@ def _realized_by_code(earnings: list[Earning], fx_rate: float) -> dict[str, tupl
     return realized
 
 
-def net_balances(movements: list[Movement]) -> dict[str, float]:
+def net_balances(movements: list[Movement], external_capital: dict[str, float]) -> dict[str, float]:
     """Saldo de cada moneda: movimientos del portal más el capital externo."""
-    totals = dict(config.EXTERNAL_CAPITAL)
+    totals = dict(external_capital)
     for movement in movements:
         signs = config.MOVEMENT_SIGNS[movement.currency]
         if movement.kind not in signs:
