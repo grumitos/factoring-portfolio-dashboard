@@ -58,9 +58,9 @@ def chart_horizon(crossing: int | None, start_month: int) -> int:
 
 
 def nice_ticks(low: float, high: float, max_ticks: int = 6) -> list[float]:
-    """Marcas redondas del eje Y (pasos de 1, 2, 2.5 o 5 × 10^n) con 5% de holgura arriba y abajo."""
+    """Marcas redondas del eje Y (pasos de 1, 2, 2.5 o 5 × 10^n) con 5% de holgura, sin bajar de 0 sin negativos."""
     grace = (high - low) * 0.05 or abs(high) * 0.05 or 1.0
-    low, high = low - grace, high + grace
+    low, high = (max(low - grace, 0.0) if low >= 0 else low - grace), high + grace
     raw = (high - low) / (max_ticks - 1)
     magnitude = 10 ** math.floor(math.log10(raw))
     step = next(m * magnitude for m in (1, 2, 2.5, 5, 10) if m * magnitude >= raw)

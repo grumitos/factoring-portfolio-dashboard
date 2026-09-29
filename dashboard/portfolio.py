@@ -9,6 +9,7 @@ from .sources import normalize
 
 STATUS_PAID = "cobrado"
 STATUS_REJECTED = "rechazado"
+STATUSES = {STATUS_PAID, STATUS_REJECTED, "por cobrar", "pendiente"}  # los que usa el portal
 DAYS_PER_MONTH = 30.4375
 
 
@@ -64,8 +65,16 @@ class Contract:
 def _field(row: dict, key: str) -> object:
     value = row.get(key)
     if value in (None, ""):
-        raise ValueError(f"Falta la columna '{key}' en una fila: {row}")
+        raise ValueError(f"Falta '{key}' en una fila (columnas: {', '.join(row)})")
     return value
+
+
+def _status(row: dict) -> str:
+    """Estado conocido: uno nuevo o renombrado movería contratos entre pendientes, cobrados y rechazados."""
+    status = normalize(_field(row, "estado"))
+    if status not in STATUSES:
+        raise ValueError(f"Estado desconocido: {status!r}")
+    return status
 
 
 def _as_datetime(value: object) -> datetime:
@@ -107,7 +116,7 @@ def parse_exports(raw: dict[str, list[dict]]) -> Portfolio:
             amount=float(_field(row, "inversion")),
             currency=_currency(row),
             monthly_pct=float(_field(row, "retorno mensual (%)")),
-            status=normalize(row.get("estado")),
+            status=_status(row),
             risk=str(row.get("riesgo") or "").strip(),
         )
         for row in raw["investments"]

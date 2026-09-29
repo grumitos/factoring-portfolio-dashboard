@@ -20,7 +20,7 @@ Python 3.11 o superior. No usa dependencias externas.
 | --- | --- |
 | `--open` | abre el tablero al terminar |
 | `--fx 3.45` | fija el tipo de cambio sin consultar el servicio |
-| `--public` | genera la página sin cifras ni contratos, apta para publicar |
+| `--public` | genera `dist/public/index.html`, sin cifras ni contratos, apta para publicar |
 
 Capital externo, aporte mensual, meta y pasos del deslizador se ajustan en `dashboard/config.py`.
 
@@ -33,7 +33,9 @@ Capital externo, aporte mensual, meta y pasos del deslizador se ajustan en `dash
 
 ## Privacidad
 
-Los exportes (`data/`), el tablero generado (`dist/`) y `.env` contienen datos privados y están fuera de git. Para publicar, usa solo la salida de `--public`.
+Los exportes (`data/`), el tablero generado (`dist/`) y `.env` contienen datos privados y están fuera de git. Para publicar, usa solo `dist/public/`, que genera `--public`; ese modo no lee los exportes.
+
+Si un exporte trae un estado o un tipo de movimiento que el tablero no conoce, o si se descarga dos veces el mismo archivo de una moneda, el generador se detiene con un mensaje en vez de mostrar cifras incorrectas.
 
 ## Estructura
 

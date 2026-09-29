@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 WEB_DIR = ROOT / "web"
 OUTPUT_FILE = ROOT / "dist" / "index.html"
+PUBLIC_OUTPUT_FILE = ROOT / "dist" / "public" / "index.html"  # aparte: generar el privado no la pisa
 ENV_FILE = ROOT / ".env"
 
 # Exportes del portal, con el nombre con que se descargan (la moneda va en cada fila)

@@ -108,13 +108,17 @@ function initChart() {
 
     const yGoal = f.y(step.target);
     if (yGoal >= f.top && yGoal <= f.bottom) {
+      // Bajo la línea, salvo que choque con los años del eje
+      const below = yGoal + 18 <= f.bottom;
+      const baseline = below ? 'dominant-baseline="hanging"' : '';
       parts.push(line('goal-line', f.left, yGoal, f.right, yGoal));
-      parts.push(text(f.left + 4, yGoal + 4, step.goal, 'class="goal-label" dominant-baseline="hanging"'));
+      parts.push(text(f.left + 4, below ? yGoal + 4 : yGoal - 4, step.goal, `class="goal-label" ${baseline}`));
     }
 
-    // Mes en que cada serie visible alcanza la meta; la etiqueta va arriba a la izquierda (las curvas suben)
+    // Mes en que cada serie visible alcanza la meta; la etiqueta va arriba a la izquierda (las curvas suben).
+    // En el mes 0 la meta ya está cumplida: lo dice la cifra de meta y no se marca.
     step.crossings.forEach((index, s) => {
-      if (index === null || !visible[s]) return;
+      if (!index || !visible[s]) return;
       const x = f.x(index);
       const y = f.y(step.series[s][index]);
       const label = data.months[index];
@@ -155,9 +159,10 @@ function initChart() {
 
   function selectStep() {
     step = data.steps[Number(range.value)];
+    hover = null; // las series cambian de largo entre metas: un índice anterior puede quedar fuera
     output.textContent = step.goal;
     range.setAttribute('aria-valuetext', step.goal);
-    const without = step.crossings[0] === null ? '' : ` Sin aportes: ${data.months[step.crossings[0]]}.`;
+    const without = step.crossings[0] ? ` Sin aportes: ${data.months[step.crossings[0]]}.` : '';
     chart.setAttribute('aria-label', `Proyección hacia ${step.goal}. Con aportes: ${step.date}.${without}`);
     range.style.setProperty('--fill', `${(Number(range.value) / Number(range.max)) * 100}%`);
     if (goalKpi) {
@@ -221,7 +226,7 @@ function initContracts() {
   let tab = 'pending';
 
   /** @param {string} text */
-  const fold = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const fold = (text) => text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   /** @param {Contract} c @param {string} t */
   const inTab = (c, t) => t === 'all' || (t === 'paid') === c.paid;
 

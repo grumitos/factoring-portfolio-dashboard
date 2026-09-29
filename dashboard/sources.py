@@ -1,5 +1,6 @@
 """Entradas del tablero: exportes XLSX, archivo .env y tipo de cambio en vivo."""
 
+import http.client
 import json
 import math
 import re
@@ -20,9 +21,9 @@ _BUILTIN_DATE_FORMATS = set(range(14, 23)) | {45, 46, 47}
 
 
 def normalize(text: object) -> str:
-    """Minúsculas sin tildes ni espacios sobrantes: 'Código de subasta' -> 'codigo de subasta'."""
+    """Minúsculas sin tildes: 'Código de subasta' -> 'codigo de subasta'. Igual que `fold` en web/app.js."""
     decomposed = unicodedata.normalize("NFKD", str(text or ""))
-    return "".join(c for c in decomposed if not unicodedata.combining(c)).strip().casefold()
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).strip().lower()
 
 
 def read_xlsx(path: Path) -> list[dict[str, object]]:
@@ -35,9 +36,11 @@ def read_xlsx(path: Path) -> list[dict[str, object]]:
 
     rows = []
     for row in sheet.iterfind("m:sheetData/m:row", _NS):
-        cells = {}
+        cells, column = {}, -1
         for cell in row.iterfind("m:c", _NS):
-            column = re.match(r"[A-Z]+", cell.get("r", "")).group()
+            # La referencia (A1, B1...) es opcional en el formato: sin ella, la celda sigue a la anterior
+            ref = re.match(r"[A-Z]+", cell.get("r", ""))
+            column = _column_index(ref.group()) if ref else column + 1
             cells[column] = _cell_value(cell, shared, date_styles, path)
         rows.append(cells)
     if not rows:
@@ -47,6 +50,13 @@ def read_xlsx(path: Path) -> list[dict[str, object]]:
     columns = {column: normalize(name) for column, name in header.items()}
     filled = [row for row in data if any(value not in (None, "") for value in row.values())]
     return [{columns[c]: v for c, v in row.items() if c in columns} for row in filled]
+
+
+def _column_index(letters: str) -> int:
+    index = 0
+    for letter in letters:
+        index = index * 26 + ord(letter) - ord("A") + 1
+    return index - 1
 
 
 def _shared_strings(book: zipfile.ZipFile) -> list[str]:
@@ -86,9 +96,7 @@ def _cell_value(cell: ElementTree.Element, shared: list[str], date_styles: set[s
         return datetime.fromisoformat(raw)
     if kind == "n":
         number = float(raw)
-        if cell.get("s") in date_styles:
-            return _EXCEL_EPOCH + timedelta(days=number)
-        return number
+        return _EXCEL_EPOCH + timedelta(days=number) if cell.get("s") in date_styles else number
     raise ValueError(f"{path.name}: tipo de celda no soportado {kind!r} en {cell.get('r')}")
 
 
@@ -102,7 +110,25 @@ def load_exports(data_dir: Path = config.DATA_DIR) -> dict[str, list[dict[str, o
     missing = [name for files in groups.values() for name in files if not (data_dir / name).is_file()]
     if missing:
         raise FileNotFoundError(f"Faltan exportes en {data_dir}: {', '.join(missing)}")
-    return {group: [row for name in files for row in read_xlsx(data_dir / name)] for group, files in groups.items()}
+
+    exports = {}
+    for group, files in groups.items():
+        per_file = {name: read_xlsx(data_dir / name) for name in files}
+        if len(per_file) > 1:
+            _check_one_currency_per_file(per_file)
+        exports[group] = [row for rows in per_file.values() for row in rows]
+    return exports
+
+
+def _check_one_currency_per_file(per_file: dict[str, list[dict]]) -> None:
+    """Los pares ganancia/todos traen una moneda por archivo: descargar dos veces la misma duplicaría montos."""
+    seen: dict[str, str] = {}
+    for name, rows in per_file.items():
+        for currency in {normalize(row.get("moneda")).upper() for row in rows} - {""}:
+            if currency in seen:
+                raise ValueError(f"'{seen[currency]}' y '{name}' traen movimientos en {currency}: "
+                                 "cada exporte del par debe ser de una moneda distinta")
+            seen[currency] = name
 
 
 def read_env(path: Path = config.ENV_FILE) -> dict[str, str]:
@@ -110,7 +136,7 @@ def read_env(path: Path = config.ENV_FILE) -> dict[str, str]:
     if not path.is_file():
         return {}
     values = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in path.read_text(encoding="utf-8-sig").splitlines():  # -sig: tolera el BOM del Bloc de notas
         key, sep, value = line.strip().partition("=")
         if sep and key and not key.startswith("#"):
             values[key.strip()] = value.strip().strip("\"'")
@@ -134,6 +160,6 @@ def resolve_fx_rate(api_key: str | None) -> tuple[float, bool]:
         return config.DEFAULT_FX_RATE, True
     try:
         return fetch_fx_rate(api_key), False
-    except (OSError, ValueError, KeyError, TypeError) as error:
+    except (OSError, http.client.HTTPException, ValueError, KeyError, TypeError) as error:
         print(f"[fx] Usando la tasa por defecto ({config.DEFAULT_FX_RATE}): {error}", file=sys.stderr)
         return config.DEFAULT_FX_RATE, True

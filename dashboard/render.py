@@ -35,10 +35,10 @@ def signed(value: float) -> str:
 
 
 def compact(value: float) -> str:
-    """400000 -> '400K', 1200000 -> '1.2M'."""
+    """400000 -> '400K', 1200000 -> '1.2M', 1250000 -> '1.25M' (hasta dos decimales, sin ceros de más)."""
     for size, suffix in ((1_000_000, "M"), (1_000, "K")):
         if value >= size:
-            return fixed(value / size, 0 if value % size == 0 else 1, grouping=False) + suffix
+            return fixed(value / size, grouping=False).rstrip("0").rstrip(".") + suffix
     return fixed(value, 0)
 
 
@@ -78,7 +78,8 @@ def build_view(data: portfolio.Portfolio, fx_rate: float, fx_fallback: bool, now
             "label": f"Meta S/ {compact(goal)}",
             "value": percent(progress),
             "progress": min(100.0, max(0.0, progress)),
-            "date": "Fuera de alcance" if month is None else month_label(now.year, first_month + month),
+            "date": ("Fuera de alcance" if month is None else "Alcanzada" if month == 0
+                     else month_label(now.year, first_month + month)),
             "series": chart["series"],
             "crossings": chart["crossings"],
             "ticks": chart["ticks"],
@@ -142,10 +143,9 @@ def render_page(view: dict | None) -> str:
     """Página completa. Sin `view` (modo público) no incluye cifras, contratos ni scripts."""
     web = config.WEB_DIR
     favicon = "data:image/svg+xml," + urllib.parse.quote((web / "favicon.svg").read_text(encoding="utf-8").strip())
-    goal_label = f"Meta S/ {compact(config.GOAL)}"
 
     if view is None:
-        kpis = [{"label": label, "value": "—"} for label in ("Capital PEN", "Capital USD", "Tasa anual", goal_label)]
+        kpis = [{"label": label, "value": "—"} for label in ("Capital PEN", "Capital USD", "Tasa anual", "Meta")]
         meta, scripts = "", ""
         panels = "\n".join(f'<section class="panel panel-note" aria-label="{name}">Datos privados</section>'
                            for name in ("Proyección", "Contratos de factoring"))
@@ -155,8 +155,9 @@ def render_page(view: dict | None) -> str:
         as_of = f"<span>Corte {view['as_of']}</span>" if view["as_of"] else ""
         meta = f'<p class="data-meta num"><span{fx_class}>{view["fx"]}</span>{as_of}</p>'
         panels = _chart_panel(view["injection"], len(config.GOAL_STEPS)) + _contracts_panel()
-        # "</" escapado: ningún texto de los datos puede cerrar la etiqueta <script>
-        payload = json.dumps(view["data"], ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        # Todo "<" escapado: ningún texto de los datos puede cerrar ni reabrir la etiqueta <script>
+        payload = json.dumps(view["data"], ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+        payload = payload.replace("<", "\\u003c")
         app = (web / "app.js").read_text(encoding="utf-8")
         scripts = (f'<script id="dashboard-data" type="application/json">{payload}</script>\n'
                    f'<script type="module">\n{app}</script>')
