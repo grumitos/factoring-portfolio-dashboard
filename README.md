@@ -2,8 +2,6 @@
 
 Tablero de un portafolio de inversiones en factoring. Lee los exportes XLSX del portal, calcula saldos, tasa anual y la proyección hacia una meta, y genera una sola página, `dist/index.html`, que se abre directamente en el navegador.
 
-> Proyecto archivado: no recibirá más cambios.
-
 ## Requisitos
 
 Python 3.11 o superior. No usa dependencias externas.
