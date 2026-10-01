@@ -6,6 +6,8 @@ exportes XLSX.
 Lee los exportes del portal, calcula saldos, tasa anual y la proyección hacia una meta, y genera
 una sola página, `dist/index.html`, que se abre directamente en el navegador.
 
+![Tablero generado con exportes de ejemplo](docs/screenshots/dashboard.png)
+
 ## Requisitos
 
 - Windows con Python 3.11 o superior en el `PATH` (el código no depende del sistema operativo,
@@ -60,9 +62,10 @@ mensaje en vez de mostrar cifras incorrectas.
 
 ## Privacidad
 
-Los exportes (`data/`), el tablero generado (`dist/`) y `.env` contienen datos privados,
-permanecen en local y están fuera de Git. Para publicar, usa solo `dist/public/`, que genera
-`--public`; ese modo no lee los exportes ni `.env`.
+Los exportes (`data/`), el tablero generado (`dist/`) y `.env` contienen datos privados, permanecen
+en local y están fuera de Git. Para publicar, usa solo `dist/public/`, que genera `--public`; ese
+modo no lee los exportes ni `.env`. La captura de `docs/screenshots/` se generó con exportes de
+ejemplo.
 
 ## Pruebas
 
@@ -85,6 +88,7 @@ dashboard/          paquete de la aplicación
   render.py         arma la página: textos formateados, datos y plantilla
 web/                plantilla, estilos y script del navegador (se incrustan en la página)
 tests/              pruebas: python -m unittest
+docs/               captura del tablero
 .env.example        plantilla de .env
 run.bat             lanzador para Windows: crea .env y data la primera vez
 ```
